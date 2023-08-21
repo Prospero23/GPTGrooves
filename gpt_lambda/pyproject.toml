@@ -1,0 +1,5 @@
+[tool.ruff]
+ignore = ["E501"]
+
+# Don't erase variables that aren't used.
+unfixable = ["F841"]

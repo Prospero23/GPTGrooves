@@ -32,6 +32,7 @@ provider "aws" {
 
 locals {
   secret_name = "${var.territory}-${var.environment}-lambda-secret"
+  lambda_root = "${path.module}/../gpt_lambda"
 }
 
 resource "aws_secretsmanager_secret" "secrets" { #tfsec:ignore:aws-ssm-secret-use-customer-key
@@ -46,76 +47,75 @@ resource "aws_secretsmanager_secret_version" "secrets" {
   })
 }
 
-# module "lambda_function" {
-#   # https://registry.terraform.io/modules/terraform-aws-modules/lambda/aws/latest
-
-#   source  = "terraform-aws-modules/lambda/aws"
-#   version = "6.0.0"
-
-#   function_name = "${var.territory}-${var.environment}-udemy-ta-poller"
-
-#   build_in_docker   = true
-#   docker_file       = "${local.udemy_ta_root}/Dockerfile"
-#   docker_build_root = local.udemy_ta_root
-#   docker_image      = "public.ecr.aws/sam/build-python3.9"
-#   runtime           = "python3.9"
-#   architectures     = ["arm64"]
-
-#   # This does not work with Terraform Cloud
-#   source_path = [
-#     {
-#       path = local.udemy_ta_root
-#       patterns = [
-#         # The .*/.* indicates 1-or-more levels of directory.
-#         "!.*\\.db",
-#         "!.*/.*\\.db",
-#         "!.*\\.pyc",
-#         "!.*/.*\\.pyc",
-#         "!__pycache__",
-#         "!.*/__pycache__",
-#       ]
-#       pip_requirements = "${local.udemy_ta_root}/requirements.txt"
-#     }
-#   ]
-
-#   handler = "lambda_handler.handler"
-#   timeout = 900
-
-#   # TODO Optimize
-#   memory_size = 4096
-#   publish     = true
-
-#   description = "Poll Udemy for new questions and generate candidate replies."
+resource "aws_iam_policy" "get_secrets_policy" {
+  name   = "${var.territory}-${var.environment}-gpt-music-theorist-lambda-get-secrets-policy"
+  path   = "/${var.territory}/${var.environment}/"
+  policy = data.aws_iam_policy_document.get_secrets_policy.json
+}
 
 
-#   tracing_mode = "Active"
+module "lambda_function" {
+  # https://registry.terraform.io/modules/terraform-aws-modules/lambda/aws/latest
 
-#   allowed_triggers = {
-#     OneRule = {
-#       principal  = "events.amazonaws.com"
-#       source_arn = local.eventbridge_cron_arns
-#     },
-#   }
+  source  = "terraform-aws-modules/lambda/aws"
+  version = "6.0.0"
 
-#   environment_variables = {
-#     # SECRETS_MANAGER_SECRET_ID = "${var.territory}-${var.environment}-dynamodb-consumer-secret"
-#     SECRETS_MANAGER_SECRET_ID            = local.secret_name,
-#     PYTHON_LOG_LEVEL                     = "DEBUG",
-#     API_PAGE_SIZE                        = var.api_page_size,
-#     AWS_DYNAMODB_TABLE_NAME              = var.dynamodb_table_name,
-#     DATE_CUTOFF_FOR_UNANSWERED_QUESTIONS = var.date_cutoff_for_unanswered_questions,
-#   }
+  function_name = "${var.territory}-${var.environment}-gpt-music-theorist-lambda"
 
-#   attach_policies = true
-#   policies = [
-#     "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-#     aws_iam_policy.get_secrets_policy.arn,
-#     aws_iam_policy.dynamodb_read_write_policy.arn,
-#     aws_iam_policy.send_email_policy.arn
-#   ]
-#   number_of_policies = 4
+  build_in_docker   = true
+  docker_file       = "${local.lambda_root}/Dockerfile"
+  docker_build_root = local.lambda_root
+  docker_image      = "public.ecr.aws/sam/build-python3.9"
+  runtime           = "python3.9"
+  architectures     = ["arm64"]
 
-#   # use_existing_cloudwatch_log_group = true
-#   cloudwatch_logs_retention_in_days = 30
+  # This does not work with Terraform Cloud
+  source_path = [
+    {
+      path = local.lambda_root
+      patterns = [
+        # The .*/.* indicates 1-or-more levels of directory.
+        "!.*\\.pyc",
+        "!.*/.*\\.pyc",
+        "!__pycache__",
+        "!.*/__pycache__",
+      ]
+      pip_requirements = "${local.lambda_root}/requirements.txt"
+    }
+  ]
 
-# }
+  handler = "lambda_handler.handler"
+  timeout = 900
+
+  # TODO Optimize
+  memory_size = 4096
+  publish     = true
+
+  description = "Do smart stuff with GPT."
+
+  tracing_mode = "Active"
+
+  #   allowed_triggers = {
+  #     OneRule = {
+  #       principal  = "events.amazonaws.com"
+  #       source_arn = local.eventbridge_cron_arns
+  #     },
+  #   }
+
+  environment_variables = {
+    # SECRETS_MANAGER_SECRET_ID = "${var.territory}-${var.environment}-dynamodb-consumer-secret"
+    SECRETS_MANAGER_SECRET_ID = local.secret_name,
+    PYTHON_LOG_LEVEL          = "DEBUG",
+  }
+
+  attach_policies = true
+  policies = [
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    aws_iam_policy.get_secrets_policy.arn,
+  ]
+  number_of_policies = 2
+
+  # use_existing_cloudwatch_log_group = true
+  cloudwatch_logs_retention_in_days = 365
+
+}
