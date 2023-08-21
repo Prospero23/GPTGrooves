@@ -60,7 +60,7 @@ module "lambda_function" {
   source  = "terraform-aws-modules/lambda/aws"
   version = "6.0.0"
 
-  function_name = "${var.territory}-${var.environment}-gpt-music-theorist-lambda"
+  function_name = "${var.territory}-${var.environment}-gpt-lambda"
 
   build_in_docker   = true
   docker_file       = "${local.lambda_root}/Dockerfile"
