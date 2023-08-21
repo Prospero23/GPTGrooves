@@ -1,0 +1,67 @@
+# .pre-commit-config.yaml
+exclude: '.*\.js\.snap$'
+repos:
+-   repo: local
+    hooks:
+    -   id: next-lint
+        name: Next Lint
+        stages: [push]
+        language: system
+        entry: npm run lint
+        # files: '\.(js|jsx|ts|tsx|html|css|json|yaml)$'
+        always_run: true
+        pass_filenames: false
+
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    -   id: check-merge-conflict
+    -   id: check-case-conflict
+    -   id: check-yaml
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+      #-   id: check-added-large-files
+    -   id: detect-aws-credentials
+    -   id: detect-private-key
+    -   id: forbid-submodules
+# .pre-commit-config.yaml
+
+-   repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+    -   id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: package.lock.json
+
+-   repo: https://github.com/awslabs/cfn-python-lint
+    rev: v0.73.1 # The version of cfn-lint to use
+    hooks:
+    -   id: cfn-python-lint
+        files: .*\.template$
+
+-   repo: https://github.com/jumanjihouse/pre-commit-hooks
+    rev: 3.0.0
+    hooks:
+    -   id: require-ascii
+    -   id: shellcheck
+    -   id: shfmt
+
+-   repo: https://github.com/charliermarsh/ruff-pre-commit
+    # Ruff version.
+    rev: 'v0.0.262'
+    hooks:
+    -   id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+
+-   repo: https://github.com/psf/black
+    rev: 23.1.0
+    hooks:
+    -   id: black
+-   repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.81.2 # Get the latest from: https://github.com/antonbabenko/pre-commit-terraform/releases
+    hooks:
+    -   id: terraform_fmt
+    -   id: terraform_docs
+    -   id: terraform_validate
+    -   id: terraform_tflint
+    -   id: terraform_tfsec
