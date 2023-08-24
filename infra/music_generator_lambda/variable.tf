@@ -32,3 +32,13 @@ variable "openai_api_key" {
   type        = string
   description = "OpenAI API key"
 }
+
+variable "sequence_table_name" {
+  type        = string
+  description = "The name of the DynamoDB sequence table"
+}
+
+variable "sequence_table_arn" {
+  type        = string
+  description = "The ARN of the DynamoDB sequence table"
+}

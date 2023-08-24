@@ -26,9 +26,3 @@ variable "aws_region" {
   description = "The region to use for AWS resources."
   type        = string
 }
-
-# Application
-variable "openai_api_key" {
-  type        = string
-  description = "OpenAI API key"
-}
