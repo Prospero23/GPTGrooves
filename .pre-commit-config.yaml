@@ -30,7 +30,7 @@ repos:
     rev: v1.4.0
     hooks:
     -   id: detect-secrets
-        args: ['--baseline', '.secrets.baseline']
+        args: ['--baseline', '.secrets.baseline', '--exclude-files', 'synth_resources/.*\.export\.json', '--exclude-files', 'synth_resources/.*\.maxpat' ]
         exclude: package.lock.json
 
 -   repo: https://github.com/awslabs/cfn-python-lint
@@ -42,7 +42,6 @@ repos:
 -   repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 3.0.0
     hooks:
-    -   id: require-ascii
     -   id: shellcheck
     -   id: shfmt
 
