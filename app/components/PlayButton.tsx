@@ -2,12 +2,12 @@
 
 import setup from "@/public/sound.js";
 import { useEffect, useState } from "react";
-import { Device, MessageEvent, TimeNow } from "@rnbo/js";
+import { Device, MessageEvent, TimeNow, MIDIEvent, MIDIData } from "@rnbo/js";
 
 export default function PlayButton() {
   const [drums, setDrums] = useState<Device | undefined>(undefined);
   const [bass, setBass] = useState<Device | undefined>(undefined);
-  const [piano, setPiano] = useState<Device | undefined>(undefined);
+  const [synth, setSynth] = useState<Device | undefined>(undefined);
 
   const [audioContext, setAudioContext] = useState<AudioContext | undefined>(undefined);
 
@@ -19,7 +19,7 @@ export default function PlayButton() {
         setAudioContext(result.context);
         setDrums(result.device);
         setBass(result.deviceBass);
-        //setPiano(result.devicePiano);
+        setSynth(result.deviceSynth);
        // console.log(bass)
       } else {
         // Handle the undefined case, maybe log an error or throw an exception
@@ -49,12 +49,54 @@ export default function PlayButton() {
     }
   }
 
+  function handleClickSynth(event: React.MouseEvent<HTMLButtonElement>) {
+
+    let midiNotes: number[] = [];
+    const numberNotes = 4;
+    for (let i = 0; i < 4; i++){
+        midiNotes.push(Math.floor(Math.random() * 60 + 20))
+    }
+    if (synth){
+    midiNotes.forEach(note => {
+            let midiChannel = 0;
+
+            // Format a MIDI message paylaod, this constructs a MIDI on event
+            let noteOnMessage:MIDIData = [
+                144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
+                note, // MIDI Note
+                100 // MIDI Velocity
+            ];
+
+            let noteOffMessage:MIDIData = [
+                128 + midiChannel, // Code for a note off: 10000000 & midi channel (0-15)
+                note, // MIDI Note
+                0 // MIDI Velocity
+            ];
+
+            // Including rnbo.min.js (or the unminified rnbo.js) will add the RNBO object
+            // to the global namespace. This includes the TimeNow constant as well as
+            // the MIDIEvent constructor.
+            let midiPort = 0;
+            let noteDurationMs = 250;
+
+            // When scheduling an event to occur in the future, use the current audio context time
+            // multiplied by 1000 (converting seconds to milliseconds) for now.
+            let noteOnEvent = new MIDIEvent(synth.context.currentTime * 1000, midiPort, noteOnMessage);
+            let noteOffEvent = new MIDIEvent(synth.context.currentTime * 1000 + noteDurationMs, midiPort, noteOffMessage);
+
+            synth.scheduleEvent(noteOnEvent);
+            synth.scheduleEvent(noteOffEvent);
+        })
+  }
+}
+
 return (
     <div className="flex flex-col">
    <button onClick={(e) => handleClickDrums(e, 1)}>Hat</button>
    <button onClick={(e) => handleClickDrums(e, 2)}>Kick</button>
    <button onClick={(e) => handleClickDrums(e, 3)}>Snare</button>
    <button onClick={(e) => handleClickBass(e)}>Bass</button>
+   <button onClick={(e) => handleClickSynth(e)}>Synth</button>
   </div>
 )
 }
