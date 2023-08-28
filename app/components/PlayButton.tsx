@@ -6,6 +6,8 @@ import { Device, MessageEvent, TimeNow } from "@rnbo/js";
 
 export default function PlayButton() {
   const [drums, setDrums] = useState<Device | undefined>(undefined);
+  const [bass, setBass] = useState<Device | undefined>(undefined);
+  const [piano, setPiano] = useState<Device | undefined>(undefined);
 
   const [audioContext, setAudioContext] = useState<AudioContext | undefined>(undefined);
 
@@ -16,8 +18,12 @@ export default function PlayButton() {
       if (result) {
         setAudioContext(result.context);
         setDrums(result.device);
+        setBass(result.deviceBass);
+        //setPiano(result.devicePiano);
+       // console.log(bass)
       } else {
         // Handle the undefined case, maybe log an error or throw an exception
+        console.log('wtf')
       }
     }
     init()
@@ -29,19 +35,26 @@ export default function PlayButton() {
     };
   }, []);
 
-  function handleClick(event: React.MouseEvent<HTMLButtonElement>, inlet: number) {
+  function handleClickDrums(event: React.MouseEvent<HTMLButtonElement>, inlet: number) {
     const eventTrigger = new MessageEvent(TimeNow, `in${inlet}`, [ 1 ]);
     if (drums) {
     drums.scheduleEvent(eventTrigger);
     }
-
-    // No need for a return statement here.
   }
+
+  function handleClickBass(event: React.MouseEvent<HTMLButtonElement>) {
+    const eventTrigger = new MessageEvent(TimeNow, `in0`, [ Math.random() * 10 + 30 ]);
+    if (bass){
+    bass.scheduleEvent(eventTrigger);
+    }
+  }
+
 return (
     <div className="flex flex-col">
-   <button onClick={(e) => handleClick(e, 1)}>Hat</button>
-   <button onClick={(e) => handleClick(e, 2)}>Kick</button>
-   <button onClick={(e) => handleClick(e, 3)}>Snare</button>
+   <button onClick={(e) => handleClickDrums(e, 1)}>Hat</button>
+   <button onClick={(e) => handleClickDrums(e, 2)}>Kick</button>
+   <button onClick={(e) => handleClickDrums(e, 3)}>Snare</button>
+   <button onClick={(e) => handleClickBass(e)}>Bass</button>
   </div>
 )
 }

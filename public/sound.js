@@ -1,5 +1,7 @@
 export default async function setup() {
     const patchExportURL = "export/drums/drums.export.json";
+    const patchExportURL_bass = "export/bass/bass.export.json";
+    //const patchExportURL_synth = "export/synth/drums.export.json";
 
     // Create AudioContext
     const WAContext = window.AudioContext || window.webkitAudioContext;
@@ -10,10 +12,16 @@ export default async function setup() {
     outputNode.connect(context.destination);
 
     // Fetch the exported patcher
-    let response, patcher;
+    let response, patcher, responseBass, patcherBass;
     try {
         response = await fetch(patchExportURL);
         patcher = await response.json();
+
+        responseBass = await fetch(patchExportURL_bass)
+        patcherBass = await responseBass.json();
+
+        //responsePiano = await fetch(patchExportURL_piano)
+        //patcherPiano = await responsePiano.json()
 
         if (!window.RNBO) {
             // Load RNBO script dynamically
@@ -52,9 +60,11 @@ export default async function setup() {
     } catch (e) {}
 
     // Create the device
-    let device;
+    let device, deviceBass;
     try {
-        device = await RNBO.createDevice({ context, patcher });
+        device = await RNBO.createDevice({ context, patcher:patcher });
+        deviceBass = await RNBO.createDevice({ context, patcher:patcherBass });
+        //devicePiano = await RNBO.createDevice({ context, patcher:patcherPiano });
     } catch (err) {
         if (typeof guardrails === "function") {
             guardrails({ error: err });
@@ -70,6 +80,8 @@ export default async function setup() {
 
     // Connect the device to the web audio graph
     device.node.connect(outputNode);
+    deviceBass.node.connect(outputNode);
+    //devicePiano.node.connect(outputNode);
 
     // // (Optional) Create a form to send messages to RNBO inputs
     // makeInportForm(device);
@@ -203,7 +215,7 @@ export default async function setup() {
   }
 
 
-  return {context, device}
+  return {context, device, deviceBass}
 }
 
-  //setup();
+//setup();
