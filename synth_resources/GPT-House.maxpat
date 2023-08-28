@@ -4,7 +4,7 @@
 		"appversion" : 		{
 			"major" : 8,
 			"minor" : 5,
-			"revision" : 2,
+			"revision" : 5,
 			"architecture" : "x64",
 			"modernui" : 1
 		}
@@ -174,7 +174,7 @@
 						"appversion" : 						{
 							"major" : 8,
 							"minor" : 5,
-							"revision" : 2,
+							"revision" : 5,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
@@ -234,20 +234,18 @@
 									"patching_rect" : [ 92.5, 354.0, 343.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
-										"order" : "0",
-										"ctlin" : 0.0,
-										"steps" : 0.0,
+										"displayorder" : "-",
 										"displayname" : "",
-										"sendinit" : 1,
-										"maximum" : 1.0,
-										"fromnormalized" : "",
+										"meta" : "",
 										"enum" : "",
 										"tonormalized" : "",
-										"meta" : "",
-										"minimum" : 0.0,
 										"preset" : 1,
-										"displayorder" : "-",
-										"unit" : ""
+										"unit" : "",
+										"fromnormalized" : "",
+										"order" : "0",
+										"ctlin" : 0.0,
+										"sendinit" : 1,
+										"steps" : 0.0
 									}
 ,
 									"rnbo_serial" : 1,
@@ -671,21 +669,19 @@
 									"patching_rect" : [ 91.5, 136.0, 262.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
+										"displayorder" : "-",
+										"displayname" : "",
+										"meta" : "",
+										"enum" : "",
+										"tonormalized" : "",
+										"exponent" : 1.0,
+										"preset" : 1,
+										"unit" : "",
+										"fromnormalized" : "",
 										"order" : "0",
 										"ctlin" : 0.0,
-										"steps" : 0.0,
-										"displayname" : "",
 										"sendinit" : 1,
-										"maximum" : 1.0,
-										"fromnormalized" : "",
-										"enum" : "",
-										"exponent" : 1.0,
-										"tonormalized" : "",
-										"meta" : "",
-										"minimum" : 0.0,
-										"preset" : 1,
-										"displayorder" : "-",
-										"unit" : ""
+										"steps" : 0.0
 									}
 ,
 									"rnbo_serial" : 2,
@@ -1109,21 +1105,19 @@
 									"patching_rect" : [ 143.0, 198.0, 257.0, 23.0 ],
 									"rnbo_classname" : "param",
 									"rnbo_extra_attributes" : 									{
+										"displayorder" : "-",
+										"displayname" : "",
+										"meta" : "",
+										"enum" : "",
+										"tonormalized" : "",
+										"exponent" : 1.0,
+										"preset" : 1,
+										"unit" : "",
+										"fromnormalized" : "",
 										"order" : "0",
 										"ctlin" : 0.0,
-										"steps" : 0.0,
-										"displayname" : "",
 										"sendinit" : 1,
-										"maximum" : 1.0,
-										"fromnormalized" : "",
-										"enum" : "",
-										"exponent" : 1.0,
-										"tonormalized" : "",
-										"meta" : "",
-										"minimum" : 0.0,
-										"preset" : 1,
-										"displayorder" : "-",
-										"unit" : ""
+										"steps" : 0.0
 									}
 ,
 									"rnbo_serial" : 3,
@@ -1531,8 +1525,8 @@
 									"patching_rect" : [ 105.0, 572.0, 43.0, 23.0 ],
 									"rnbo_classname" : "out~",
 									"rnbo_extra_attributes" : 									{
-										"comment" : "",
-										"meta" : ""
+										"meta" : "",
+										"comment" : ""
 									}
 ,
 									"rnbo_serial" : 1,
@@ -1627,8 +1621,8 @@
 									"patching_rect" : [ 39.0, 572.0, 43.0, 23.0 ],
 									"rnbo_classname" : "out~",
 									"rnbo_extra_attributes" : 									{
-										"comment" : "",
-										"meta" : ""
+										"meta" : "",
+										"comment" : ""
 									}
 ,
 									"rnbo_serial" : 2,
@@ -1726,7 +1720,7 @@
 										"appversion" : 										{
 											"major" : 8,
 											"minor" : 5,
-											"revision" : 2,
+											"revision" : 5,
 											"architecture" : "x64",
 											"modernui" : 1
 										}
@@ -1828,21 +1822,19 @@
 													"patching_rect" : [ 59.0, 111.916870000000017, 164.0, 37.0 ],
 													"rnbo_classname" : "param",
 													"rnbo_extra_attributes" : 													{
+														"displayorder" : "-",
+														"displayname" : "",
+														"meta" : "",
+														"enum" : "",
+														"tonormalized" : "",
+														"exponent" : 1.0,
+														"preset" : 1,
+														"unit" : "",
+														"fromnormalized" : "",
 														"order" : "0",
 														"ctlin" : 0.0,
-														"steps" : 0.0,
-														"displayname" : "",
 														"sendinit" : 1,
-														"maximum" : 1.0,
-														"fromnormalized" : "",
-														"enum" : "",
-														"exponent" : 1.0,
-														"tonormalized" : "",
-														"meta" : "",
-														"minimum" : 0.0,
-														"preset" : 1,
-														"displayorder" : "-",
-														"unit" : ""
+														"steps" : 0.0
 													}
 ,
 													"rnbo_serial" : 1,
@@ -2252,21 +2244,19 @@
 													"patching_rect" : [ 282.0, 18.0, 133.0, 37.0 ],
 													"rnbo_classname" : "param",
 													"rnbo_extra_attributes" : 													{
+														"displayorder" : "-",
+														"displayname" : "",
+														"meta" : "",
+														"enum" : "",
+														"tonormalized" : "",
+														"exponent" : 1.0,
+														"preset" : 1,
+														"unit" : "",
+														"fromnormalized" : "",
 														"order" : "0",
 														"ctlin" : 0.0,
-														"steps" : 0.0,
-														"displayname" : "",
 														"sendinit" : 1,
-														"maximum" : 1.0,
-														"fromnormalized" : "",
-														"enum" : "",
-														"exponent" : 1.0,
-														"tonormalized" : "",
-														"meta" : "",
-														"minimum" : 0.0,
-														"preset" : 1,
-														"displayorder" : "-",
-														"unit" : ""
+														"steps" : 0.0
 													}
 ,
 													"rnbo_serial" : 2,
@@ -2676,21 +2666,19 @@
 													"patching_rect" : [ 358.0, 111.916870000000017, 174.438874000000055, 37.0 ],
 													"rnbo_classname" : "param",
 													"rnbo_extra_attributes" : 													{
+														"displayorder" : "-",
+														"displayname" : "",
+														"meta" : "",
+														"enum" : "",
+														"tonormalized" : "",
+														"exponent" : 1.0,
+														"preset" : 1,
+														"unit" : "",
+														"fromnormalized" : "",
 														"order" : "0",
 														"ctlin" : 0.0,
-														"steps" : 0.0,
-														"displayname" : "",
 														"sendinit" : 1,
-														"maximum" : 1.0,
-														"fromnormalized" : "",
-														"enum" : "",
-														"exponent" : 1.0,
-														"tonormalized" : "",
-														"meta" : "",
-														"minimum" : 0.0,
-														"preset" : 1,
-														"displayorder" : "-",
-														"unit" : ""
+														"steps" : 0.0
 													}
 ,
 													"rnbo_serial" : 3,
@@ -3137,8 +3125,8 @@
 													"patching_rect" : [ 501.0, 167.916870000000017, 35.0, 23.0 ],
 													"rnbo_classname" : "in~",
 													"rnbo_extra_attributes" : 													{
-														"comment" : "",
-														"meta" : ""
+														"meta" : "",
+														"comment" : ""
 													}
 ,
 													"rnbo_serial" : 1,
@@ -3300,7 +3288,7 @@
 														"aliasOf" : "feedback~",
 														"classname" : "feedback~",
 														"operator" : 0,
-														"versionId" : 1113299383,
+														"versionId" : -653846986,
 														"changesPatcherIO" : 0
 													}
 ,
@@ -3319,8 +3307,8 @@
 													"rnbo_classname" : "delay~",
 													"rnbo_extra_attributes" : 													{
 														"maxdelayms" : 0.0,
-														"ramp" : 50.0,
-														"interp" : "linear"
+														"interp" : "linear",
+														"ramp" : 50.0
 													}
 ,
 													"rnbo_serial" : 1,
@@ -3338,8 +3326,8 @@
 													"patching_rect" : [ 499.0, 285.958435000000009, 43.0, 23.0 ],
 													"rnbo_classname" : "out~",
 													"rnbo_extra_attributes" : 													{
-														"comment" : "",
-														"meta" : ""
+														"meta" : "",
+														"comment" : ""
 													}
 ,
 													"rnbo_serial" : 1,
@@ -3502,7 +3490,7 @@
 														"aliasOf" : "feedback~",
 														"classname" : "feedback~",
 														"operator" : 0,
-														"versionId" : 1113299383,
+														"versionId" : -653846986,
 														"changesPatcherIO" : 0
 													}
 ,
@@ -3521,8 +3509,8 @@
 													"rnbo_classname" : "delay~",
 													"rnbo_extra_attributes" : 													{
 														"maxdelayms" : 0.0,
-														"ramp" : 50.0,
-														"interp" : "linear"
+														"interp" : "linear",
+														"ramp" : 50.0
 													}
 ,
 													"rnbo_serial" : 2,
@@ -3540,8 +3528,8 @@
 													"patching_rect" : [ 186.0, 285.0, 43.0, 23.0 ],
 													"rnbo_classname" : "out~",
 													"rnbo_extra_attributes" : 													{
-														"comment" : "",
-														"meta" : ""
+														"meta" : "",
+														"comment" : ""
 													}
 ,
 													"rnbo_serial" : 2,
@@ -3637,8 +3625,8 @@
 													"patching_rect" : [ 188.0, 155.0, 35.0, 23.0 ],
 													"rnbo_classname" : "in~",
 													"rnbo_extra_attributes" : 													{
-														"comment" : "",
-														"meta" : ""
+														"meta" : "",
+														"comment" : ""
 													}
 ,
 													"rnbo_serial" : 2,
@@ -4074,7 +4062,7 @@
 ,
 											"voicecontrol" : 											{
 												"attrOrProp" : 2,
-												"digest" : "Chooses the way that polyphonic voices are controlled. 'simple' (default) will automatically allocate voices for \tincoming MIDI notes. Setting it to 'user' will switch off MIDI \tvoice allocation and start with all voices unmuted.",
+												"digest" : "Chooses the way that polyphonic voices are controlled. 'simple' (or 'midi') will automatically allocate voices for \tincoming MIDI notes. Setting it to 'user' (or 'none') will switch off MIDI \tvoice allocation and start with all voices unmuted.",
 												"isalias" : 0,
 												"aliases" : [  ],
 												"settable" : 1,
@@ -4156,7 +4144,7 @@
 										"aliasOf" : "rnbo",
 										"classname" : "p",
 										"operator" : 0,
-										"versionId" : 1171694799,
+										"versionId" : -1231830626,
 										"changesPatcherIO" : 0
 									}
 ,
@@ -4465,7 +4453,7 @@
 ,
 											"voicecontrol" : 											{
 												"attrOrProp" : 2,
-												"digest" : "Chooses the way that polyphonic voices are controlled. 'simple' (default) will automatically allocate voices for \tincoming MIDI notes. Setting it to 'user' will switch off MIDI \tvoice allocation and start with all voices unmuted.",
+												"digest" : "Chooses the way that polyphonic voices are controlled. 'simple' (or 'midi') will automatically allocate voices for \tincoming MIDI notes. Setting it to 'user' (or 'none') will switch off MIDI \tvoice allocation and start with all voices unmuted.",
 												"isalias" : 0,
 												"aliases" : [  ],
 												"settable" : 1,
@@ -4555,7 +4543,7 @@
 										"aliasOf" : "rnbo",
 										"classname" : "p",
 										"operator" : 0,
-										"versionId" : 1171694799,
+										"versionId" : -1231830626,
 										"changesPatcherIO" : 0
 									}
 ,
@@ -4768,7 +4756,7 @@
 ,
 											"voicecontrol" : 											{
 												"attrOrProp" : 2,
-												"digest" : "Chooses the way that polyphonic voices are controlled. 'simple' (default) will automatically allocate voices for \tincoming MIDI notes. Setting it to 'user' will switch off MIDI \tvoice allocation and start with all voices unmuted.",
+												"digest" : "Chooses the way that polyphonic voices are controlled. 'simple' (or 'midi') will automatically allocate voices for \tincoming MIDI notes. Setting it to 'user' (or 'none') will switch off MIDI \tvoice allocation and start with all voices unmuted.",
 												"isalias" : 0,
 												"aliases" : [  ],
 												"settable" : 1,
@@ -4866,7 +4854,7 @@
 										"aliasOf" : "rnbo",
 										"classname" : "p",
 										"operator" : 0,
-										"versionId" : 1171694799,
+										"versionId" : -1231830626,
 										"changesPatcherIO" : 0
 									}
 ,
@@ -5049,7 +5037,7 @@
 ,
 											"voicecontrol" : 											{
 												"attrOrProp" : 2,
-												"digest" : "Chooses the way that polyphonic voices are controlled. 'simple' (default) will automatically allocate voices for \tincoming MIDI notes. Setting it to 'user' will switch off MIDI \tvoice allocation and start with all voices unmuted.",
+												"digest" : "Chooses the way that polyphonic voices are controlled. 'simple' (or 'midi') will automatically allocate voices for \tincoming MIDI notes. Setting it to 'user' (or 'none') will switch off MIDI \tvoice allocation and start with all voices unmuted.",
 												"isalias" : 0,
 												"aliases" : [  ],
 												"settable" : 1,
@@ -5140,7 +5128,7 @@
 										"aliasOf" : "rnbo",
 										"classname" : "p",
 										"operator" : 0,
-										"versionId" : 1171694799,
+										"versionId" : -1231830626,
 										"changesPatcherIO" : 0
 									}
 ,
@@ -5193,8 +5181,8 @@
 									"patching_rect" : [ 40.0, 65.0, 40.0, 23.0 ],
 									"rnbo_classname" : "mtof~",
 									"rnbo_extra_attributes" : 									{
-										"filter" : 1.0,
-										"scalename" : ""
+										"scalename" : "",
+										"filter" : 1.0
 									}
 ,
 									"rnbo_serial" : 1,
@@ -5500,50 +5488,8 @@
 ,
 					"patching_rect" : [ 687.5625, 596.612797975540161, 156.0, 22.0 ],
 					"rnboattrcache" : 					{
-						"harmonicity" : 						{
-							"label" : "harmonicity",
-							"isEnum" : 0,
-							"parsestring" : ""
-						}
-,
-						"poly/p_obj-18/decay" : 						{
-							"label" : "decay",
-							"isEnum" : 0,
-							"parsestring" : ""
-						}
-,
 						"poly/p_obj-3/fb" : 						{
 							"label" : "fb",
-							"isEnum" : 0,
-							"parsestring" : ""
-						}
-,
-						"poly/p_obj-3/left_delay" : 						{
-							"label" : "left_delay",
-							"isEnum" : 0,
-							"parsestring" : ""
-						}
-,
-						"poly/p_obj-18/release" : 						{
-							"label" : "release",
-							"isEnum" : 0,
-							"parsestring" : ""
-						}
-,
-						"filter" : 						{
-							"label" : "filter",
-							"isEnum" : 0,
-							"parsestring" : ""
-						}
-,
-						"poly/p_obj-3/right_delay" : 						{
-							"label" : "right_delay",
-							"isEnum" : 0,
-							"parsestring" : ""
-						}
-,
-						"poly/p_obj-18/attack" : 						{
-							"label" : "attack",
 							"isEnum" : 0,
 							"parsestring" : ""
 						}
@@ -5554,15 +5500,57 @@
 							"parsestring" : ""
 						}
 ,
+						"poly/p_obj-3/right_delay" : 						{
+							"label" : "right_delay",
+							"isEnum" : 0,
+							"parsestring" : ""
+						}
+,
+						"filter" : 						{
+							"label" : "filter",
+							"isEnum" : 0,
+							"parsestring" : ""
+						}
+,
+						"poly/p_obj-3/left_delay" : 						{
+							"label" : "left_delay",
+							"isEnum" : 0,
+							"parsestring" : ""
+						}
+,
 						"poly/p_obj-18/sustain" : 						{
 							"label" : "sustain",
+							"isEnum" : 0,
+							"parsestring" : ""
+						}
+,
+						"poly/p_obj-18/decay" : 						{
+							"label" : "decay",
+							"isEnum" : 0,
+							"parsestring" : ""
+						}
+,
+						"poly/p_obj-18/attack" : 						{
+							"label" : "attack",
+							"isEnum" : 0,
+							"parsestring" : ""
+						}
+,
+						"harmonicity" : 						{
+							"label" : "harmonicity",
+							"isEnum" : 0,
+							"parsestring" : ""
+						}
+,
+						"poly/p_obj-18/release" : 						{
+							"label" : "release",
 							"isEnum" : 0,
 							"parsestring" : ""
 						}
 
 					}
 ,
-					"rnboversion" : "1.0.2",
+					"rnboversion" : "1.1.2",
 					"saved_attribute_attributes" : 					{
 						"valueof" : 						{
 							"parameter_invisible" : 1,
@@ -6113,7 +6101,7 @@
 						"appversion" : 						{
 							"major" : 8,
 							"minor" : 5,
-							"revision" : 2,
+							"revision" : 5,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
@@ -6152,7 +6140,7 @@
 								"box" : 								{
 									"id" : "obj-32",
 									"maxclass" : "message",
-									"numinlets" : 1,
+									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
 									"patching_rect" : [ 523.0, 284.0, 20.0, 23.0 ],
@@ -6276,7 +6264,7 @@
 								"box" : 								{
 									"id" : "obj-27",
 									"maxclass" : "message",
-									"numinlets" : 1,
+									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
 									"patching_rect" : [ 410.0, 181.0, 20.0, 23.0 ],
@@ -6301,8 +6289,8 @@
 									"patching_rect" : [ 307.5, 77.0, 28.0, 23.0 ],
 									"rnbo_classname" : "in",
 									"rnbo_extra_attributes" : 									{
-										"comment" : "",
-										"meta" : ""
+										"meta" : "",
+										"comment" : ""
 									}
 ,
 									"rnbo_serial" : 1,
@@ -6527,17 +6515,6 @@
 												"type" : "signal"
 											}
 ,
-											"__probingout1" : 											{
-												"attrOrProp" : 1,
-												"digest" : "__probingout1",
-												"isalias" : 0,
-												"aliases" : [  ],
-												"attachable" : 0,
-												"isparam" : 0,
-												"deprecated" : 0,
-												"type" : "signal"
-											}
-,
 											"out1" : 											{
 												"attrOrProp" : 1,
 												"digest" : "out1",
@@ -6640,7 +6617,7 @@
 ,
 											"voicecontrol" : 											{
 												"attrOrProp" : 2,
-												"digest" : "Chooses the way that polyphonic voices are controlled. 'simple' (default) will automatically allocate voices for \tincoming MIDI notes. Setting it to 'user' will switch off MIDI \tvoice allocation and start with all voices unmuted.",
+												"digest" : "Chooses the way that polyphonic voices are controlled. 'simple' (or 'midi') will automatically allocate voices for \tincoming MIDI notes. Setting it to 'user' (or 'none') will switch off MIDI \tvoice allocation and start with all voices unmuted.",
 												"isalias" : 0,
 												"aliases" : [  ],
 												"settable" : 1,
@@ -6737,7 +6714,7 @@
 										"aliasOf" : "rnbo",
 										"classname" : "p",
 										"operator" : 0,
-										"versionId" : 1171694799,
+										"versionId" : -1231830626,
 										"changesPatcherIO" : 0
 									}
 ,
@@ -6756,8 +6733,8 @@
 									"patching_rect" : [ 232.0, 191.0, 33.0, 23.0 ],
 									"rnbo_classname" : "mtof",
 									"rnbo_extra_attributes" : 									{
-										"filter" : 1.0,
-										"scalename" : ""
+										"scalename" : "",
+										"filter" : 1.0
 									}
 ,
 									"rnbo_serial" : 1,
@@ -6942,9 +6919,9 @@
 									"rnbo_extra_attributes" : 									{
 										"minimum" : 0,
 										"maximum" : 5,
-										"order" : "",
-										"value" : 3.0,
-										"preset" : 0
+										"preset" : 0,
+										"initialFormat" : "float",
+										"order" : ""
 									}
 ,
 									"rnbo_serial" : 1,
@@ -6986,6 +6963,74 @@
 									"rnbo_classname" : "loadmess",
 									"rnbo_serial" : 1,
 									"rnbo_uniqueid" : "loadmess_obj-1",
+									"rnboinfo" : 									{
+										"needsInstanceInfo" : 1,
+										"argnames" : 										{
+											"input" : 											{
+												"attrOrProp" : 1,
+												"digest" : "Bang to trigger message.",
+												"isalias" : 0,
+												"aliases" : [  ],
+												"settable" : 0,
+												"attachable" : 0,
+												"isparam" : 0,
+												"deprecated" : 0,
+												"inlet" : 1,
+												"type" : "bang"
+											}
+,
+											"message" : 											{
+												"attrOrProp" : 1,
+												"digest" : "Message when patcher is loaded.",
+												"defaultarg" : 1,
+												"isalias" : 0,
+												"aliases" : [  ],
+												"settable" : 1,
+												"attachable" : 0,
+												"isparam" : 0,
+												"deprecated" : 0,
+												"outlet" : 1,
+												"type" : "list",
+												"defaultValue" : ""
+											}
+,
+											"startupbang" : 											{
+												"attrOrProp" : 1,
+												"digest" : "startupbang",
+												"isalias" : 0,
+												"aliases" : [  ],
+												"attachable" : 0,
+												"isparam" : 0,
+												"deprecated" : 0,
+												"type" : "bang"
+											}
+
+										}
+,
+										"inputs" : [ 											{
+												"name" : "input",
+												"type" : "bang",
+												"digest" : "Bang to trigger message.",
+												"hot" : 1,
+												"docked" : 0
+											}
+ ],
+										"outputs" : [ 											{
+												"name" : "message",
+												"type" : "list",
+												"digest" : "Message when patcher is loaded.",
+												"defaultarg" : 1,
+												"docked" : 0
+											}
+ ],
+										"helpname" : "loadmess",
+										"aliasOf" : "loadmess",
+										"classname" : "loadmess",
+										"operator" : 0,
+										"versionId" : -361086158,
+										"changesPatcherIO" : 0
+									}
+,
 									"text" : "loadmess 3"
 								}
 
@@ -7007,7 +7052,8 @@
 									"patching_rect" : [ 293.5, 320.0, 56.0, 23.0 ],
 									"rnbo_classname" : "number~",
 									"rnbo_extra_attributes" : 									{
-										"interval" : 100.0
+										"interval" : 100.0,
+										"initialMode" : "sig"
 									}
 ,
 									"rnbo_serial" : 1,
@@ -7114,17 +7160,6 @@
 												"type" : "signal"
 											}
 ,
-											"__probingout1" : 											{
-												"attrOrProp" : 1,
-												"digest" : "__probingout1",
-												"isalias" : 0,
-												"aliases" : [  ],
-												"attachable" : 0,
-												"isparam" : 0,
-												"deprecated" : 0,
-												"type" : "signal"
-											}
-,
 											"out1" : 											{
 												"attrOrProp" : 1,
 												"digest" : "out1",
@@ -7227,7 +7262,7 @@
 ,
 											"voicecontrol" : 											{
 												"attrOrProp" : 2,
-												"digest" : "Chooses the way that polyphonic voices are controlled. 'simple' (default) will automatically allocate voices for \tincoming MIDI notes. Setting it to 'user' will switch off MIDI \tvoice allocation and start with all voices unmuted.",
+												"digest" : "Chooses the way that polyphonic voices are controlled. 'simple' (or 'midi') will automatically allocate voices for \tincoming MIDI notes. Setting it to 'user' (or 'none') will switch off MIDI \tvoice allocation and start with all voices unmuted.",
 												"isalias" : 0,
 												"aliases" : [  ],
 												"settable" : 1,
@@ -7317,7 +7352,7 @@
 										"aliasOf" : "rnbo",
 										"classname" : "p",
 										"operator" : 0,
-										"versionId" : 1171694799,
+										"versionId" : -1231830626,
 										"changesPatcherIO" : 0
 									}
 ,
@@ -7341,12 +7376,13 @@
 									"patching_rect" : [ 232.0, 254.0, 56.0, 23.0 ],
 									"rnbo_classname" : "number~",
 									"rnbo_extra_attributes" : 									{
-										"interval" : 100.0
+										"interval" : 100.0,
+										"initialMode" : "sig"
 									}
 ,
 									"rnbo_serial" : 2,
 									"rnbo_uniqueid" : "number~_obj-6",
-									"sig" : 73.416192085550264
+									"sig" : 293.664768013328626
 								}
 
 							}
@@ -7361,8 +7397,8 @@
 									"patching_rect" : [ 232.0, 570.0, 46.0, 24.0 ],
 									"rnbo_classname" : "out~",
 									"rnbo_extra_attributes" : 									{
-										"comment" : "",
-										"meta" : ""
+										"meta" : "",
+										"comment" : ""
 									}
 ,
 									"rnbo_serial" : 1,
@@ -7587,26 +7623,26 @@
 ,
 					"patching_rect" : [ 510.545468330383301, 331.127938508987427, 102.0, 22.0 ],
 					"rnboattrcache" : 					{
-						"envelope/sustain" : 						{
-							"label" : "sustain",
-							"isEnum" : 0,
-							"parsestring" : ""
-						}
-,
-						"envelope/attack" : 						{
-							"label" : "attack",
-							"isEnum" : 0,
-							"parsestring" : ""
-						}
-,
 						"envelope/release" : 						{
 							"label" : "release",
 							"isEnum" : 0,
 							"parsestring" : ""
 						}
 ,
+						"envelope/sustain" : 						{
+							"label" : "sustain",
+							"isEnum" : 0,
+							"parsestring" : ""
+						}
+,
 						"envelope/decay" : 						{
 							"label" : "decay",
+							"isEnum" : 0,
+							"parsestring" : ""
+						}
+,
+						"envelope/attack" : 						{
+							"label" : "attack",
 							"isEnum" : 0,
 							"parsestring" : ""
 						}
@@ -7619,7 +7655,7 @@
 
 					}
 ,
-					"rnboversion" : "1.0.2",
+					"rnboversion" : "1.1.2",
 					"saved_attribute_attributes" : 					{
 						"valueof" : 						{
 							"parameter_invisible" : 1,
@@ -7892,7 +7928,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 210.750013589859009, 378.333339631557465, 118.0, 22.0 ],
+					"patching_rect" : [ 207.166670203208923, 503.333339631557465, 118.0, 22.0 ],
 					"text" : "limi~ @threshold 0.9"
 				}
 
@@ -7903,7 +7939,7 @@
 					"maxclass" : "newobj",
 					"numinlets" : 2,
 					"numoutlets" : 0,
-					"patching_rect" : [ 201.416680455207825, 417.333326518535614, 35.0, 22.0 ],
+					"patching_rect" : [ 197.833337068557739, 542.333326518535614, 35.0, 22.0 ],
 					"text" : "dac~"
 				}
 
@@ -7931,17 +7967,11 @@
 								"tag" : "in3",
 								"comment" : ""
 							}
-, 							{
-								"type" : "event",
-								"index" : 4,
-								"tag" : "in4",
-								"comment" : ""
-							}
  ]
 					}
 ,
 					"maxclass" : "newobj",
-					"numinlets" : 4,
+					"numinlets" : 3,
 					"numoutlets" : 2,
 					"outletInfo" : 					{
 						"IOInfo" : [ 							{
@@ -7959,13 +7989,13 @@
 						"appversion" : 						{
 							"major" : 8,
 							"minor" : 5,
-							"revision" : 2,
+							"revision" : 5,
 							"architecture" : "x64",
 							"modernui" : 1
 						}
 ,
 						"classnamespace" : "rnbo",
-						"rect" : [ 148.0, 94.0, 1322.0, 826.0 ],
+						"rect" : [ 210.0, 296.0, 931.0, 826.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -8001,174 +8031,8 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 464.0, 81.0, 150.0, 64.0 ],
+									"patching_rect" : [ 284.0, 24.5, 150.0, 64.0 ],
 									"text" : "/Users/ben/webDevelopment/next-js/gpt-music-theorist/synth_resources/sound_files"
-								}
-
-							}
-, 							{
-								"box" : 								{
-									"id" : "obj-72",
-									"maxclass" : "newobj",
-									"numinlets" : 2,
-									"numoutlets" : 2,
-									"outlettype" : [ "", "" ],
-									"patching_rect" : [ 708.0, 285.0, 50.0, 23.0 ],
-									"rnbo_classname" : "select",
-									"rnbo_serial" : 1,
-									"rnbo_uniqueid" : "select_obj-72",
-									"rnboinfo" : 									{
-										"needsInstanceInfo" : 1,
-										"argnames" : 										{
-											"test1" : 											{
-												"attrOrProp" : 1,
-												"digest" : "Set Value (1) to Match",
-												"defaultarg" : 1,
-												"isalias" : 0,
-												"aliases" : [  ],
-												"settable" : 1,
-												"attachable" : 0,
-												"isparam" : 0,
-												"deprecated" : 0,
-												"inlet" : 1,
-												"type" : "number",
-												"defaultValue" : "1"
-											}
-,
-											"match1" : 											{
-												"attrOrProp" : 1,
-												"digest" : "Bang if input matches 1",
-												"isalias" : 0,
-												"aliases" : [  ],
-												"attachable" : 0,
-												"isparam" : 0,
-												"deprecated" : 0,
-												"outlet" : 1,
-												"type" : "bang"
-											}
-
-										}
-,
-										"inputs" : [ 											{
-												"name" : "input",
-												"type" : [ "number", "bang" ],
-												"digest" : "Number to test",
-												"hot" : 1,
-												"docked" : 0
-											}
-, 											{
-												"name" : "test1",
-												"type" : "number",
-												"digest" : "Set Value (1) to Match",
-												"defaultarg" : 1,
-												"docked" : 0
-											}
- ],
-										"outputs" : [ 											{
-												"name" : "match1",
-												"type" : "bang",
-												"digest" : "Bang if input matches 1",
-												"docked" : 0
-											}
-, 											{
-												"name" : "nomatch",
-												"type" : [ "number", "bang" ],
-												"digest" : "Input if Input Doesn't Match",
-												"docked" : 0
-											}
- ],
-										"helpname" : "select",
-										"aliasOf" : "select",
-										"classname" : "select",
-										"operator" : 0,
-										"versionId" : 902197102,
-										"changesPatcherIO" : 0
-									}
-,
-									"text" : "select 1"
-								}
-
-							}
-, 							{
-								"box" : 								{
-									"id" : "obj-71",
-									"maxclass" : "newobj",
-									"numinlets" : 0,
-									"numoutlets" : 1,
-									"outlettype" : [ "" ],
-									"patching_rect" : [ 708.0, 253.0, 29.0, 23.0 ],
-									"rnbo_classname" : "in",
-									"rnbo_extra_attributes" : 									{
-										"comment" : "",
-										"meta" : ""
-									}
-,
-									"rnbo_serial" : 1,
-									"rnbo_uniqueid" : "in_obj-71",
-									"rnboinfo" : 									{
-										"needsInstanceInfo" : 1,
-										"argnames" : 										{
-											"index" : 											{
-												"attrOrProp" : 2,
-												"digest" : "inlet number",
-												"defaultarg" : 1,
-												"isalias" : 0,
-												"aliases" : [  ],
-												"settable" : 1,
-												"attachable" : 0,
-												"isparam" : 0,
-												"deprecated" : 0,
-												"type" : "number",
-												"mandatory" : 1
-											}
-,
-											"comment" : 											{
-												"attrOrProp" : 2,
-												"digest" : "mouse over comment",
-												"isalias" : 0,
-												"aliases" : [  ],
-												"settable" : 1,
-												"attachable" : 0,
-												"isparam" : 0,
-												"deprecated" : 0,
-												"type" : "symbol"
-											}
-,
-											"meta" : 											{
-												"attrOrProp" : 2,
-												"digest" : "A JSON formatted string containing metadata for use by the exported code",
-												"isalias" : 0,
-												"aliases" : [  ],
-												"settable" : 1,
-												"attachable" : 0,
-												"isparam" : 0,
-												"deprecated" : 0,
-												"type" : "symbol",
-												"defaultValue" : "",
-												"label" : "Metadata",
-												"displayorder" : 3
-											}
-
-										}
-,
-										"inputs" : [  ],
-										"outputs" : [ 											{
-												"name" : "out1",
-												"type" : [ "bang", "number", "list" ],
-												"digest" : "value from inlet with index 4",
-												"displayName" : "",
-												"docked" : 0
-											}
- ],
-										"helpname" : "in",
-										"aliasOf" : "in",
-										"classname" : "in",
-										"operator" : 0,
-										"versionId" : 1219109108,
-										"changesPatcherIO" : 1
-									}
-,
-									"text" : "in 4"
 								}
 
 							}
@@ -8476,8 +8340,8 @@
 									"patching_rect" : [ 456.0, 359.0, 28.0, 23.0 ],
 									"rnbo_classname" : "in",
 									"rnbo_extra_attributes" : 									{
-										"comment" : "",
-										"meta" : ""
+										"meta" : "",
+										"comment" : ""
 									}
 ,
 									"rnbo_serial" : 2,
@@ -8559,8 +8423,8 @@
 									"patching_rect" : [ 324.0, 366.0, 28.0, 23.0 ],
 									"rnbo_classname" : "in",
 									"rnbo_extra_attributes" : 									{
-										"comment" : "",
-										"meta" : ""
+										"meta" : "",
+										"comment" : ""
 									}
 ,
 									"rnbo_serial" : 3,
@@ -8642,8 +8506,8 @@
 									"patching_rect" : [ 187.0, 355.0, 28.0, 23.0 ],
 									"rnbo_classname" : "in",
 									"rnbo_extra_attributes" : 									{
-										"comment" : "",
-										"meta" : ""
+										"meta" : "",
+										"comment" : ""
 									}
 ,
 									"rnbo_serial" : 4,
@@ -8726,12 +8590,12 @@
 									"patching_rect" : [ 675.0, 116.0, 718.0, 37.0 ],
 									"rnbo_classname" : "buffer~",
 									"rnbo_extra_attributes" : 									{
-										"type" : "",
+										"samplerate" : 0.0,
 										"fill" : "",
-										"samplerate" : 0.0
+										"type" : ""
 									}
 ,
-									"rnbo_serial" : 9,
+									"rnbo_serial" : 1,
 									"rnbo_uniqueid" : "buffer~_obj-54",
 									"rnboinfo" : 									{
 										"needsInstanceInfo" : 1,
@@ -8925,7 +8789,7 @@
 ,
 											"type" : 											{
 												"attrOrProp" : 2,
-												"digest" : "Type of Data (Float32, Float64)",
+												"digest" : "Type of Data (float32, float64)",
 												"isalias" : 0,
 												"aliases" : [  ],
 												"settable" : 1,
@@ -9008,7 +8872,7 @@
 										"aliasOf" : "data",
 										"classname" : "buffer~",
 										"operator" : 0,
-										"versionId" : 2090845839,
+										"versionId" : 51756089,
 										"changesPatcherIO" : 0
 									}
 ,
@@ -9027,12 +8891,12 @@
 									"patching_rect" : [ 784.0, 38.0, 617.0, 37.0 ],
 									"rnbo_classname" : "buffer~",
 									"rnbo_extra_attributes" : 									{
-										"type" : "",
+										"samplerate" : 0.0,
 										"fill" : "",
-										"samplerate" : 0.0
+										"type" : ""
 									}
 ,
-									"rnbo_serial" : 5,
+									"rnbo_serial" : 2,
 									"rnbo_uniqueid" : "buffer~_obj-53",
 									"rnboinfo" : 									{
 										"needsInstanceInfo" : 1,
@@ -9226,7 +9090,7 @@
 ,
 											"type" : 											{
 												"attrOrProp" : 2,
-												"digest" : "Type of Data (Float32, Float64)",
+												"digest" : "Type of Data (float32, float64)",
 												"isalias" : 0,
 												"aliases" : [  ],
 												"settable" : 1,
@@ -9309,11 +9173,11 @@
 										"aliasOf" : "data",
 										"classname" : "buffer~",
 										"operator" : 0,
-										"versionId" : 2090845839,
+										"versionId" : 51756089,
 										"changesPatcherIO" : 0
 									}
 ,
-									"text" : "buffer~ hat @file \"/Users/ben/webDevelopment/next-js/gpt-music-theorist/synth_resources/sound_files/black808 drumkit/Hi-Hats/black808 Hi-Hats  (44).wav\" @channels 1"
+									"text" : "buffer~ hat @file \"/Users/ben/webDevelopment/next-js/gpt-music-theorist/synth_resources/sound_files/black808 Hi-Hats  (44).wav\" @channels 1"
 								}
 
 							}
@@ -9324,15 +9188,15 @@
 									"numinlets" : 1,
 									"numoutlets" : 3,
 									"outlettype" : [ "", "", "" ],
-									"patching_rect" : [ 675.0, 89.0, 696.0, 23.0 ],
+									"patching_rect" : [ 675.0, 89.0, 688.0, 23.0 ],
 									"rnbo_classname" : "buffer~",
 									"rnbo_extra_attributes" : 									{
-										"type" : "",
+										"samplerate" : 0.0,
 										"fill" : "",
-										"samplerate" : 0.0
+										"type" : ""
 									}
 ,
-									"rnbo_serial" : 7,
+									"rnbo_serial" : 3,
 									"rnbo_uniqueid" : "buffer~_obj-51",
 									"rnboinfo" : 									{
 										"needsInstanceInfo" : 1,
@@ -9526,7 +9390,7 @@
 ,
 											"type" : 											{
 												"attrOrProp" : 2,
-												"digest" : "Type of Data (Float32, Float64)",
+												"digest" : "Type of Data (float32, float64)",
 												"isalias" : 0,
 												"aliases" : [  ],
 												"settable" : 1,
@@ -9609,22 +9473,11 @@
 										"aliasOf" : "data",
 										"classname" : "buffer~",
 										"operator" : 0,
-										"versionId" : 2090845839,
+										"versionId" : 51756089,
 										"changesPatcherIO" : 0
 									}
 ,
-									"text" : "buffer~ kick @file \"/Users/ben/webDevelopment/next-js/gpt-music-theorist/synth_resources/sound_files/Kick1.wav @channels 1\""
-								}
-
-							}
-, 							{
-								"box" : 								{
-									"id" : "obj-49",
-									"maxclass" : "comment",
-									"numinlets" : 1,
-									"numoutlets" : 0,
-									"patching_rect" : [ 698.756485886986411, 208.0, 126.0, 21.0 ],
-									"text" : "bass: midi pitch"
+									"text" : "buffer~ kick @file /Users/ben/webDevelopment/next-js/gpt-music-theorist/synth_resources/sound_files/Kick1.wav @channels 1"
 								}
 
 							}
@@ -9649,9 +9502,9 @@
 									"patching_rect" : [ 456.0, 463.0, 129.0, 23.0 ],
 									"rnbo_classname" : "groove~",
 									"rnbo_extra_attributes" : 									{
-										"channels" : 1.0,
+										"syncmode" : "phase",
 										"synctype" : "relative",
-										"syncmode" : "phase"
+										"channels" : 1.0
 									}
 ,
 									"rnbo_serial" : 1,
@@ -9875,9 +9728,9 @@
 									"patching_rect" : [ 324.0, 461.0, 122.0, 23.0 ],
 									"rnbo_classname" : "groove~",
 									"rnbo_extra_attributes" : 									{
-										"channels" : 1.0,
+										"syncmode" : "phase",
 										"synctype" : "relative",
-										"syncmode" : "phase"
+										"channels" : 1.0
 									}
 ,
 									"rnbo_serial" : 2,
@@ -10101,9 +9954,9 @@
 									"patching_rect" : [ 187.0, 466.0, 118.0, 23.0 ],
 									"rnbo_classname" : "groove~",
 									"rnbo_extra_attributes" : 									{
-										"channels" : 1.0,
+										"syncmode" : "phase",
 										"synctype" : "relative",
-										"syncmode" : "phase"
+										"channels" : 1.0
 									}
 ,
 									"rnbo_serial" : 3,
@@ -10337,8 +10190,8 @@
 									"patching_rect" : [ 324.0, 526.0, 43.0, 23.0 ],
 									"rnbo_classname" : "out~",
 									"rnbo_extra_attributes" : 									{
-										"comment" : "",
-										"meta" : ""
+										"meta" : "",
+										"comment" : ""
 									}
 ,
 									"rnbo_serial" : 1,
@@ -10509,13 +10362,6 @@
 								}
 
 							}
-, 							{
-								"patchline" : 								{
-									"destination" : [ "obj-72", 0 ],
-									"source" : [ "obj-71", 0 ]
-								}
-
-							}
  ],
 						"default_bgcolor" : [ 0.031372549019608, 0.125490196078431, 0.211764705882353, 1.0 ],
 						"color" : [ 0.929412, 0.929412, 0.352941, 1.0 ],
@@ -10543,12 +10389,12 @@
 
 					}
 ,
-					"patching_rect" : [ 210.750013589859009, 343.703697621822357, 114.0, 22.0 ],
+					"patching_rect" : [ 207.166670203208923, 468.703697621822357, 114.0, 22.0 ],
 					"rnboattrcache" : 					{
 
 					}
 ,
-					"rnboversion" : "1.0.2",
+					"rnboversion" : "1.1.2",
 					"saved_attribute_attributes" : 					{
 						"valueof" : 						{
 							"parameter_invisible" : 1,
@@ -10786,10 +10632,24 @@
 		}
 ,
 		"dependency_cache" : [ 			{
+				"name" : "Kick1.wav",
+				"bootpath" : "~/webDevelopment/next-js/gpt-music-theorist/synth_resources/sound_files",
+				"patcherrelativepath" : "./sound_files",
+				"type" : "WAVE",
+				"implicit" : 1
+			}
+, 			{
 				"name" : "bass.maxsnap",
 				"bootpath" : "~/Documents/Max 8/Snapshots",
 				"patcherrelativepath" : "../../../../Documents/Max 8/Snapshots",
 				"type" : "mx@s",
+				"implicit" : 1
+			}
+, 			{
+				"name" : "black808 Hi-Hats  (44).wav",
+				"bootpath" : "~/webDevelopment/next-js/gpt-music-theorist/synth_resources/sound_files",
+				"patcherrelativepath" : "./sound_files",
+				"type" : "WAVE",
 				"implicit" : 1
 			}
 , 			{
