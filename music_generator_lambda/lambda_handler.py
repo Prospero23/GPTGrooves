@@ -59,7 +59,10 @@ def handler(event, context):
     session = Session()
 
     secrets = get_secret(session=session, secret_id=secret_id, region_name=region)
-    config = Config.from_dict(secrets)
+    config = Config(
+        openai_api_key=secrets["openai_api_key"],
+        atlas_cluster_uri=secrets["atlas_cluster_uri"],
+    )
 
     ping_database(config=config)
 

@@ -44,7 +44,8 @@ resource "aws_secretsmanager_secret" "secrets" { #tfsec:ignore:aws-ssm-secret-us
 resource "aws_secretsmanager_secret_version" "secrets" {
   secret_id = aws_secretsmanager_secret.secrets.id
   secret_string = jsonencode({
-    openai_api_key = var.openai_api_key
+    openai_api_key    = var.openai_api_key
+    atlas_cluster_uri = var.atlas_cluster_uri
   })
 }
 
