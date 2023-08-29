@@ -4,12 +4,12 @@ import Scene from './components/Scene'
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col p-24">
-      <h1>GPT House</h1>
-      <div className=' h-96'>
+    <main className="min-h-screen p-24 flex">
+      {/* <h1>GPT House</h1> */}
+      <div className='w-screen h-screen'>
       <Scene/>
       </div>
-      <PlayButton/>
+      {/* <PlayButton/> */}
     </main>
   )
 }
