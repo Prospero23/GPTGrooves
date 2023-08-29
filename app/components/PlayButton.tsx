@@ -9,6 +9,8 @@ export default function PlayButton() {
   const [bass, setBass] = useState<Device | undefined>(undefined);
   const [synth, setSynth] = useState<Device | undefined>(undefined);
   const [isPlaying, setIsPlaying] = useState<Boolean | undefined>(false);
+  const [intervalID, setIntervalID] = useState<NodeJS.Timeout | null>(null);
+
 
   const [audioContext, setAudioContext] = useState<AudioContext | undefined>(
     undefined
@@ -37,6 +39,26 @@ export default function PlayButton() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    let newIntervalID: NodeJS.Timeout | null = null;
+
+    if (isPlaying) {
+      newIntervalID = setInterval(() => {
+        step();
+      }, 100);
+
+      setIntervalID(newIntervalID);
+    } else if (intervalID !== null) {
+      clearInterval(intervalID);
+    }
+
+    return () => {
+      if (newIntervalID !== null) {
+        clearInterval(newIntervalID);
+      }
+    };
+  }, [isPlaying]); //intervalID
 
   function handleClickDrums(
     event: React.MouseEvent<HTMLButtonElement>,
@@ -108,16 +130,16 @@ export default function PlayButton() {
     createChord()
   }
   //change this to use transport later (https://rnbo.cycling74.com/learn/musical-time-events)
-  function stepSeq() {
-    let intervalID;
-    if (isPlaying) {
-      setIsPlaying(false);
-      clearInterval(intervalID); //fix this
-    } else {
-      setIsPlaying(true);
-      intervalID = setInterval(step, 100);
-    }
-  }
+  // function stepSeq() {
+  //   let intervalID;
+  //   if (isPlaying) {
+  //     setIsPlaying(false);
+  //     clearInterval(intervalID); //fix this
+  //   } else {
+  //     setIsPlaying(true);
+  //     intervalID = setInterval(step, 100);
+  //   }
+  // }
 
   function step() {
     let intervalID;
@@ -134,6 +156,9 @@ export default function PlayButton() {
     bass?.scheduleEvent(eventTrigger);
     createChord()
   }
+  function handleClick(){
+    setIsPlaying(!isPlaying)
+  }
 
   return (
     <div className="flex flex-col">
@@ -142,7 +167,7 @@ export default function PlayButton() {
       <button onClick={(e) => handleClickDrums(e, 3)}>Snare</button>
       <button onClick={(e) => handleClickBass(e)}>Bass</button>
       <button onClick={(e) => handleClickSynth(e)}>Synth</button>
-      <button className="bg-green-400" onClick={stepSeq}>
+      <button className="bg-green-400" onClick={handleClick}>
         {isPlaying ? "Playing" : "Stopped"}
       </button>
     </div>
