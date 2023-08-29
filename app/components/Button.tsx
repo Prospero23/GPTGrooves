@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, RefCallback } from "react";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { Device, MIDIEvent, MIDIData, TimeNow, MessageEvent } from "@rnbo/js";
 import setup from "@/public/sound";
@@ -7,9 +7,12 @@ import {Vector3} from 'three'
 
 interface ButtonProps {
     position: Vector3
+    isPlaying: Boolean | undefined
+    setIsPlaying: React.Dispatch<React.SetStateAction<Boolean | undefined>>;
+
 }
 
-export default function Button({position}: ButtonProps) {
+export default function Button({position, isPlaying, setIsPlaying}: ButtonProps) {
   const { scene, animations } = useGLTF("/assets/butttton.glb");
   const { actions, names } = useAnimations(animations, scene);
 
@@ -17,7 +20,7 @@ export default function Button({position}: ButtonProps) {
   const [drums, setDrums] = useState<Device | undefined>(undefined);
   const [bass, setBass] = useState<Device | undefined>(undefined);
   const [synth, setSynth] = useState<Device | undefined>(undefined);
-  const [isPlaying, setIsPlaying] = useState<Boolean | undefined>(false);
+//   const [isPlaying, setIsPlaying] = useState<Boolean | undefined>(false);
   const [intervalID, setIntervalID] = useState<NodeJS.Timeout | null>(null);
 
   const [audioContext, setAudioContext] = useState<AudioContext | undefined>(
