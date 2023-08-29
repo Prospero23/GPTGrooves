@@ -33,7 +33,7 @@ provider "aws" {
 
 locals {
   secret_name = "${var.territory}-${var.environment}-lambda-secret"
-  lambda_root = "${path.module}/../gpt_lambda"
+  lambda_root = "${path.module}/../../music_generator_lambda"
 }
 
 resource "aws_secretsmanager_secret" "secrets" { #tfsec:ignore:aws-ssm-secret-use-customer-key
