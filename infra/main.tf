@@ -55,7 +55,7 @@ module "music_generator_lambda" {
 
 
 module "vercel_deployment" {
-  source = "git::git@github.com:kevcmk/terraform-katz//modules/vercel-deployment"
+  source = "git::ssh://git@github.com/kevcmk/terraform-katz.git//modules/vercel-deployment"
 
   territory             = var.territory
   environment           = var.environment

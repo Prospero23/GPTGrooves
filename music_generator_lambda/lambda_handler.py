@@ -5,6 +5,8 @@ import sys
 
 from boto3.session import Session
 from botocore.exceptions import ClientError
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 
 # TODO Remove this?
 sys.path.append(os.path.join(os.path.dirname(__file__)))
@@ -13,7 +15,8 @@ sys.stderr.write("PATH")
 sys.stderr.write(",".join(sys.path))
 sys.stderr.write("\n")
 
-from ta.utilities.logs import get_logger  # noqa: E402
+from music_generator.utilities.logs import get_logger  # noqa: E402
+from music_generator.types import Config
 
 logger = get_logger(__name__)
 
@@ -36,6 +39,18 @@ def get_secret(session: Session, secret_id: str, region_name: str) -> dict[str, 
     return secret
 
 
+def ping_database(config: Config) -> None:
+    # Create a new client and connect to the server
+    client = MongoClient(config.atlas_cluster_uri, server_api=ServerApi("1"))
+    # Send a ping to confirm a successful connection
+    try:
+        client.admin.command("ping")
+        print("Pinged your deployment. You successfully connected to MongoDB!")
+    except Exception as e:
+        print(e)
+        raise e
+
+
 def handler(event, context):
     secret_id = os.environ["SECRETS_MANAGER_SECRET_ID"]
     region = os.environ["AWS_REGION"]
@@ -44,9 +59,9 @@ def handler(event, context):
     session = Session()
 
     secrets = get_secret(session=session, secret_id=secret_id, region_name=region)
-    openai_api_key = secrets["openai_api_key"]
+    config = Config.from_dict(secrets)
 
-    print(f"Secret: ${openai_api_key[-5:]}")
+    ping_database(config=config)
 
     return {
         "statusCode": 200,
