@@ -7,6 +7,7 @@ from boto3.session import Session
 from botocore.exceptions import ClientError
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+from music_generator.generator import generate_bar
 
 # TODO Remove this?
 sys.path.append(os.path.join(os.path.dirname(__file__)))
@@ -65,6 +66,8 @@ def handler(event, context):
     )
 
     ping_database(config=config)
+    bar = generate_bar(config=Config(**secrets))
+    print(bar)
 
     return {
         "statusCode": 200,
