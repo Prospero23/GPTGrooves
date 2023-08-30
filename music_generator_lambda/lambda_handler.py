@@ -7,7 +7,6 @@ from boto3.session import Session
 from botocore.exceptions import ClientError
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-from music_generator.generator import generate_bar
 
 # TODO Remove this?
 sys.path.append(os.path.join(os.path.dirname(__file__)))
@@ -16,6 +15,7 @@ sys.stderr.write("PATH")
 sys.stderr.write(",".join(sys.path))
 sys.stderr.write("\n")
 
+from music_generator.generator import generate_bar
 from music_generator.utilities.logs import get_logger  # noqa: E402
 from music_generator.types import Config
 
