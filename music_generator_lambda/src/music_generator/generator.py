@@ -6,13 +6,19 @@ from music_generator.types import Config
 
 
 class Bar(BaseModel):
-    drums: list[bool] = Field(description="Drum track. True = hit, False = rest.")
+    drums: list[int] = Field(description="Drum track. 1 = hit, 0 = rest.")
 
     @validator("drums")
-    def validate(cls, field):
+    def validate_drums(cls, field):
         if len(field) != 16:
             raise ValueError("Drum track must be 16 notes long.")
         return field
+
+    @validator("drums", each_item=True)
+    def validate_item(cls, item):
+        if item not in (0, 1):
+            raise ValueError("Drum value must be 0 or 1.")
+        return item
 
 
 def generate_bar(config: Config) -> Bar:
