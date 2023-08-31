@@ -4,15 +4,17 @@ import { useAnimations, useGLTF } from "@react-three/drei";
 import { Device, MIDIEvent, MIDIData, TimeNow, MessageEvent } from "@rnbo/js";
 import setup from "@/public/sound";
 import {Vector3} from 'three'
+import {Song, Bar} from '@/library/musicData'
 
 interface ButtonProps {
     position: Vector3
     isPlaying: Boolean | undefined
     setIsPlaying: React.Dispatch<React.SetStateAction<Boolean | undefined>>;
-
+    //give data
+    playingData: Song
 }
 
-export default function Button({position, isPlaying, setIsPlaying}: ButtonProps) {
+export default function Button({position, isPlaying, setIsPlaying, playingData}: ButtonProps) {
   const { scene, animations } = useGLTF("/assets/butttton.glb");
   const { actions, names } = useAnimations(animations, scene);
 
@@ -22,6 +24,9 @@ export default function Button({position, isPlaying, setIsPlaying}: ButtonProps)
   const [synth, setSynth] = useState<Device | undefined>(undefined);
 //   const [isPlaying, setIsPlaying] = useState<Boolean | undefined>(false);
   const [intervalID, setIntervalID] = useState<NodeJS.Timeout | null>(null);
+  const [currentBar, setCurrentBar] = useState(0);
+const [stepCount, setStepCount] = useState(0);
+
 
   const [audioContext, setAudioContext] = useState<AudioContext | undefined>(
     undefined
@@ -73,68 +78,42 @@ export default function Button({position, isPlaying, setIsPlaying}: ButtonProps)
     };
   }, [isPlaying]); //intervalID
 
-  function createChord() {
-    let midiNotes: number[] = [];
-    const numberNotes = 4;
-    for (let i = 0; i < 4; i++) {
-      midiNotes.push(Math.floor(Math.random() * 60 + 20));
-    }
-    if (synth) {
-      midiNotes.forEach((note) => {
-        let midiChannel = 0;
-
-        // Format a MIDI message paylaod, this constructs a MIDI on event
-        let noteOnMessage: MIDIData = [
-          144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
-          note, // MIDI Note
-          100, // MIDI Velocity
-        ];
-
-        let noteOffMessage: MIDIData = [
-          128 + midiChannel, // Code for a note off: 10000000 & midi channel (0-15)
-          note, // MIDI Note
-          0, // MIDI Velocity
-        ];
-
-        // Including rnbo.min.js (or the unminified rnbo.js) will add the RNBO object
-        // to the global namespace. This includes the TimeNow constant as well as
-        // the MIDIEvent constructor.
-        let midiPort = 0;
-        let noteDurationMs = 250;
-
-        // When scheduling an event to occur in the future, use the current audio context time
-        // multiplied by 1000 (converting seconds to milliseconds) for now.
-        let noteOnEvent = new MIDIEvent(
-          synth.context.currentTime * 1000,
-          midiPort,
-          noteOnMessage
-        );
-        let noteOffEvent = new MIDIEvent(
-          synth.context.currentTime * 1000 + noteDurationMs,
-          midiPort,
-          noteOffMessage
-        );
-
-        synth.scheduleEvent(noteOnEvent);
-        synth.scheduleEvent(noteOffEvent);
-      });
-    }
-  }
 
   function step() {
-    for (let inlet = 1; inlet < 4; inlet++) {
-      const eventTrigger = new MessageEvent(TimeNow, `in${inlet}`, [
-        Math.floor(Math.random() * 2)
-      ]);
+  //   // Reset step counter if it reaches 16
+  //   if (stepCount >= 16) {
+  //     setStepCount(0);
+  //   }
 
-      drums?.scheduleEvent(eventTrigger);
-    }
-    const eventTrigger = new MessageEvent(TimeNow, `in0`, [
-      Math.floor(Math.floor(Math.random() * 20 + 30)),
-    ]);
-    bass?.scheduleEvent(eventTrigger);
-    createChord();
-  }
+  //   // Drums
+  //   for (let i = 0; i < playingData.bars.length; i++){
+  //   for (let drumType in playingData.bars[i].drums:DrumPattern) {
+  //     const eventTrigger = new MessageEvent(TimeNow, drumType, [
+  //       playingData.drums[drumType][stepCount]
+  //     ]);
+  //     drums?.scheduleEvent(eventTrigger);
+  //   }
+
+  //   // Bass
+  //   const bassEventTrigger = new MessageEvent(TimeNow, `in0`, [
+  //     playingData.bass.pattern[stepCount]
+  //   ]);
+  //   bass?.scheduleEvent(bassEventTrigger);
+
+  //   // Synth
+  //   const synthChords = playingData.synth.chords[stepCount];
+  //   if (synth) {
+  //     synthChords.forEach((note) => {
+  //       if (note !== "0") {
+  //         // Handle sending MIDI event to synth
+  //       }
+  //     });
+  //   }
+
+  //   // Increment step counter
+  //   setStepCount(stepCount + 1);
+  // }
+}
 
   //'button_press
 
@@ -149,7 +128,7 @@ export default function Button({position, isPlaying, setIsPlaying}: ButtonProps)
     anim.play();
     setIsPlaying(!isPlaying);
   }
-  console.log(position)
+  //console.log(position)
 
   return (
     <>

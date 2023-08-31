@@ -1,25 +1,38 @@
 "use client";
+import { useState, useEffect, useRef, RefCallback } from "react";
+import { useAnimations, useGLTF } from "@react-three/drei";
+import { Device, MIDIEvent, MIDIData, TimeNow, MessageEvent } from "@rnbo/js";
+import setup from "@/public/sound";
+import {Vector3} from 'three'
+import Song from '@/library/musicData'
+
+interface ButtonProps {
+    position: Vector3
+    isPlaying: Boolean | undefined
+    setIsPlaying: React.Dispatch<React.SetStateAction<Boolean | undefined>>;
+    //give data
+    playingData: Song
+}
 
 
-//FOR PRACTICE
+//if no data: randomize
 
+export default function Button({position, isPlaying, setIsPlaying, playingData}: ButtonProps) {
+  const { scene, animations } = useGLTF("/assets/butttton.glb");
+  const { actions, names } = useAnimations(animations, scene);
 
-import setup from "@/public/sound.js";
-import { useEffect, useState } from "react";
-import { Device, MessageEvent, TimeNow, MIDIEvent, MIDIData } from "@rnbo/js";
-
-export default function PlayButton() {
+  //audio stuff
   const [drums, setDrums] = useState<Device | undefined>(undefined);
   const [bass, setBass] = useState<Device | undefined>(undefined);
   const [synth, setSynth] = useState<Device | undefined>(undefined);
-  const [isPlaying, setIsPlaying] = useState<Boolean | undefined>(false);
+//   const [isPlaying, setIsPlaying] = useState<Boolean | undefined>(false);
   const [intervalID, setIntervalID] = useState<NodeJS.Timeout | null>(null);
-
 
   const [audioContext, setAudioContext] = useState<AudioContext | undefined>(
     undefined
   );
 
+  //setup the audio stuff
   useEffect(() => {
     // This code runs after the component has been rendered
     async function init() {
@@ -44,6 +57,7 @@ export default function PlayButton() {
     };
   }, []);
 
+  //start/stop sequence
   useEffect(() => {
     let newIntervalID: NodeJS.Timeout | null = null;
 
@@ -64,24 +78,6 @@ export default function PlayButton() {
     };
   }, [isPlaying]); //intervalID
 
-  function handleClickDrums(
-    event: React.MouseEvent<HTMLButtonElement>,
-    inlet: number
-  ) {
-    const eventTrigger = new MessageEvent(TimeNow, `in${inlet}`, [1]);
-    if (drums) {
-      drums.scheduleEvent(eventTrigger);
-    }
-  }
-
-  function handleClickBass(event: React.MouseEvent<HTMLButtonElement>) {
-    const eventTrigger = new MessageEvent(TimeNow, `in0`, [
-      Math.random() * 10 + 30,
-    ]);
-    if (bass) {
-      bass.scheduleEvent(eventTrigger);
-    }
-  }
   function createChord() {
     let midiNotes: number[] = [];
     const numberNotes = 4;
@@ -130,26 +126,10 @@ export default function PlayButton() {
     }
   }
 
-  function handleClickSynth(event: React.MouseEvent<HTMLButtonElement>) {
-    createChord()
-  }
-  //change this to use transport later (https://rnbo.cycling74.com/learn/musical-time-events)
-  // function stepSeq() {
-  //   let intervalID;
-  //   if (isPlaying) {
-  //     setIsPlaying(false);
-  //     clearInterval(intervalID); //fix this
-  //   } else {
-  //     setIsPlaying(true);
-  //     intervalID = setInterval(step, 100);
-  //   }
-  // }
-
   function step() {
-    let intervalID;
     for (let inlet = 1; inlet < 4; inlet++) {
       const eventTrigger = new MessageEvent(TimeNow, `in${inlet}`, [
-        Math.floor(Math.random() * 2),
+        Math.floor(Math.random() * 2)
       ]);
 
       drums?.scheduleEvent(eventTrigger);
@@ -158,22 +138,29 @@ export default function PlayButton() {
       Math.floor(Math.floor(Math.random() * 20 + 30)),
     ]);
     bass?.scheduleEvent(eventTrigger);
-    createChord()
-  }
-  function handleClick(){
-    setIsPlaying(!isPlaying)
+    createChord();
   }
 
+  //'button_press
+
+  function handleClick() {
+    const anim = actions[names[0]];
+    //@ts-ignore
+    anim.reset();
+    //@ts-ignore
+    anim.repetitions = 1;
+    anim?.setDuration(.2)
+    //@ts-ignore
+    anim.play();
+    setIsPlaying(!isPlaying);
+  }
+  //console.log(position)
+
   return (
-    <div className="flex flex-col">
-      <button onClick={(e) => handleClickDrums(e, 1)}>Hat</button>
-      <button onClick={(e) => handleClickDrums(e, 2)}>Kick</button>
-      <button onClick={(e) => handleClickDrums(e, 3)}>Snare</button>
-      <button onClick={(e) => handleClickBass(e)}>Bass</button>
-      <button onClick={(e) => handleClickSynth(e)}>Synth</button>
-      <button className="bg-green-400" onClick={handleClick}>
-        {isPlaying ? "Playing" : "Stopped"}
-      </button>
-    </div>
+    <>
+      <primitive object={scene} onClick={handleClick} position={position}/>
+    </>
   );
 }
+
+useGLTF.preload("/assets/butttton.glb");
