@@ -34,3 +34,10 @@ apply environment *args:
     else
        terraform apply {{args}} -var-file="config/{{environment}}.tfvars"
     fi
+
+generate:
+    #!/usr/bin/env bash
+    cd gpt_music_lambda
+    # Try to source, if it doesn't work, skip
+    source venv/bin/activate || true
+    PYTHONPATH=src python src/music_generator/generator.py

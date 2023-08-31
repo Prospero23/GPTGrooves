@@ -19,7 +19,7 @@ sys.stderr.write("\n")
 
 from music_generator.generator import Bar, generate_bar
 from music_generator.utilities.logs import get_logger  # noqa: E402
-from music_generator.types import Config
+from music_generator.music_generator_types import Config
 
 logger = get_logger(__name__)
 
@@ -77,7 +77,7 @@ def handler(event, context):  # noqa
     # Sanity checks # TODO Remove
     ping_database(config=config)
     assert Bar.example() == Bar.example()
-    assert Bar.from_structured_text(Bar.example().to_structured_text()) == Bar.example()
+    assert Bar.from_keypairs(Bar.example().to_keypairs()) == Bar.example()
     assert Bar.from_llm_format(Bar.example().to_llm_format()) == Bar.example()
 
     bar = generate_bar(config=config)  # type: ignore
