@@ -3,6 +3,8 @@ from pydantic import BaseModel, Field, validator
 import re
 from music_generator.types import Config
 from music_generator.utilities.logs import get_logger
+from langchain.callbacks import get_openai_callback
+
 
 logger = get_logger(__name__)
 
@@ -297,8 +299,8 @@ def generate_bar(config: Config) -> Bar:
     # Set up a parser + inject instructions into the prompt template.
 
     # Note, {{ in an fstring produces a single {
-    format_instructions = f"""Your format should be an instrument followed by sixteenth notes, separated by spaces. Your output should be wrapped in {{{{{{ and }}}}}} for me to extract For example:
-
+    format_instructions = f"""Your format should be an instrument followed by sixteenth notes, separated by spaces.
+Your output should be wrapped in {{{{{{ and }}}}}} for me to extract. The music should be formatted as follows:
 {Bar.example().to_llm_format()}
 """
 
@@ -309,10 +311,19 @@ def generate_bar(config: Config) -> Bar:
     )
 
     _input = prompt.format_prompt(query="Generate an interesting bar of a house song.")
+
     logger.debug(f"Prompt:\n{_input.to_string()}")
-    output = llm.predict(_input.to_string())
+
+    with get_openai_callback() as cb:
+        output = llm.predict(_input.to_string())
+
+    logger.info(
+        f"Used {cb.total_tokens} tokens ({cb.prompt_tokens} prompt, {cb.completion_tokens} completion) @ ${(cb.total_cost):.3f}"
+    )
     logger.debug(f"Output:\n{output}")
+
     deserialized_bar = Bar.from_llm_format(output)
+
     return deserialized_bar
 
 
@@ -323,4 +334,4 @@ if __name__ == "__main__":
     assert Bar.from_structured_text(Bar.example().to_structured_text()) == Bar.example()
     assert Bar.from_llm_format(Bar.example().to_llm_format()) == Bar.example()
     bar = generate_bar(config=Config(**dotenv_values()))  # type: ignore
-    print(bar)
+    logger.info(f"Generated Bar:\n{bar}")
