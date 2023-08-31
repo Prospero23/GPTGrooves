@@ -1,5 +1,8 @@
 [tool.ruff]
-ignore = ["E501"]
+ignore = [
+  "E501",
+  "E402" # Imports at top of python file.
+]
 
 # Don't erase variables that aren't used.
 unfixable = ["F841"]

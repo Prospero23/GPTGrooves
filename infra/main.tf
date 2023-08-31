@@ -1,6 +1,15 @@
 terraform {
   required_version = ">= 1.5.5"
-
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.11.0"
+    }
+    vercel = {
+      source  = "vercel/vercel"
+      version = "0.15.0"
+    }
+  }
   cloud {
     organization = "kevcmk"
     hostname     = "app.terraform.io" # Optional; defaults to app.terraform.io
@@ -8,6 +17,17 @@ terraform {
       tags = ["territory:gpt-music-theorist"]
     }
   }
+}
+
+provider "vercel" {
+  api_token = var.vercel_api_token
+  team      = var.vercel_team
+}
+
+provider "aws" {
+  region     = var.aws_region
+  access_key = var.aws_access_key_id
+  secret_key = var.aws_secret_access_key
 }
 
 
@@ -28,7 +48,41 @@ module "music_generator_lambda" {
   aws_secret_access_key = var.aws_secret_access_key
   aws_region            = var.aws_region
 
-  openai_api_key      = var.openai_api_key
-  sequence_table_name = module.sequence_table.dynamodb_table_name
-  sequence_table_arn  = module.sequence_table.dynamodb_table_arn
+  openai_api_key                = var.openai_api_key
+  music_generator_cron_schedule = var.music_generator_cron_schedule
+  atlas_cluster_uri             = var.atlas_cluster_uri
+}
+
+
+module "vercel_deployment" {
+  source = "git::ssh://git@github.com/kevcmk/terraform-katz.git//modules/vercel-deployment"
+
+  territory             = var.territory
+  environment           = var.environment
+  aws_access_key_id     = var.aws_access_key_id
+  aws_secret_access_key = var.aws_secret_access_key
+  vercel_api_token      = var.vercel_api_token
+
+  vercel_team = var.vercel_team
+  # github_project = var.github_project
+  aws_region = var.aws_region
+
+  github_api_token = var.github_api_token
+}
+
+data "terraform_remote_state" "vercel_project" {
+  backend = "remote"
+  config = {
+    organization = "kevcmk"
+    workspaces = {
+      name = "${var.territory}-vercel"
+    }
+  }
+}
+
+resource "vercel_project_environment_variable" "environment_atlas_cluster_uri" {
+  project_id = data.terraform_remote_state.vercel_project.outputs.vercel_project_id
+  target     = [module.vercel_deployment.vercel_environment_name]
+  key        = "ATLAS_CLUSTER_URI"
+  value      = var.atlas_cluster_uri
 }

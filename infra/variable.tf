@@ -12,6 +12,7 @@ variable "environment" {
   type        = string
 }
 
+# AWS
 variable "aws_access_key_id" {
   description = "The AWS access key ID."
   type        = string
@@ -27,8 +28,36 @@ variable "aws_region" {
   type        = string
 }
 
+# Vercel
+variable "vercel_team" {
+  description = "The Vercel team to use for the app."
+  type        = string
+}
+
+variable "vercel_api_token" {
+  description = "The vercel token to use for deploying the app."
+  type        = string
+}
+
+# Github
+variable "github_api_token" {
+  description = "The github api token."
+  type        = string
+}
+
+
 # Application
 variable "openai_api_key" {
   type        = string
   description = "OpenAI API key"
+}
+
+variable "music_generator_cron_schedule" {
+  type        = string
+  description = "The cron schedule for the music generator lambda function"
+}
+
+variable "atlas_cluster_uri" {
+  type        = string
+  description = "The URI of the Atlas cluster"
 }

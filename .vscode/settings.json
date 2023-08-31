@@ -1,0 +1,8 @@
+{
+  "files.exclude": {
+    "amplify/backend/awscloudformation": true
+  },
+  "python.analysis.extraPaths": [
+    "./music_generator_lambda/src"
+  ],
+}

@@ -1,0 +1,22 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Generate Bar",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/music_generator_lambda",
+            "program": "${workspaceFolder}/music_generator_lambda/src/music_generator/generator.py",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "NOCACHE": "1",
+                "PYTHON_LOG_LEVEL": "DEBUG",
+                "PYTHONPATH": "${workspaceFolder}/music_generator_lambda/src"
+            }
+        },
+    ]
+}

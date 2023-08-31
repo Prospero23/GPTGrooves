@@ -27,18 +27,18 @@ variable "aws_region" {
   type        = string
 }
 
+variable "music_generator_cron_schedule" {
+  type        = string
+  description = "The cron schedule for the music generator lambda function"
+}
+
 # Application
 variable "openai_api_key" {
   type        = string
   description = "OpenAI API key"
 }
 
-variable "sequence_table_name" {
+variable "atlas_cluster_uri" {
   type        = string
-  description = "The name of the DynamoDB sequence table"
-}
-
-variable "sequence_table_arn" {
-  type        = string
-  description = "The ARN of the DynamoDB sequence table"
+  description = "The URI of the Atlas cluster"
 }

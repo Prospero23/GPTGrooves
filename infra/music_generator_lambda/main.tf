@@ -33,7 +33,7 @@ provider "aws" {
 
 locals {
   secret_name = "${var.territory}-${var.environment}-lambda-secret"
-  lambda_root = "${path.module}/../gpt_lambda"
+  lambda_root = "${path.module}/../../music_generator_lambda"
 }
 
 resource "aws_secretsmanager_secret" "secrets" { #tfsec:ignore:aws-ssm-secret-use-customer-key
@@ -44,7 +44,8 @@ resource "aws_secretsmanager_secret" "secrets" { #tfsec:ignore:aws-ssm-secret-us
 resource "aws_secretsmanager_secret_version" "secrets" {
   secret_id = aws_secretsmanager_secret.secrets.id
   secret_string = jsonencode({
-    openai_api_key = var.openai_api_key
+    openai_api_key    = var.openai_api_key
+    atlas_cluster_uri = var.atlas_cluster_uri
   })
 }
 
@@ -53,13 +54,6 @@ resource "aws_iam_policy" "get_secrets_policy" {
   path   = "/${var.territory}/${var.environment}/"
   policy = data.aws_iam_policy_document.get_secrets_policy.json
 }
-
-resource "aws_iam_policy" "sequence_table_read_write_policy" {
-  name   = "${var.territory}-${var.environment}-udemy-ta-poller-dynamodb-read-write-policy"
-  path   = "/${var.territory}/${var.environment}/"
-  policy = data.aws_iam_policy_document.read_write_policy.json
-}
-
 
 module "lambda_function" {
   # https://registry.terraform.io/modules/terraform-aws-modules/lambda/aws/latest
@@ -112,18 +106,40 @@ module "lambda_function" {
   environment_variables = {
     SECRETS_MANAGER_SECRET_ID = local.secret_name,
     PYTHON_LOG_LEVEL          = "DEBUG",
-    SEQUENCE_TABLE_NAME       = var.sequence_table_name,
+    ATLAS_CLUSTER_URI         = var.atlas_cluster_uri,
   }
 
   attach_policies = true
   policies = [
     "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
     aws_iam_policy.get_secrets_policy.arn,
-    aws_iam_policy.sequence_table_read_write_policy.arn
   ]
-  number_of_policies = 3
+  number_of_policies = 2
 
   # use_existing_cloudwatch_log_group = true
   cloudwatch_logs_retention_in_days = 365
 
+}
+
+resource "aws_cloudwatch_event_rule" "this" {
+  count               = var.music_generator_cron_schedule == "" ? 0 : 1
+  name                = module.lambda_function.lambda_function_name
+  description         = "Trigger Music Generator at interval"
+  schedule_expression = var.music_generator_cron_schedule
+  # schedule_expression = var.music_generator_cron_schedule == "" ? "rate(1 hour)" : var.music_generator_cron_schedule
+}
+
+resource "aws_cloudwatch_event_target" "this" {
+  count = var.music_generator_cron_schedule == "" ? 0 : 1
+  rule  = aws_cloudwatch_event_rule.this[0].name
+  arn   = module.lambda_function.lambda_function_arn
+  input = jsonencode({ "job" : "cron-by-rate" })
+}
+
+resource "aws_lambda_permission" "this" {
+  count         = var.music_generator_cron_schedule == "" ? 0 : 1
+  function_name = module.lambda_function.lambda_function_name
+  principal     = "events.amazonaws.com"
+  action        = "lambda:InvokeFunction"
+  source_arn    = aws_cloudwatch_event_rule.this[0].arn
 }
