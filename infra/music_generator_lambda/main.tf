@@ -89,7 +89,7 @@ module "lambda_function" {
   timeout = 900
 
   # TODO Optimize
-  memory_size = 4096
+  memory_size = 512
   publish     = true
 
   description = "Do smart stuff with GPT."
