@@ -1,14 +1,16 @@
-from langchain import OpenAI, PromptTemplate
+from langchain.callbacks import get_openai_callback
+from langchain.chat_models import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate
+
 from music_generator.music_generator_types import Bar, Config
 from music_generator.utilities.logs import get_logger
-from langchain.callbacks import get_openai_callback
-
+from langchain.prompts.chat import SystemMessage, HumanMessagePromptTemplate
 
 logger = get_logger(__name__)
 
 
 def generate_bar(config: Config) -> Bar:
-    llm = OpenAI(openai_api_key=config.openai_api_key)
+    llm = ChatOpenAI(openai_api_key=config.openai_api_key, model="gpt-4")
 
     # model_name = "text-davinci-003"
     # temperature = 0.0
@@ -22,25 +24,31 @@ Your output should be wrapped in {{{{{{ and }}}}}} for me to extract. The music 
 {Bar.example().to_llm_format()}
 """
 
-    prompt = PromptTemplate(
-        template="Answer the user query.\n{format_instructions}\n{query}\n",
-        input_variables=["query"],
-        partial_variables={"format_instructions": format_instructions},
+    # https://python.langchain.com/docs/modules/model_io/prompts/prompt_templates/#chat-prompt-template
+    prompt: ChatPromptTemplate = (
+        ChatPromptTemplate.from_messages(  # pyright: ignore[reportUnknownMemberType]
+            [
+                SystemMessage(content=f"Answer the user query.\n{format_instructions}"),
+                HumanMessagePromptTemplate.from_template("{prompt}"),
+            ]
+        )
     )
 
-    _input = prompt.format_prompt(query="Generate an interesting bar of a house song.")
+    _input = prompt.format_messages(
+        prompt="Generate an interesting bar of a house song."
+    )
 
-    logger.debug(f"Prompt:\n{_input.to_string()}")
+    logger.debug("Prompt:\n" + "\n".join([f"{x.type}: {x.content}" for x in _input]))
 
     with get_openai_callback() as cb:
-        output = llm.predict(_input.to_string())
+        output = llm(_input)
 
     logger.info(
         f"Used {cb.total_tokens} tokens ({cb.prompt_tokens} prompt, {cb.completion_tokens} completion) @ ${(cb.total_cost):.3f}"
     )
-    logger.debug(f"Output:\n{output}")
+    logger.debug(f"Output:\n{output.content}")
 
-    deserialized_bar = Bar.from_llm_format(output)
+    deserialized_bar = Bar.from_llm_format(output.content)
 
     return deserialized_bar
 
