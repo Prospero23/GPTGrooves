@@ -1,3 +1,27 @@
+[tool.poetry]
+name = "music_generator"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+boto3 = "^1.28.40"
+python-dotenv = "^1.0.0"
+tenacity = "^8.2.3"
+boto3-stubs = {extras = ["lambda", "secretsmanager"], version = "^1.28.40"}
+pymongo = "^4.5.0"
+openai = "^0.28.0"
+pydantic = ">=1,<2"
+langchain = "^0.0.279"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.ruff]
 ignore = [
   "E501",

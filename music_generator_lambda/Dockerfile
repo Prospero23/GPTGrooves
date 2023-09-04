@@ -9,9 +9,8 @@ FROM public.ecr.aws/lambda/python:3.9
 COPY requirements.txt  .
 RUN  pip3 install --no-cache-dir -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
-COPY src/ ${LAMBDA_TASK_ROOT}/src/
-
-ENV PYTHONPATH=${LAMBDA_TASK_ROOT}/src:${PYTHONPATH}
+COPY lambda_handler.py ${LAMBDA_TASK_ROOT}/
+COPY music_generator ${LAMBDA_TASK_ROOT}/music_generator
 
 # Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
 CMD [ "lambda_handler.handler" ]

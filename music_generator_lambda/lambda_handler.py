@@ -1,6 +1,5 @@
 import json
 import os
-import sys
 
 from boto3.session import Session
 from botocore.exceptions import ClientError
@@ -9,13 +8,6 @@ from pymongo.server_api import ServerApi
 from mypy_boto3_secretsmanager.client import SecretsManagerClient
 
 from bson.raw_bson import RawBSONDocument
-
-# TODO Remove this?
-sys.path.append(os.path.join(os.path.dirname(__file__)))
-sys.path.append(os.path.join(os.path.dirname(__file__), "src"))
-sys.stderr.write("PATH")
-sys.stderr.write(",".join(sys.path))
-sys.stderr.write("\n")
 
 from music_generator.generator import Bar, generate_bar
 from music_generator.utilities.logs import get_logger  # noqa: E402

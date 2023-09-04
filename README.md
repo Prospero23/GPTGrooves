@@ -13,3 +13,8 @@ pre-commit run --all-files
 So the detect-secrets hook knows what's allowed, what's not. We occasionally want to update our "ignore list"
 
     detect-secrets scan > .secrets.baseline
+
+
+## Run Music Generator
+
+Use poetry

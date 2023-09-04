@@ -42,3 +42,8 @@ variable "atlas_cluster_uri" {
   type        = string
   description = "The URI of the Atlas cluster"
 }
+
+variable "image_uri" {
+  type        = string
+  description = "The URI of the image to use for the lambda function"
+}

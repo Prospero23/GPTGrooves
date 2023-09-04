@@ -32,8 +32,8 @@ provider "aws" {
 }
 
 locals {
-  secret_name = "${var.territory}-${var.environment}-lambda-secret"
-  lambda_root = "${path.module}/../../music_generator_lambda"
+  secret_name          = "${var.territory}-${var.environment}-lambda-secret"
+  lambda_function_name = "${var.territory}-${var.environment}-music-generator"
 }
 
 resource "aws_secretsmanager_secret" "secrets" { #tfsec:ignore:aws-ssm-secret-use-customer-key
@@ -49,81 +49,79 @@ resource "aws_secretsmanager_secret_version" "secrets" {
   })
 }
 
+resource "aws_iam_role" "lambda" {
+  name               = "${var.territory}-${var.environment}-music-generator-lambda-role"
+  path               = "/${var.territory}/${var.environment}/"
+  assume_role_policy = data.aws_iam_policy_document.assume_role_policy.json
+}
+
+# Policies
+
+resource "aws_iam_policy" "lambda_logging" {
+  name        = "${var.territory}-${var.environment}-music-generator-logging"
+  path        = "/${var.territory}/${var.environment}/"
+  description = "IAM policy for logging from a lambda"
+  policy      = data.aws_iam_policy_document.lambda_logging.json
+}
+
 resource "aws_iam_policy" "get_secrets_policy" {
-  name   = "${var.territory}-${var.environment}-gpt-music-theorist-lambda-get-secrets-policy"
+  name   = "${var.territory}-${var.environment}-music-generator-get-secrets-policy"
   path   = "/${var.territory}/${var.environment}/"
   policy = data.aws_iam_policy_document.get_secrets_policy.json
 }
 
-module "lambda_function" {
-  # https://registry.terraform.io/modules/terraform-aws-modules/lambda/aws/latest
+# Policy Attachments
 
-  source  = "terraform-aws-modules/lambda/aws"
-  version = "6.0.0"
+resource "aws_iam_role_policy_attachment" "lambda_logs" {
+  role       = aws_iam_role.lambda.name
+  policy_arn = aws_iam_policy.lambda_logging.arn
+}
 
-  function_name = "${var.territory}-${var.environment}-gpt-lambda"
+resource "aws_iam_role_policy_attachment" "get_secrets_policy" {
+  role       = aws_iam_role.lambda.name
+  policy_arn = aws_iam_policy.get_secrets_policy.arn
+}
 
-  build_in_docker   = true
-  docker_file       = "${local.lambda_root}/Dockerfile"
-  docker_build_root = local.lambda_root
-  docker_image      = "public.ecr.aws/sam/build-python3.9"
-  runtime           = "python3.9"
-  architectures     = ["arm64"]
+resource "aws_lambda_function" "this" {
 
-  # This does not work with Terraform Cloud
-  source_path = [
-    {
-      path = local.lambda_root
-      patterns = [
-        # The .*/.* indicates 1-or-more levels of directory.
-        "!.*\\.pyc",
-        "!.*/.*\\.pyc",
-        "!__pycache__",
-        "!.*/__pycache__",
-      ]
-      pip_requirements = "${local.lambda_root}/requirements.txt"
-    }
-  ]
+  function_name = local.lambda_function_name
+  role          = aws_iam_role.lambda.arn
 
-  handler = "lambda_handler.handler"
-  timeout = 900
+  package_type = "Image"
+  image_uri    = var.image_uri
+  timeout      = 600
 
   # TODO Optimize
-  memory_size = 512
+  memory_size = 1024
   publish     = true
 
-  description = "Do smart stuff with GPT."
+  description = "Generate new music."
 
-  tracing_mode = "Active"
-
-  #   allowed_triggers = {
-  #     OneRule = {
-  #       principal  = "events.amazonaws.com"
-  #       source_arn = local.eventbridge_cron_arns
-  #     },
-  #   }
-
-  environment_variables = {
-    SECRETS_MANAGER_SECRET_ID = local.secret_name,
-    PYTHON_LOG_LEVEL          = "DEBUG",
-    ATLAS_CLUSTER_URI         = var.atlas_cluster_uri,
+  tracing_config {
+    mode = "Active"
   }
 
-  attach_policies = true
-  policies = [
-    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-    aws_iam_policy.get_secrets_policy.arn,
-  ]
-  number_of_policies = 2
+  environment {
+    variables = {
+      SECRETS_MANAGER_SECRET_ID = local.secret_name,
+      PYTHON_LOG_LEVEL          = "DEBUG",
+    }
+  }
 
-  # use_existing_cloudwatch_log_group = true
-  cloudwatch_logs_retention_in_days = 365
+  depends_on = [
+    aws_iam_role.lambda,
+    aws_iam_policy.lambda_logging,
+    aws_iam_policy.get_secrets_policy,
+    aws_iam_role_policy_attachment.lambda_logs,
+    aws_iam_role_policy_attachment.get_secrets_policy,
+    aws_secretsmanager_secret_version.secrets,
+  ]
 
 }
 
 resource "aws_cloudwatch_event_rule" "this" {
   count               = var.music_generator_cron_schedule == "" ? 0 : 1
-  name                = module.lambda_function.lambda_function_name
+  name                = aws_lambda_function.this.function_name
   description         = "Trigger Music Generator at interval"
   schedule_expression = var.music_generator_cron_schedule
   # schedule_expression = var.music_generator_cron_schedule == "" ? "rate(1 hour)" : var.music_generator_cron_schedule
@@ -132,13 +130,13 @@ resource "aws_cloudwatch_event_rule" "this" {
 resource "aws_cloudwatch_event_target" "this" {
   count = var.music_generator_cron_schedule == "" ? 0 : 1
   rule  = aws_cloudwatch_event_rule.this[0].name
-  arn   = module.lambda_function.lambda_function_arn
+  arn   = aws_lambda_function.this.arn
   input = jsonencode({ "job" : "cron-by-rate" })
 }
 
 resource "aws_lambda_permission" "this" {
   count         = var.music_generator_cron_schedule == "" ? 0 : 1
-  function_name = module.lambda_function.lambda_function_name
+  function_name = aws_lambda_function.this.function_name
   principal     = "events.amazonaws.com"
   action        = "lambda:InvokeFunction"
   source_arn    = aws_cloudwatch_event_rule.this[0].arn
