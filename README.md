@@ -15,6 +15,14 @@ So the detect-secrets hook knows what's allowed, what's not. We occasionally wan
     detect-secrets scan > .secrets.baseline
 
 
-## Run Music Generator
+## Deploy
 
-Use poetry
+```
+just plan dev
+
+# Look at planned changes
+
+just apply dev
+```
+
+Or replace dev with { dev, staging, prod }

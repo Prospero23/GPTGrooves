@@ -37,7 +37,7 @@ build_music_generator: (ecr_login)
     docker tag ${MUSIC_GENERATOR_IMAGE_NAME}:latest ${MUSIC_GENERATOR_IMAGE_URI}
     docker push ${MUSIC_GENERATOR_IMAGE_URI}
 
-plan environment *args:
+plan environment *args: (build_music_generator)
     #!/usr/bin/env bash
     set -e
     set -o pipefail
@@ -52,7 +52,7 @@ plan environment *args:
     terraform workspace select "${workspace}"
     terraform plan {{args}} -var-file="config/{{environment}}.tfvars" -var="music_generator_image_uri=${MUSIC_GENERATOR_IMAGE_URI}"
 
-apply environment *args:
+apply environment *args: (build_music_generator)
     #!/usr/bin/env bash
     set -e
     set -o pipefail

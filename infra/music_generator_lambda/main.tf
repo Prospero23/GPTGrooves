@@ -46,6 +46,7 @@ resource "aws_secretsmanager_secret_version" "secrets" {
   secret_string = jsonencode({
     openai_api_key    = var.openai_api_key
     atlas_cluster_uri = var.atlas_cluster_uri
+    db_name           = "music_theorist_${var.environment}"
   })
 }
 

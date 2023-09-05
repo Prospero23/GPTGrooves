@@ -9,7 +9,21 @@
             "type": "python",
             "request": "launch",
             "cwd": "${workspaceFolder}/music_generator_lambda",
-            "program": "${workspaceFolder}/music_generator_lambda/music_generator/generator.py",
+            "module": "music_generator.generator",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "NOCACHE": "1",
+                "PYTHON_LOG_LEVEL": "DEBUG",
+                // "PYTHONPATH": "${workspaceFolder}/music_generator_lambda"
+            }
+        },
+        {
+            "name": "Python: Lambda Handler",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/music_generator_lambda",
+            "module": "lambda_handler",
             "console": "integratedTerminal",
             "justMyCode": false,
             "env": {
