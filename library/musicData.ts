@@ -1,26 +1,55 @@
-type Note = string; // Define Note type as a string
-type Beat = Boolean; // Define Beat type as a number
+import { z } from "zod";
 
-interface DrumPatterns {
-  bass_drum: Beat[];
-  snare_drum: Beat[];
-  hi_hat: Beat[];
-}
+// This file is generated based on the ./music_generator_lambda/music_generator/music_generator_types.py.
+// If it changes, this needs to, too.
+export const Note = z.custom<string>(
+  (note) => {
+    const pattern = /^[A-G][#b]?[0-8]$/;
+    return pattern.test(note as string) || note === "0";
+  },
+  { message: "Invalid note format." },
+);
 
-interface BassPattern {
-  pattern: Note[];
-}
+export const BassBar = z.object({
+  pattern: z.array(Note).refine((data) => data.length === 16, {
+    message: "Bass line must be 16 notes long.",
+  }),
+});
 
-interface SynthPattern {
-  chords: Note[][];
-}
+export const DrumValue = z.union([z.literal(0), z.literal(1)]);
 
-export interface Bar {
-  drums: DrumPatterns;
-  bass: BassPattern;
-  synth: SynthPattern;
-}
+export const DrumBar = z.object({
+  hi_hat: z.array(DrumValue).refine((data) => data.length === 16, {
+    message: "Drum track must be 16 notes long.",
+  }),
+  kick: z.array(DrumValue).refine((data) => data.length === 16, {
+    message: "Drum track must be 16 notes long.",
+  }),
+  snare: z.array(DrumValue).refine((data) => data.length === 16, {
+    message: "Drum track must be 16 notes long.",
+  }),
+});
 
-export interface Song {
-    bars: Bar[]
-}
+export const Chord = z.object({
+  notes: z.array(Note),
+});
+
+export const PadBar = z.object({
+  chord_sequence: z.array(Chord).refine((data) => data.length === 16, {
+    message: "Drum track must be 16 notes long.",
+  }),
+});
+
+export const Bar = z.object({
+  drums: DrumBar,
+  bass: BassBar,
+  pad: PadBar,
+});
+
+export const BarRecord = z.object({
+  bar: Bar,
+  created_at_utc: z.string(),
+});
+
+export type BarType = z.infer<typeof Bar>;
+export type BarRecordType = z.infer<typeof BarRecord>;

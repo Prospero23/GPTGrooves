@@ -43,6 +43,11 @@ variable "atlas_cluster_uri" {
   description = "The URI of the Atlas cluster"
 }
 
+variable "db_name" {
+  type        = string
+  description = "The name of the database to use for the music generator lambda function"
+}
+
 variable "image_uri" {
   type        = string
   description = "The URI of the image to use for the lambda function"

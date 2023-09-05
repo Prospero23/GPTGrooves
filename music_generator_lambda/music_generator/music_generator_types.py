@@ -6,6 +6,7 @@ from music_generator.utilities.logs import get_logger
 logger = get_logger(__name__)
 
 
+# This file dictates musicData.ts. If you modify this, modify that.
 class Config(BaseModel):
     openai_api_key: str
     atlas_cluster_uri: str

@@ -30,6 +30,9 @@ provider "aws" {
   secret_key = var.aws_secret_access_key
 }
 
+locals {
+  db_name = "music_theorist_${var.environment}"
+}
 
 module "sequence_table" {
   source                = "./sequence_table"
@@ -52,6 +55,7 @@ module "music_generator_lambda" {
   music_generator_cron_schedule = var.music_generator_cron_schedule
   atlas_cluster_uri             = var.atlas_cluster_uri
   image_uri                     = var.music_generator_image_uri
+  db_name                       = local.db_name
 }
 
 
@@ -86,4 +90,11 @@ resource "vercel_project_environment_variable" "environment_atlas_cluster_uri" {
   target     = [module.vercel_deployment.vercel_environment_name]
   key        = "ATLAS_CLUSTER_URI"
   value      = var.atlas_cluster_uri
+}
+
+resource "vercel_project_environment_variable" "environment_db_name" {
+  project_id = data.terraform_remote_state.vercel_project.outputs.vercel_project_id
+  target     = [module.vercel_deployment.vercel_environment_name]
+  key        = "DB_NAME"
+  value      = local.db_name
 }
