@@ -1,3 +1,4 @@
+from typing import Union
 from langchain import PromptTemplate
 from langchain.callbacks import get_openai_callback
 from langchain.chat_models import ChatOpenAI
@@ -15,7 +16,7 @@ from music_generator.utilities.logs import get_logger
 logger = get_logger(__name__)
 
 
-def generate_bar(config: Config, llm: BaseChatModel | BaseLLM) -> Bar:
+def generate_bar(config: Config, llm: Union[BaseChatModel, BaseLLM]) -> Bar:
     # model_name = "text-davinci-003"
     # temperature = 0.0
     # model = OpenAI(model_name=model_name, temperature=temperature)
