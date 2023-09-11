@@ -18,7 +18,7 @@ initall *args:
 ecr_login:
     aws ecr get-login-password --region us-west-1 | docker login --username AWS --password-stdin "${ECR_HOST}"
 
-build_music_generator: (ecr_login)
+build_music_generator:
     #!/usr/bin/env bash
     set -e
     set -o pipefail
@@ -87,4 +87,4 @@ invoke_generator environment:
     aws lambda invoke --region=us-west-1 --function-name gpt-music-theorist-{{ environment }}-music-generator /dev/null
 
 tail_generator_logs environment:
-    awslogs get /aws/lambda/gpt-music-theorist-{{ environment }}-music-generator --s15s --timestamp --watch
+    awslogs get /aws/lambda/gpt-music-theorist-{{ environment }}-music-generator --s15s --no-stream --timestamp --watch

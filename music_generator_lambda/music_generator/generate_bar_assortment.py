@@ -6,8 +6,11 @@ from langchain.cache import SQLiteCache
 from langchain.chat_models import ChatOpenAI
 from music_generator.db import insert_bar
 
-from music_generator.generator import generate_bar, logger
+from music_generator.generator import generate_bar
 from music_generator.music_generator_types import BarRecord, Config
+from music_generator.utilities.logs import get_logger
+
+logger = get_logger(__name__)
 
 
 def generate_and_save_bars(config: Config) -> None:

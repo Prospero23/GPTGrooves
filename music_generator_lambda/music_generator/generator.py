@@ -9,6 +9,7 @@ from langchain.llms.base import BaseLLM
 from langchain.prompts import ChatPromptTemplate
 from langchain.prompts.chat import HumanMessagePromptTemplate, SystemMessage
 from pydantic import ValidationError
+from tenacity import retry, retry_if_exception_type, stop_after_attempt
 
 from music_generator.music_generator_types import Bar, Config
 from music_generator.utilities.logs import get_logger
@@ -16,6 +17,12 @@ from music_generator.utilities.logs import get_logger
 logger = get_logger(__name__)
 
 
+@retry(
+    retry=(
+        retry_if_exception_type(ValidationError) | retry_if_exception_type(ValueError)
+    ),
+    stop=stop_after_attempt(3),
+)
 def generate_bar(config: Config, llm: Union[BaseChatModel, BaseLLM]) -> Bar:
     # model_name = "text-davinci-003"
     # temperature = 0.0
@@ -65,9 +72,7 @@ The music should be formatted as follows:
         )
 
         with get_openai_callback() as cb:
-            output = llm.with_retry(
-                retry_if_exception_type=(ValidationError,), stop_after_attempt=3
-            ).invoke(_input)
+            output = llm(_input)
 
         logger.info(
             f"Used {cb.total_tokens} tokens ({cb.prompt_tokens} prompt, {cb.completion_tokens} completion) @ ${(cb.total_cost):.3f}"
