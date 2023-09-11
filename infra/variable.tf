@@ -52,6 +52,11 @@ variable "openai_api_key" {
   description = "OpenAI API key"
 }
 
+variable "anyscale_api_token" {
+  type        = string
+  description = "Anyscale API token"
+}
+
 variable "music_generator_cron_schedule" {
   type        = string
   description = "The cron schedule for the music generator lambda function"

@@ -38,6 +38,11 @@ variable "openai_api_key" {
   description = "OpenAI API key"
 }
 
+variable "anyscale_api_token" {
+  type        = string
+  description = "Anyscale API token"
+}
+
 variable "atlas_cluster_uri" {
   type        = string
   description = "The URI of the Atlas cluster"

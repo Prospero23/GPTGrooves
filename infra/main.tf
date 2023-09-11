@@ -52,6 +52,7 @@ module "music_generator_lambda" {
   aws_region            = var.aws_region
 
   openai_api_key                = var.openai_api_key
+  anyscale_api_token            = var.anyscale_api_token
   music_generator_cron_schedule = var.music_generator_cron_schedule
   atlas_cluster_uri             = var.atlas_cluster_uri
   image_uri                     = var.music_generator_image_uri

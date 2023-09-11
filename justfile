@@ -25,7 +25,7 @@ build_music_generator: (ecr_login)
 
     cd music_generator_lambda
 
-    docker build --platform=linux/amd64 -t ${MUSIC_GENERATOR_IMAGE_NAME}:latest ./
+    docker build --platform=linux/amd64 --file lambda.Dockerfile -t ${MUSIC_GENERATOR_IMAGE_NAME}:latest ./
 
     # This code is duplicated in this file. And concurrent-unsafe.
     HASH=$(docker images --no-trunc -q ${MUSIC_GENERATOR_IMAGE_NAME}:latest | sed -e 's/sha256://')

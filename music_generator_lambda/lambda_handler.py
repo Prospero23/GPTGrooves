@@ -1,4 +1,3 @@
-import datetime
 import json
 import os
 
@@ -9,9 +8,10 @@ from mypy_boto3_secretsmanager.client import SecretsManagerClient
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
-from music_generator.generator import Bar, generate_bar
+from music_generator.generator import Bar
 from music_generator.music_generator_types import BarRecord, Config
-from music_generator.utilities.logs import get_logger  # noqa: E402
+from music_generator.utilities.logs import get_logger
+from music_generator.generate_and_save_bars import generate_and_save_bars  # noqa: E402
 
 logger = get_logger(__name__)
 
@@ -67,7 +67,8 @@ def insert_bar(config: Config, bar_record: BarRecord) -> str:
     return str(inserted.inserted_id)  # type: ignore
 
 
-def configure_lambda():
+def configure_lambda() -> Config:
+    logger.info("Generating configuration using Lambda context...")
     secret_id = os.environ["SECRETS_MANAGER_SECRET_ID"]
     region = os.environ["AWS_REGION"]
     print(f"Region is: {region}. Secrets stored at {secret_id}.")
@@ -79,21 +80,23 @@ def configure_lambda():
     #     atlas_cluster_uri=secrets["atlas_cluster_uri"],
     # )
     config = Config(**secrets)
-    return config, session
+    return config
 
 
-def configure_local():
+def configure_local() -> Config:
     from dotenv import dotenv_values
 
+    logger.info("Generating configuration using `.env`...")
     config = Config(**dotenv_values())  # type: ignore
-    return config, None
+    return config
 
 
 def handler(event, context):  # type: ignore
     try:
-        config, _ = configure_lambda()
+        config = configure_lambda()
     except KeyError:
-        config, _ = configure_local()
+        logger.info("Lambda environment setup failed. Opting for local.")
+        config = configure_local()
 
     # Sanity checks # TODO Remove
     ping_database(config=config)
@@ -101,15 +104,7 @@ def handler(event, context):  # type: ignore
     assert Bar.from_keypairs(Bar.example().to_keypairs()) == Bar.example()
     assert Bar.from_llm_format(Bar.example().to_llm_format()) == Bar.example()
 
-    bar = generate_bar(config=config)  # type: ignore
-    insert_bar(
-        config=config,
-        bar_record=BarRecord(
-            bar=bar,
-            created_at_utc=datetime.datetime.utcnow().isoformat(),
-        ),
-    )
-    logger.info(f"Generated Bar:\n{bar}")
+    generate_and_save_bars(config=config)
 
     return {
         "statusCode": 200,
