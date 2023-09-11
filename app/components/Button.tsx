@@ -4,14 +4,15 @@ import { useAnimations, useGLTF } from "@react-three/drei";
 import { Device, MIDIEvent, MIDIData, TimeNow, MessageEvent } from "@rnbo/js";
 import setup from "@/public/sound";
 import {Vector3} from 'three'
-import {Song, Bar} from '@/library/musicData'
+import {BarType} from "@/library/musicData"
+import noteToMidi from "@/library/noteToMidi";
 
 interface ButtonProps {
     position: Vector3
     isPlaying: Boolean | undefined
     setIsPlaying: React.Dispatch<React.SetStateAction<Boolean | undefined>>;
     //give data
-    playingData: Song
+    playingData: Array<BarType>
 }
 
 export default function Button({position, isPlaying, setIsPlaying, playingData}: ButtonProps) {
@@ -26,6 +27,8 @@ export default function Button({position, isPlaying, setIsPlaying, playingData}:
   const [intervalID, setIntervalID] = useState<NodeJS.Timeout | null>(null);
   const [currentBar, setCurrentBar] = useState(0);
 const [stepCount, setStepCount] = useState(0);
+
+//console.log('babababbr', playingData)
 
 
   const [audioContext, setAudioContext] = useState<AudioContext | undefined>(
@@ -64,7 +67,7 @@ const [stepCount, setStepCount] = useState(0);
     if (isPlaying) {
       newIntervalID = setInterval(() => {
         step();
-      }, 100);
+      }, 300);
 
       setIntervalID(newIntervalID);
     } else if (intervalID !== null) {
@@ -78,44 +81,59 @@ const [stepCount, setStepCount] = useState(0);
     };
   }, [isPlaying]); //intervalID
 
+function step() {
 
-  function step() {
-  //   // Reset step counter if it reaches 16
-  //   if (stepCount >= 16) {
-  //     setStepCount(0);
-  //   }
 
-  //   // Drums
-  //   for (let i = 0; i < playingData.bars.length; i++){
-  //   for (let drumType in playingData.bars[i].drums:DrumPattern) {
-  //     const eventTrigger = new MessageEvent(TimeNow, drumType, [
-  //       playingData.drums[drumType][stepCount]
-  //     ]);
-  //     drums?.scheduleEvent(eventTrigger);
-  //   }
+  console.log('current bar',currentBar)
 
-  //   // Bass
-  //   const bassEventTrigger = new MessageEvent(TimeNow, `in0`, [
-  //     playingData.bass.pattern[stepCount]
-  //   ]);
-  //   bass?.scheduleEvent(bassEventTrigger);
+  // Go through each bar in the array
+  // for (let bar of playingData) {
 
-  //   // Synth
-  //   const synthChords = playingData.synth.chords[stepCount];
-  //   if (synth) {
-  //     synthChords.forEach((note) => {
-  //       if (note !== "0") {
-  //         // Handle sending MIDI event to synth
-  //       }
-  //     });
-  //   }
+    if (currentBar === playingData.length - 1 && stepCount >= 15) {
+      setIsPlaying(false);
+      return;
+    }
 
-  //   // Increment step counter
-  //   setStepCount(stepCount + 1);
-  // }
+    const bar = playingData[currentBar]
+    console.log('step count', stepCount)
+
+    // Drums
+    // for (let drumType in bar.drums) {
+    //   // Make sure we have the correct structure
+    //   if (bar.drums.hasOwnProperty(drumType)) {
+
+    //     const drumEventTrigger = new MessageEvent(TimeNow, drumType, [
+    //       bar.drums[drumType][stepCount]
+    //     ]);
+    //     drums?.scheduleEvent(drumEventTrigger);
+    //   }
+    // }
+
+    // Bass
+    const bassNote = noteToMidi(bar.bass.pattern[stepCount])
+    const bassEventTrigger = new MessageEvent(TimeNow, `in0`, [bassNote]);
+    bass?.scheduleEvent(bassEventTrigger);
+
+    // Synth
+    const padChords = bar.pad.chord_sequence[stepCount];
+    if (synth) { // Keeping the original variable 'synth' here
+      padChords.notes.forEach((note) => {
+        if (note !== "0") {
+          const synthNote = noteToMidi(note)
+          //send note to synth
+        }
+      });
+    }
+  //}
+  setStepCount(prevStep => {
+    if (prevStep < 15) {
+      return prevStep + 1;
+    } else {
+      setCurrentBar(prevBar => prevBar + 1);
+      return 0;
+    }
+  });
 }
-
-  //'button_press
 
   function handleClick() {
     const anim = actions[names[0]];
@@ -126,7 +144,7 @@ const [stepCount, setStepCount] = useState(0);
     anim?.setDuration(.2)
     //@ts-ignore
     anim.play();
-    setIsPlaying(!isPlaying);
+    setIsPlaying(true);
   }
   //console.log(position)
 
