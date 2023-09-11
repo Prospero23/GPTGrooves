@@ -8,9 +8,9 @@ from mypy_boto3_secretsmanager.client import SecretsManagerClient
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
+from music_generator.generate_bar_assortment import generate_and_save_bars  # noqa: E402
 from music_generator.music_generator_types import Config
 from music_generator.utilities.logs import get_logger
-from music_generator.generate_bar_assortment import generate_and_save_bars  # noqa: E402
 
 logger = get_logger(__name__)
 
