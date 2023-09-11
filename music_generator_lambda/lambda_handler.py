@@ -8,10 +8,9 @@ from mypy_boto3_secretsmanager.client import SecretsManagerClient
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
-from music_generator.generator import Bar
-from music_generator.music_generator_types import BarRecord, Config
+from music_generator.music_generator_types import Config
 from music_generator.utilities.logs import get_logger
-from music_generator.generate_and_save_bars import generate_and_save_bars  # noqa: E402
+from music_generator.generate_bar_assortment import generate_and_save_bars  # noqa: E402
 
 logger = get_logger(__name__)
 
@@ -52,21 +51,6 @@ def ping_database(config: Config) -> None:
         raise e
 
 
-def insert_bar(config: Config, bar_record: BarRecord) -> str:
-    """
-    :returns: The ID of the inserted record.
-    """
-    client = MongoClient(  # type: ignore
-        config.atlas_cluster_uri,
-        server_api=ServerApi("1"),
-        document_class=RawBSONDocument,
-    )
-    db = client.get_database(config.db_name)
-    collection = db.get_collection("bars")
-    inserted = collection.insert_one(bar_record.dict())  # type:ignore
-    return str(inserted.inserted_id)  # type: ignore
-
-
 def configure_lambda() -> Config:
     logger.info("Generating configuration using Lambda context...")
     secret_id = os.environ["SECRETS_MANAGER_SECRET_ID"]
@@ -75,10 +59,6 @@ def configure_lambda() -> Config:
 
     session = Session()
     secrets = get_secret(session=session, secret_id=secret_id, region_name=region)
-    # config = Config(
-    #     openai_api_key=secrets["openai_api_key"],
-    #     atlas_cluster_uri=secrets["atlas_cluster_uri"],
-    # )
     config = Config(**secrets)
     return config
 
@@ -97,12 +77,6 @@ def handler(event, context):  # type: ignore
     except KeyError:
         logger.info("Lambda environment setup failed. Opting for local.")
         config = configure_local()
-
-    # Sanity checks # TODO Remove
-    ping_database(config=config)
-    assert Bar.example() == Bar.example()
-    assert Bar.from_keypairs(Bar.example().to_keypairs()) == Bar.example()
-    assert Bar.from_llm_format(Bar.example().to_llm_format()) == Bar.example()
 
     generate_and_save_bars(config=config)
 

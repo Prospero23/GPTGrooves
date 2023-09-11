@@ -1,13 +1,14 @@
 from langchain import PromptTemplate
 from langchain.callbacks import get_openai_callback
+from langchain.chat_models import ChatOpenAI
 
 # from langchain.schema.language_model import BaseChatModel
 from langchain.chat_models.base import BaseChatModel
 from langchain.llms.base import BaseLLM
 from langchain.prompts import ChatPromptTemplate
 from langchain.prompts.chat import HumanMessagePromptTemplate, SystemMessage
+from pydantic import ValidationError
 
-from music_generator.generate_and_save_bars import generate_and_save_bars
 from music_generator.music_generator_types import Bar, Config
 from music_generator.utilities.logs import get_logger
 
@@ -23,22 +24,29 @@ def generate_bar(config: Config, llm: BaseChatModel | BaseLLM) -> Bar:
 
     # Note, {{ in an fstring produces a single {
     format_instructions = f"""Your format should be an instrument followed by sixteenth notes, separated by spaces.
-Your output should be wrapped in {{{{{{ and }}}}}} for me to extract. The music should be formatted as follows:
+
+Your output should be wrapped in {{{{{{ and }}}}}} for me to extract.
+
+The music should be formatted as follows:
+
 {Bar.example().to_llm_format()}
 """
     if isinstance(llm, BaseLLM):
         # https://python.langchain.com/docs/modules/model_io/prompts/prompt_templates/#chat-prompt-template
+        # Note, if you don't use format for the format instructions, the formatting will try
+        # to interpret the {{ as a format string, and fail.
         prompt_template: PromptTemplate = PromptTemplate.from_template(
             "Answer the user query.\n{format_instructions}\n{prompt}"
         )
         _input = prompt_template.format(
-            prompt="Generate an interesting bar of a house song."
+            format_instructions=format_instructions,
+            prompt="Generate an interesting bar of a house song.",
         )
         logger.debug("Prompt:\n" + _input)
 
         with get_openai_callback() as cb:
             output = llm(_input)
-        result = output.content
+        result = output
     else:
         # https://python.langchain.com/docs/modules/model_io/prompts/prompt_templates/#chat-prompt-template
         chat_prompt_template: ChatPromptTemplate = ChatPromptTemplate.from_messages(  # pyright: ignore[reportUnknownMemberType]
@@ -48,14 +56,17 @@ Your output should be wrapped in {{{{{{ and }}}}}} for me to extract. The music 
             ]
         )
         _input = chat_prompt_template.format_messages(
-            prompt="Generate an interesting bar of a house song."
+            format_instructions=format_instructions,
+            prompt="Generate an interesting bar of a house song.",
         )
         logger.debug(
             "Prompt:\n" + "\n".join([f"{x.type}: {x.content}" for x in _input])
         )
 
         with get_openai_callback() as cb:
-            output = llm(_input)
+            output = llm.with_retry(
+                retry_if_exception_type=(ValidationError,), stop_after_attempt=3
+            ).invoke(_input)
 
         logger.info(
             f"Used {cb.total_tokens} tokens ({cb.prompt_tokens} prompt, {cb.completion_tokens} completion) @ ${(cb.total_cost):.3f}"
@@ -74,7 +85,6 @@ if __name__ == "__main__":
     assert Bar.from_keypairs(Bar.example().to_keypairs()) == Bar.example()
     assert Bar.from_llm_format(Bar.example().to_llm_format()) == Bar.example()
     config = Config(**dotenv_values())  # type: ignore
-    bar = generate_and_save_bars(
-        config=config,
-    )
+    llm = ChatOpenAI(openai_api_key=config.openai_api_key, model="gpt-4")
+    bar = generate_bar(config=config, llm=llm)
     logger.info(f"Generated Bar:\n{bar}")

@@ -1,3 +1,4 @@
+from typing import Optional, TypeVar
 from pydantic import BaseModel, Field, validator
 import re
 
@@ -12,6 +13,8 @@ class Config(BaseModel):
     anyscale_api_token: str
     atlas_cluster_uri: str
     db_name: str
+    # If None, don't cache
+    llm_cache_filename: Optional[str]
 
 
 def validate_note(note: str) -> str:
@@ -99,14 +102,40 @@ class Chord(BaseModel):
         return validate_note(note)
 
 
+T = TypeVar("T")
+
+
+def expand_if_necessary(field: list[T], length: int) -> list[T]:
+    """
+    :param field: A list of items.
+    :param length: The desired length of the list.
+    :return: A list of items of length `length`. If `field` is shorter than `length`, then it is expanded by repeating
+
+    Example:
+    ([X,Y,Z,A],16) -> [X,X,X,X,Y,Y,Y,Y,Z,Z,Z,Z,A,A,A,A]
+    """
+    repetition_factor = length // len(field)
+    expanded_field = []
+    for item in field:
+        expanded_field.extend([item] * repetition_factor)
+    return expanded_field
+
+
 class PadBar(BaseModel):
     chord_sequence: list[Chord]
 
     @validator("chord_sequence")
     def validate_combinations(cls, field: list[str]) -> list[str]:
+        # Ensure that the initial length of `field` is a power of 2 and less than or equal to 16
+        if len(field) not in {1, 2, 4, 8, 16}:
+            raise ValueError(
+                "Initial length of field must be an exact power of two among {1, 2, 4, 8, 16}."
+            )
         if len(field) != 16:
-            raise ValueError("Drum track must be 16 notes long.")
-        return field
+            logger.info(
+                f"Did not receive 16 notes for Pad. Expanding {len(field)} notes to 16."
+            )
+        return expand_if_necessary(field, 16)
 
     def to_keypairs(self) -> dict[str, str]:
         """

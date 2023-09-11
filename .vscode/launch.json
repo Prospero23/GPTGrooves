@@ -19,6 +19,20 @@
             }
         },
         {
+            "name": "Python: Generate Bar Assortment",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/music_generator_lambda",
+            "module": "music_generator.generate_bar_assortment",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "NOCACHE": "1",
+                "PYTHON_LOG_LEVEL": "DEBUG",
+                // "PYTHONPATH": "${workspaceFolder}/music_generator_lambda"
+            }
+        },
+        {
             "name": "Python: Lambda Handler",
             "type": "python",
             "request": "launch",
