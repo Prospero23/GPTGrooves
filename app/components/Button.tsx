@@ -3,39 +3,56 @@ import { useState, useEffect, useRef, RefCallback } from "react";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { Device, MIDIEvent, MIDIData, TimeNow, MessageEvent } from "@rnbo/js";
 import setup from "@/public/sound";
-import {Vector3} from 'three'
-import {BarType} from "@/library/musicData"
+import { Vector3 } from "three";
+import { BarType } from "@/library/musicData";
 import noteToMidi from "@/library/noteToMidi";
 
 interface ButtonProps {
-    position: Vector3
-    isPlaying: Boolean | undefined
-    setIsPlaying: React.Dispatch<React.SetStateAction<Boolean | undefined>>;
-    //give data
-    playingData: Array<BarType>
+  position: Vector3;
+  isPlaying: Boolean | undefined;
+  setIsPlaying: React.Dispatch<React.SetStateAction<Boolean | undefined>>;
+  //give data
+  playingData: Array<BarType>;
 }
 
-export default function Button({position, isPlaying, setIsPlaying, playingData}: ButtonProps) {
+//bc state stuff is being weird this is the fix
+const transport = {
+  position: 0, // Current step position
+  interval: 100, // Interval in ms (this can be changed based on your needs)
+  nextEventTime: 0,
+  isPlaying: false,
+  currentStep: 0,
+  currentBar: 0,
+};
+
+const drumInlets = {
+  hi_hat:1,
+  kick:2,
+  snare:3,
+}
+
+export default function Button({
+  position,
+  isPlaying,
+  setIsPlaying,
+  playingData,
+}: ButtonProps) {
   const { scene, animations } = useGLTF("/assets/butttton.glb");
   const { actions, names } = useAnimations(animations, scene);
 
   //audio stuff
-  const [drums, setDrums] = useState<Device | undefined>(undefined);
-  const [bass, setBass] = useState<Device | undefined>(undefined);
-  const [synth, setSynth] = useState<Device | undefined>(undefined);
-//   const [isPlaying, setIsPlaying] = useState<Boolean | undefined>(false);
-  const [intervalID, setIntervalID] = useState<NodeJS.Timeout | null>(null);
-  const [currentBar, setCurrentBar] = useState(0);
-const [stepCount, setStepCount] = useState(0);
-
-//console.log('babababbr', playingData)
-
-
   const [audioContext, setAudioContext] = useState<AudioContext | undefined>(
     undefined
   );
+  //RNBO Devices
+  const [drums, setDrums] = useState<Device | undefined>(undefined);
+  const [bass, setBass] = useState<Device | undefined>(undefined);
+  const [pad, setPad] = useState<Device | undefined>(undefined);
+  //timing
 
-  //setup the audio stuff
+  //console.log("babababbr", playingData);
+
+  //setup function
   useEffect(() => {
     // This code runs after the component has been rendered
     async function init() {
@@ -44,8 +61,7 @@ const [stepCount, setStepCount] = useState(0);
         setAudioContext(result.context);
         setDrums(result.device);
         setBass(result.deviceBass);
-        setSynth(result.deviceSynth);
-        // console.log(bass)
+        setPad(result.deviceSynth);
       } else {
         // Handle the undefined case, maybe log an error or throw an exception
         console.log("wtf");
@@ -60,97 +76,131 @@ const [stepCount, setStepCount] = useState(0);
     };
   }, []);
 
-  //start/stop sequence
-  useEffect(() => {
-    let newIntervalID: NodeJS.Timeout | null = null;
-
-    if (isPlaying) {
-      newIntervalID = setInterval(() => {
-        step();
-      }, 300);
-
-      setIntervalID(newIntervalID);
-    } else if (intervalID !== null) {
-      clearInterval(intervalID);
-    }
-
-    return () => {
-      if (newIntervalID !== null) {
-        clearInterval(newIntervalID);
-      }
-    };
-  }, [isPlaying]); //intervalID
-
-function step() {
-
-
-  console.log('current bar',currentBar)
-
-  // Go through each bar in the array
-  // for (let bar of playingData) {
-
-    if (currentBar === playingData.length - 1 && stepCount >= 15) {
-      setIsPlaying(false);
-      return;
-    }
-
-    const bar = playingData[currentBar]
-    console.log('step count', stepCount)
-
+  function step(currentStep: number, currentBar: number) {
     // Drums
-    // for (let drumType in bar.drums) {
-    //   // Make sure we have the correct structure
-    //   if (bar.drums.hasOwnProperty(drumType)) {
+    for (let drumType in playingData[currentBar].drums) {
+      // Make sure we have the correct structure
+      if (playingData[currentBar].drums.hasOwnProperty(drumType)) {
 
-    //     const drumEventTrigger = new MessageEvent(TimeNow, drumType, [
-    //       bar.drums[drumType][stepCount]
-    //     ]);
-    //     drums?.scheduleEvent(drumEventTrigger);
-    //   }
-    // }
+        let inlet = drumInlets[drumType as keyof typeof drumInlets];
+        const drumEventTrigger = new MessageEvent(TimeNow, `in${inlet}`, [
+          //@ts-ignore
+          playingData[currentBar].drums[drumType][currentStep]
+        ]);
+        //console.log(drumEventTrigger)
+        drums?.scheduleEvent(drumEventTrigger);
+      }
+    }
 
     // Bass
-    const bassNote = noteToMidi(bar.bass.pattern[stepCount])
-    const bassEventTrigger = new MessageEvent(TimeNow, `in0`, [bassNote]);
-    bass?.scheduleEvent(bassEventTrigger);
+    const bassNote = noteToMidi(
+      playingData[currentBar].bass.pattern[currentStep]
+    );
 
-    // Synth
-    const padChords = bar.pad.chord_sequence[stepCount];
-    if (synth) { // Keeping the original variable 'synth' here
-      padChords.notes.forEach((note) => {
-        if (note !== "0") {
-          const synthNote = noteToMidi(note)
-          //send note to synth
-        }
+    if (!isNaN(bassNote)) {
+      const bassEventTrigger = new MessageEvent(TimeNow, `in0`, [bassNote]);
+      bass?.scheduleEvent(bassEventTrigger);
+    }
+    if (pad)
+    {
+      playingData[currentBar].pad.chord_sequence[currentStep].notes.forEach((note) => {
+        let midiChannel = 0;
+
+        let midiNote = noteToMidi(note) + 12
+
+        // Format a MIDI message paylaod, this constructs a MIDI on event
+        let noteOnMessage: MIDIData = [
+          144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
+          midiNote, // MIDI Note
+          100, // MIDI Velocity
+        ];
+
+        let noteOffMessage: MIDIData = [
+          128 + midiChannel, // Code for a note off: 10000000 & midi channel (0-15)
+          midiNote, // MIDI Note
+          0, // MIDI Velocity
+        ];
+
+        // Including rnbo.min.js (or the unminified rnbo.js) will add the RNBO object
+        // to the global namespace. This includes the TimeNow constant as well as
+        // the MIDIEvent constructor.
+        let midiPort = 0;
+        let noteDurationMs = 250;
+
+        // When scheduling an event to occur in the future, use the current audio context time
+        // multiplied by 1000 (converting seconds to milliseconds) for now.
+        let noteOnEvent = new MIDIEvent(
+          pad.context.currentTime * 1000,
+          midiPort,
+          noteOnMessage
+        );
+        let noteOffEvent = new MIDIEvent(
+          pad.context.currentTime * 1000 + noteDurationMs,
+          midiPort,
+          noteOffMessage
+        );
+
+        pad.scheduleEvent(noteOnEvent);
+        pad.scheduleEvent(noteOffEvent);
       });
-    }
-  //}
-  setStepCount(prevStep => {
-    if (prevStep < 15) {
-      return prevStep + 1;
-    } else {
-      setCurrentBar(prevBar => prevBar + 1);
-      return 0;
-    }
-  });
-}
+  }
 
+  }
+  //when button is pressed
   function handleClick() {
     const anim = actions[names[0]];
     //@ts-ignore
     anim.reset();
     //@ts-ignore
     anim.repetitions = 1;
-    anim?.setDuration(.2)
+    anim?.setDuration(0.2);
     //@ts-ignore
     anim.play();
-    setIsPlaying(true);
+
+    setIsPlaying(!isPlaying);
+
+    if (isPlaying && audioContext) {
+      transport.nextEventTime = audioContext.currentTime; // assuming audioContext is defined and active
+      schedule();
+    }
   }
-  //console.log(position)
+
+  function schedule() {
+    if (audioContext){
+    while (transport.nextEventTime < audioContext.currentTime + 0.1) {
+      // Schedule the next 100ms
+
+      //console.log(transport.currentStep);
+      step(transport.currentStep, transport.currentBar);
+      transport.position++;
+      transport.nextEventTime += transport.interval / 1000; // convert to seconds for Web Audio API
+
+      if (transport.currentStep < 15) {
+        transport.currentStep++;
+    } else {
+        if (transport.currentBar < playingData.length - 1) {
+            transport.currentStep = 0;
+            transport.currentBar++;
+        } else {
+            setIsPlaying(false); // Stop the transport
+        }
+    }
+    }
+
+    if (isPlaying) {
+      requestAnimationFrame(schedule);
+    }
+  }
+  }
+
+  function createChord() {
+
+  }
+
 
   return (
     <>
-      <primitive object={scene} onClick={handleClick} position={position}/>
+      <primitive object={scene} onClick={handleClick} position={position} />
     </>
   );
 }
