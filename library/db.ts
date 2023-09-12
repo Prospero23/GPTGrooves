@@ -30,7 +30,7 @@ export async function getBars(): Promise<Array<WithId<BarRecordType>>> {
     const bars = (await barsCollection.find({}).toArray()) as Array<
       WithId<BarRecordType>
     >;
-    console.log({ db_name, bars });
+    //console.log({ db_name, bars });
     return bars;
   } catch (e) {
     console.error(e);

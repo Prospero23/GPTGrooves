@@ -18,9 +18,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         {children}
-        <script type="text/javascript" src="https://cdn.cycling74.com/rnbo/latest/rnbo.min.js" />
+        <script type="text/javascript" src="https://js.cdn.cycling74.com/rnbo/1.1.2/rnbo.min.js" />
         <script src="/sound.js" type="module"/>
       </body>
     </html>
   );
 }
+
+
+//TODO: change RNBO version to new when updating to not have shit instruments
