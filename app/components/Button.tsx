@@ -76,6 +76,70 @@ export default function Button({
     };
   }, []);
 
+  //start the isPlaying stuff as a reaction
+    useEffect(() => {
+
+      if (audioContext){
+        transport.nextEventTime = audioContext.currentTime;
+        schedule();
+      }
+          // Return a cleanup function
+          return () => {
+              // Add any necessary cleanup logic here. For instance, halt ongoing scheduling, etc.
+          };
+  }, [isPlaying]);
+
+  //when button is pressed
+  function handleClick() {
+    const anim = actions[names[0]];
+    //@ts-ignore
+    anim.reset();
+    //@ts-ignore
+    anim.repetitions = 1;
+    anim?.setDuration(0.2);
+    //@ts-ignore
+    anim.play();
+
+    setIsPlaying(!isPlaying);
+
+    // //its ! because state not updated until next render
+    // if (!isPlaying && audioContext) {
+    //   transport.nextEventTime = audioContext.currentTime; // assuming audioContext is defined and active
+    //   schedule();
+    // }
+  }
+
+  function schedule() {
+
+    if (!isPlaying) return; // Exit if playback is stopped
+
+    if (audioContext){
+    while (transport.nextEventTime < audioContext.currentTime + 0.1) {
+      // Schedule the next 100ms
+
+      //console.log(transport.currentStep);
+      step(transport.currentStep, transport.currentBar);
+      transport.position++;
+      transport.nextEventTime += transport.interval / 1000; // convert to seconds for Web Audio API
+
+      if (transport.currentStep < 15) {
+        transport.currentStep++;
+    } else {
+        if (transport.currentBar < playingData.length - 1) {
+            transport.currentStep = 0;
+            transport.currentBar++;
+        } else {
+            setIsPlaying(false); // Stop the transport
+        }
+    }
+    }
+
+    if (isPlaying) {
+      requestAnimationFrame(schedule);
+    }
+  }
+  }
+
   function step(currentStep: number, currentBar: number) {
     // Drums
     for (let drumType in playingData[currentBar].drums) {
@@ -144,56 +208,6 @@ export default function Button({
         pad.scheduleEvent(noteOffEvent);
       });
   }
-
-  }
-  //when button is pressed
-  function handleClick() {
-    const anim = actions[names[0]];
-    //@ts-ignore
-    anim.reset();
-    //@ts-ignore
-    anim.repetitions = 1;
-    anim?.setDuration(0.2);
-    //@ts-ignore
-    anim.play();
-
-    setIsPlaying(!isPlaying);
-
-    if (isPlaying && audioContext) {
-      transport.nextEventTime = audioContext.currentTime; // assuming audioContext is defined and active
-      schedule();
-    }
-  }
-
-  function schedule() {
-    if (audioContext){
-    while (transport.nextEventTime < audioContext.currentTime + 0.1) {
-      // Schedule the next 100ms
-
-      //console.log(transport.currentStep);
-      step(transport.currentStep, transport.currentBar);
-      transport.position++;
-      transport.nextEventTime += transport.interval / 1000; // convert to seconds for Web Audio API
-
-      if (transport.currentStep < 15) {
-        transport.currentStep++;
-    } else {
-        if (transport.currentBar < playingData.length - 1) {
-            transport.currentStep = 0;
-            transport.currentBar++;
-        } else {
-            setIsPlaying(false); // Stop the transport
-        }
-    }
-    }
-
-    if (isPlaying) {
-      requestAnimationFrame(schedule);
-    }
-  }
-  }
-
-  function createChord() {
 
   }
 
