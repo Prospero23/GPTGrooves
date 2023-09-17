@@ -26,10 +26,10 @@ const transport = {
 };
 
 const drumInlets = {
-  hi_hat:1,
-  kick:2,
-  snare:3,
-}
+  hi_hat: 1,
+  kick: 2,
+  snare: 3,
+};
 
 export default function Button({
   position,
@@ -77,67 +77,68 @@ export default function Button({
   }, []);
 
   //start the isPlaying stuff as a reaction
-    useEffect(() => {
-
-      if (audioContext){
-        transport.nextEventTime = audioContext.currentTime;
-        schedule();
+  useEffect(() => {
+    if (audioContext) {
+      transport.nextEventTime = audioContext.currentTime;
+      schedule();
+    }
+    // Return a cleanup function
+    return () => {
+      if (!isPlaying && audioContext){
+      transport.nextEventTime = audioContext.currentTime + 500000
+      schedule();
+      console.log('bang')
       }
-          // Return a cleanup function
-          return () => {
-              // Add any necessary cleanup logic here. For instance, halt ongoing scheduling, etc.
-          };
+    };
   }, [isPlaying]);
 
   //when button is pressed
   function handleClick() {
     const anim = actions[names[0]];
-    //@ts-ignore
-    anim.reset();
-    //@ts-ignore
-    anim.repetitions = 1;
-    anim?.setDuration(0.2);
-    //@ts-ignore
-    anim.play();
-
+    if (anim) {
+      anim.reset();
+      anim.repetitions = 1;
+      anim.setDuration(0.2);
+      anim.play();
+    }
     setIsPlaying(!isPlaying);
-
-    // //its ! because state not updated until next render
-    // if (!isPlaying && audioContext) {
-    //   transport.nextEventTime = audioContext.currentTime; // assuming audioContext is defined and active
-    //   schedule();
-    // }
   }
 
   function schedule() {
-
     if (!isPlaying) return; // Exit if playback is stopped
 
-    if (audioContext){
-    while (transport.nextEventTime < audioContext.currentTime + 0.1) {
-      // Schedule the next 100ms
+    if (audioContext) {
+      while (transport.nextEventTime < audioContext.currentTime + 0.1) {
+        // Schedule the next 100ms
 
-      //console.log(transport.currentStep);
-      step(transport.currentStep, transport.currentBar);
-      transport.position++;
-      transport.nextEventTime += transport.interval / 1000; // convert to seconds for Web Audio API
+        //console.log(transport.currentStep);
+        step(transport.currentStep, transport.currentBar);
+        transport.position++;
+        transport.nextEventTime += transport.interval / 1000; // convert to seconds for Web Audio API
 
-      if (transport.currentStep < 15) {
-        transport.currentStep++;
-    } else {
-        if (transport.currentBar < playingData.length - 1) {
+        if (transport.currentStep < 15) {
+          transport.currentStep++;
+        } else {
+          if (transport.currentBar < playingData.length - 1) {
             transport.currentStep = 0;
             transport.currentBar++;
-        } else {
+          } else {
             setIsPlaying(false); // Stop the transport
+          }
         }
-    }
-    }
+      }
 
-    if (isPlaying) {
-      requestAnimationFrame(schedule);
+      let animationFrameId: number | null = null;
+
+      if (isPlaying) {
+        //potentially change this
+        animationFrameId = requestAnimationFrame(schedule);
+      } else {
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+      }
     }
-  }
   }
 
   function step(currentStep: number, currentBar: number) {
@@ -145,11 +146,10 @@ export default function Button({
     for (let drumType in playingData[currentBar].drums) {
       // Make sure we have the correct structure
       if (playingData[currentBar].drums.hasOwnProperty(drumType)) {
-
         let inlet = drumInlets[drumType as keyof typeof drumInlets];
         const drumEventTrigger = new MessageEvent(TimeNow, `in${inlet}`, [
           //@ts-ignore
-          playingData[currentBar].drums[drumType][currentStep]
+          playingData[currentBar].drums[drumType][currentStep],
         ]);
         //console.log(drumEventTrigger)
         drums?.scheduleEvent(drumEventTrigger);
@@ -165,52 +165,51 @@ export default function Button({
       const bassEventTrigger = new MessageEvent(TimeNow, `in0`, [bassNote]);
       bass?.scheduleEvent(bassEventTrigger);
     }
-    if (pad)
-    {
-      playingData[currentBar].pad.chord_sequence[currentStep].notes.forEach((note) => {
-        let midiChannel = 0;
+    if (pad) {
+      playingData[currentBar].pad.chord_sequence[currentStep].notes.forEach(
+        (note) => {
+          let midiChannel = 0;
 
-        let midiNote = noteToMidi(note) + 12
+          let midiNote = noteToMidi(note) + 12;
 
-        // Format a MIDI message paylaod, this constructs a MIDI on event
-        let noteOnMessage: MIDIData = [
-          144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
-          midiNote, // MIDI Note
-          100, // MIDI Velocity
-        ];
+          // Format a MIDI message paylaod, this constructs a MIDI on event
+          let noteOnMessage: MIDIData = [
+            144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
+            midiNote, // MIDI Note
+            100, // MIDI Velocity
+          ];
 
-        let noteOffMessage: MIDIData = [
-          128 + midiChannel, // Code for a note off: 10000000 & midi channel (0-15)
-          midiNote, // MIDI Note
-          0, // MIDI Velocity
-        ];
+          let noteOffMessage: MIDIData = [
+            128 + midiChannel, // Code for a note off: 10000000 & midi channel (0-15)
+            midiNote, // MIDI Note
+            0, // MIDI Velocity
+          ];
 
-        // Including rnbo.min.js (or the unminified rnbo.js) will add the RNBO object
-        // to the global namespace. This includes the TimeNow constant as well as
-        // the MIDIEvent constructor.
-        let midiPort = 0;
-        let noteDurationMs = 250;
+          // Including rnbo.min.js (or the unminified rnbo.js) will add the RNBO object
+          // to the global namespace. This includes the TimeNow constant as well as
+          // the MIDIEvent constructor.
+          let midiPort = 0;
+          let noteDurationMs = 250;
 
-        // When scheduling an event to occur in the future, use the current audio context time
-        // multiplied by 1000 (converting seconds to milliseconds) for now.
-        let noteOnEvent = new MIDIEvent(
-          pad.context.currentTime * 1000,
-          midiPort,
-          noteOnMessage
-        );
-        let noteOffEvent = new MIDIEvent(
-          pad.context.currentTime * 1000 + noteDurationMs,
-          midiPort,
-          noteOffMessage
-        );
+          // When scheduling an event to occur in the future, use the current audio context time
+          // multiplied by 1000 (converting seconds to milliseconds) for now.
+          let noteOnEvent = new MIDIEvent(
+            pad.context.currentTime * 1000,
+            midiPort,
+            noteOnMessage
+          );
+          let noteOffEvent = new MIDIEvent(
+            pad.context.currentTime * 1000 + noteDurationMs,
+            midiPort,
+            noteOffMessage
+          );
 
-        pad.scheduleEvent(noteOnEvent);
-        pad.scheduleEvent(noteOffEvent);
-      });
+          pad.scheduleEvent(noteOnEvent);
+          pad.scheduleEvent(noteOffEvent);
+        }
+      );
+    }
   }
-
-  }
-
 
   return (
     <>
