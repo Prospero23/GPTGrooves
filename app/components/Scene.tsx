@@ -2,9 +2,7 @@
 
 import { Canvas } from "@react-three/fiber";
 import Button from "./Button";
-import { useState, useEffect } from "react";
-import { Device, MIDIEvent, MIDIData, TimeNow } from "@rnbo/js";
-import setup from "@/public/sound";
+import { useState } from "react";
 import { OrbitControls, Html } from "@react-three/drei";
 import { Vector3 } from "three";
 import {BarType} from "@/library/musicData"
