@@ -334,3 +334,61 @@ class BarRecord(BaseModel):
     bar: Bar
     model: str
     created_at_utc: str
+
+
+class MusicalMarkup(BaseModel):
+    text: str
+
+    @staticmethod
+    def example() -> "MusicalMarkup":
+        return MusicalMarkup(
+            text="""
+## Introduction
+   - Start with a mellow **synth** pad.
+   - Slowly introduce a soft **hi-hat** rhythm.
+
+## Build-Up
+   - Incorporate a steady **drum** beat.
+   - Layer the **synth** to create more tension.
+   - Introduce a **snare** roll, increasing in intensity.
+
+## Bass Drop
+   - Bring in the dominant **bass** line.
+   - Maintain the **hi-hat** for consistency.
+   - Include a stronger **drum** pattern to drive the rhythm.
+   - Intersperse with **synth** stabs for dynamic effect.
+
+## Breakdown
+   - Reduce the intensity of the **drum** beat.
+   - Highlight the **synth** melody.
+   - Fade out the **hi-hat** to give a moment of pause.
+
+## Second Build-Up
+   - Reintroduce the **hi-hat** with a different rhythm.
+   - Intensify the **snare** roll, similar to the first build-up but shorter.
+   - Elevate the **synth** tension, hinting towards the upcoming drop.
+
+## Second Bass Drop
+   - Introduce a variation of the initial **bass** line, possibly more energetic.
+   - Combine the **drums** to provide a fuller sound.
+   - Make use of alternating **synth** patterns for variation.
+
+## Bridge
+   - Offer a moment of respite with a focus on the melodic **synth** elements.
+   - Use a light **hi-hat** rhythm to keep the track moving.
+   - Soft **drums** in the background to maintain a sense of continuity.
+
+## Final Build-Up
+   - A short and impactful **snare** roll.
+   - Intensify the **synth** sounds, preparing the listener for the finale.
+
+## Grand Finale
+   - Combine all elements, i.e., **bass**, **synth**, **hi-hat**, **snare**, and **drums**.
+   - Possibly introduce a new **synth** melody or a variation of the initial theme.
+
+## Outro
+   - Gradually fade out the **drum** beat.
+   - Let the **synth** sounds echo and dissipate.
+   - Finish with the ambiance of the original **synth** pad from the introduction.
+"""
+        )
