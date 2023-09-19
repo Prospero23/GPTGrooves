@@ -392,3 +392,7 @@ class MusicalMarkup(BaseModel):
    - Finish with the ambiance of the original **synth** pad from the introduction.
 """
         )
+
+
+# directed asyclic graph of song sections and the sections they rely on
+# output -> ordered traversal of the graph

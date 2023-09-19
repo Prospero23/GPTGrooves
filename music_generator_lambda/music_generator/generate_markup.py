@@ -1,4 +1,5 @@
 from typing import Union
+from re import split
 from langchain.callbacks import get_openai_callback
 from langchain.chat_models import ChatOpenAI
 
@@ -53,7 +54,7 @@ The music should be formatted as follows:
         _input = chat_prompt_template.format_messages(
             format_instructions=format_instructions,
             prompt="""make me an outline for a house track using only pad, bass, and drums consisting of snare, kick, and hi-hat.
-            Do not mention effects but provide how the material will develop. Each section will be interpreted independently so do not reference previous sections""",
+            Do not mention effects but provide how the material will develop. When referencing any previous material, always include the section as well. Be literal in your descriptions. """,
         )
         logger.debug(
             "Prompt:\n" + "\n".join([f"{x.type}: {x.content}" for x in _input])
@@ -68,9 +69,36 @@ The music should be formatted as follows:
         result = output.content
     logger.debug(f"Output:\n{result}")
 
-    # Parsing the result to get the list of X bars
+    # make sure that the output references sections explicitly so it can reference previous material in graph.
 
     return MusicalMarkup(text=result)
+
+
+def parse_music_structure(text):
+    # Split by section
+    sections = split(r"##([A-Za-z\s]+)\s\((\d+ bars)\)", text)[1:]
+
+    # Group section name and details
+    grouped_sections = [
+        (sections[i], sections[i + 1], sections[i + 2])
+        for i in range(0, len(sections), 3)
+    ]
+
+    music_structure = {}
+
+    for section, bars, details in grouped_sections:
+        music_structure[section] = {"bars": bars, "details": {}}
+
+        for line in details.strip().split("\n"):
+            if "-" in line:
+                instrument, info = line.split("-", 1)
+                instrument = instrument.strip().strip("*")
+                info = info.strip()
+                music_structure[section]["details"][instrument] = info
+            else:
+                print(f"Unexpected line format: {line}")  # TODO actually handle this
+
+    return music_structure
 
 
 if __name__ == "__main__":
@@ -82,7 +110,12 @@ if __name__ == "__main__":
     config = Config(**dotenv_values())  # type: ignore
     llm = ChatOpenAI(openai_api_key=config.openai_api_key, model="gpt-4")
     markup = generate_markup(config=config, llm=llm)
-    logger.info(f"Generated Markup {markup.text}")
+    # parsed_data = parse_music_structure(markup.text)
+    # parsed_data_str = "\n".join(
+    #     [f"{section} : {details}" for section, details in parsed_data.items()]
+    # )
+    # logger.info(f"RESULT: {parsed_data_str}")
+    logger.info(f"RESULT: {markup.text}")
 
 
 # logger.info
