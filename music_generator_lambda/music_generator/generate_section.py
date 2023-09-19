@@ -24,7 +24,9 @@ logger = get_logger(__name__)
     ),
     stop=stop_after_attempt(3),
 )
-def generate_section(config: Config, llm: Union[BaseChatModel, BaseLLM]) -> Bar:  # fix
+def generate_section(
+    config: Config, llm: Union[BaseChatModel, BaseLLM], section
+) -> Bar:  # fix
     # model_name = "text-davinci-003"
     # temperature = 0.0
     # model = OpenAI(model_name=model_name, temperature=temperature)
@@ -32,13 +34,13 @@ def generate_section(config: Config, llm: Union[BaseChatModel, BaseLLM]) -> Bar:
     # Set up a parser + inject instructions into the prompt template.
 
     # Note, {{ in an fstring produces a single {
-    format_instructions = f"""Your format should be an instrument followed by sixteen notes, separated by spaces.
+    format_instructions = f"""Your format should be an array of bars where each instrument has 16 notes per bar seperated by spaces.
 
-Your output should be wrapped in {{{{{{ and }}}}}} for me to extract.
+each bar should be wrapped in {{{{{{ and }}}}}} for me to extract.
 
-The music should be formatted as follows:
+Each bar should be formatted as follows:
 
-{Bar.example().to_llm_format()} * 8
+{Bar.example().to_llm_format()}
 """
     if isinstance(llm, BaseLLM):
         # https://python.langchain.com/docs/modules/model_io/prompts/prompt_templates/#chat-prompt-template
@@ -92,6 +94,8 @@ if __name__ == "__main__":
     assert Bar.from_keypairs(Bar.example().to_keypairs()) == Bar.example()
     assert Bar.from_llm_format(Bar.example().to_llm_format()) == Bar.example()
     config = Config(**dotenv_values())  # type: ignore
-    llm = ChatOpenAI(openai_api_key=config.openai_api_key, model="gpt-4")
-    bar = generate_section(config=config, llm=llm)
-    logger.info(f"Generated Bar:\n{bar}")
+    llm = ChatOpenAI(
+        openai_api_key=config.openai_api_key, model="gpt-4", temperature=0.1
+    )
+    # bar = generate_section(config=config, llm=llm, section=)
+    # logger.info(f"Generated Bar:\n{bar}")

@@ -1,4 +1,4 @@
-from typing import Optional, TypeVar
+from typing import Optional, TypeVar, List, Dict
 from pydantic import BaseModel, Field, validator
 import re
 
@@ -336,63 +336,77 @@ class BarRecord(BaseModel):
     created_at_utc: str
 
 
-class MusicalMarkup(BaseModel):
-    text: str
+class MarkupInstrument(BaseModel):
+    description: str
+    dependencies: List[str]
 
     @staticmethod
-    def example() -> "MusicalMarkup":
-        return MusicalMarkup(
-            text="""
-## Introduction
-   - Start with a mellow **synth** pad.
-   - Slowly introduce a soft **hi-hat** rhythm.
+    def from_line(line: str) -> "MarkupInstrument":
+        instrument, description = line.split(" - ", 1)
+        references = re.findall(r"%(\w+-\d+)", description)
 
-## Build-Up
-   - Incorporate a steady **drum** beat.
-   - Layer the **synth** to create more tension.
-   - Introduce a **snare** roll, increasing in intensity.
-
-## Bass Drop
-   - Bring in the dominant **bass** line.
-   - Maintain the **hi-hat** for consistency.
-   - Include a stronger **drum** pattern to drive the rhythm.
-   - Intersperse with **synth** stabs for dynamic effect.
-
-## Breakdown
-   - Reduce the intensity of the **drum** beat.
-   - Highlight the **synth** melody.
-   - Fade out the **hi-hat** to give a moment of pause.
-
-## Second Build-Up
-   - Reintroduce the **hi-hat** with a different rhythm.
-   - Intensify the **snare** roll, similar to the first build-up but shorter.
-   - Elevate the **synth** tension, hinting towards the upcoming drop.
-
-## Second Bass Drop
-   - Introduce a variation of the initial **bass** line, possibly more energetic.
-   - Combine the **drums** to provide a fuller sound.
-   - Make use of alternating **synth** patterns for variation.
-
-## Bridge
-   - Offer a moment of respite with a focus on the melodic **synth** elements.
-   - Use a light **hi-hat** rhythm to keep the track moving.
-   - Soft **drums** in the background to maintain a sense of continuity.
-
-## Final Build-Up
-   - A short and impactful **snare** roll.
-   - Intensify the **synth** sounds, preparing the listener for the finale.
-
-## Grand Finale
-   - Combine all elements, i.e., **bass**, **synth**, **hi-hat**, **snare**, and **drums**.
-   - Possibly introduce a new **synth** melody or a variation of the initial theme.
-
-## Outro
-   - Gradually fade out the **drum** beat.
-   - Let the **synth** sounds echo and dissipate.
-   - Finish with the ambiance of the original **synth** pad from the introduction.
-"""
+        return MarkupInstrument(
+            description=description.strip(), dependencies=references
         )
 
 
-# directed asyclic graph of song sections and the sections they rely on
-# output -> ordered traversal of the graph
+class SongSection(BaseModel):
+    number_bars: int = Field("Number of bars in a section")
+    instruments: Dict[str, MarkupInstrument] = Field("Instruments in a section")
+
+    @staticmethod
+    def from_section(section: str) -> "SongSection":
+        lines = section.split("\n")
+
+        # Ensure that re.search() finds a match before calling .group()
+        match = re.search(r"\d+", lines[0])
+        if not match:
+            raise ValueError("Number of bars not found in the section definition")
+        bars = int(match.group())
+
+        instruments = {
+            line.split(" - ")[0]
+            .replace("*", "")
+            .strip(): MarkupInstrument.from_line(line)
+            for line in lines[1:]
+            if line
+        }
+        return SongSection(number_bars=bars, instruments=instruments)
+
+
+class MusicalMarkup(BaseModel):  # TODO make class methods more readable
+    sections: Dict[str, SongSection] = Field("SONG")
+
+    @staticmethod
+    def from_outline(outline: str) -> "MusicalMarkup":
+        sections_list = outline.split("##")[1:]
+        sections_dict = {
+            section.split("\n")[0].split(" ")[0]: SongSection.from_section(section)
+            for section in sections_list
+        }
+        return MusicalMarkup(sections=sections_dict)
+
+
+# clean parsing here as well:
+# def parse_outline(outline: str):
+#     sections = outline.split("##")
+#     song_structure = {}
+
+#     for section in sections[1:]:  # Skip the first empty split
+#         lines = section.split("\n")
+#         section_name = lines[0].split(" ")[0]
+#         bars = int(lines[0].split("(")[1].split(" ")[0])
+
+#         song_structure[section_name] = {"bars": bars, "instruments": {}}
+
+#         for line in lines[1:]:
+#             if line:  # To ensure no empty lines are parsed
+#                 instrument, description = line.split(" - ", 1)
+#                 references = findall(r"%(\w+-\d+)", description)
+
+#                 song_structure[section_name]["instruments"][instrument] = {
+#                     "description": description.strip(),
+#                     "references": references,
+#                 }
+
+#     return song_structure

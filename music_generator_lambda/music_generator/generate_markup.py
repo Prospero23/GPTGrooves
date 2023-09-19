@@ -1,5 +1,4 @@
 from typing import Union
-from re import split
 from langchain.callbacks import get_openai_callback
 from langchain.chat_models import ChatOpenAI
 
@@ -12,7 +11,7 @@ from langchain.schema.messages import SystemMessage
 from pydantic import ValidationError
 from tenacity import retry, retry_if_exception_type, stop_after_attempt
 
-from music_generator.music_generator_types import Bar, Config, MusicalMarkup
+from music_generator.music_generator_types import Config, MusicalMarkup
 from music_generator.utilities.logs import get_logger
 
 logger = get_logger(__name__)
@@ -35,7 +34,7 @@ The music should be formatted as follows:
 *instrument1 - detailed description of what instrument1 will do in section
 *instrument2 - detailed description of what instrument2 will do in section
 
-Any mention of a previous section should have a '%' and section names should be hyphinated
+any mention of a section should be formatted like %verse-1
 """
 
     result = ""
@@ -55,8 +54,12 @@ Any mention of a previous section should have a '%' and section names should be 
         )
         _input = chat_prompt_template.format_messages(
             format_instructions=format_instructions,
-            prompt="""make me an outline for a house track using only pad, bass, and drums consisting of snare, kick, and hi-hat.
-            Do not mention effects but provide how the material will develop. When referencing any previous material, always include the section as well.""",  # Make sure to include guide for dynamics? maybe 'provide literal musical material' or something of the sort
+            prompt="""Create an outline for a house music track using only the following elements:
+                    -Pad
+                    -Bass
+                    -Drums: consisting of snare, kick, and hi-hat
+                Provide a detailed, musical description of how each instrument will evolve throughout the track. Avoid mentioning effects or the term 'atmospheric.'
+                Whenever referring to earlier material, mention its specific section.""",  # Make sure to include guide for dynamics? maybe 'provide literal musical material' or something of the sort
             # TODO make prompt less bad (more consistant)
         )
         logger.debug(
@@ -74,48 +77,16 @@ Any mention of a previous section should have a '%' and section names should be 
 
     # make sure that the output references sections explicitly so it can reference previous material in graph.
 
-    return MusicalMarkup(text=result)  # TODO make this model better
-
-
-def parse_music_structure(text):
-    # Split by section
-    sections = split(r"##([A-Za-z\s]+)\s\((\d+ bars)\)", text)[1:]
-
-    # Group section name and details
-    grouped_sections = [
-        (sections[i], sections[i + 1], sections[i + 2])
-        for i in range(0, len(sections), 3)
-    ]
-
-    music_structure = {}
-
-    for section, bars, details in grouped_sections:
-        music_structure[section] = {"bars": bars, "details": {}}
-
-        for line in details.strip().split("\n"):
-            if "-" in line:
-                instrument, info = line.split("-", 1)
-                instrument = instrument.strip().strip("*")
-                info = info.strip()
-                music_structure[section]["details"][instrument] = info
-            else:
-                print(f"Unexpected line format: {line}")  # TODO actually handle this
-
-    return music_structure
+    return MusicalMarkup.from_outline(result)
 
 
 if __name__ == "__main__":
     from dotenv import dotenv_values
 
-    assert Bar.example() == Bar.example()
-    assert Bar.from_keypairs(Bar.example().to_keypairs()) == Bar.example()
-    assert Bar.from_llm_format(Bar.example().to_llm_format()) == Bar.example()
     config = Config(**dotenv_values())  # type: ignore
-    llm = ChatOpenAI(openai_api_key=config.openai_api_key, model="gpt-4")
+    llm = ChatOpenAI(
+        openai_api_key=config.openai_api_key, model="gpt-4", temperature=0.95
+    )
     markup = generate_markup(config=config, llm=llm)
-    # parsed_data = parse_music_structure(markup.text)
-    # parsed_data_str = "\n".join(
-    #     [f"{section} : {details}" for section, details in parsed_data.items()]
-    # )
-    # logger.info(f"RESULT: {parsed_data_str}")
-    logger.info(f"RESULT: {markup.text}")
+
+    logger.info(f"RESULT: {markup}")
