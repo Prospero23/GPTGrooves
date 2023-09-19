@@ -34,6 +34,8 @@ The music should be formatted as follows:
 ##section name (number of bars)
 *instrument1 - detailed description of what instrument1 will do in section
 *instrument2 - detailed description of what instrument2 will do in section
+
+Any mention of a previous section should have a '%' and section names should be hyphinated
 """
 
     result = ""
@@ -54,7 +56,8 @@ The music should be formatted as follows:
         _input = chat_prompt_template.format_messages(
             format_instructions=format_instructions,
             prompt="""make me an outline for a house track using only pad, bass, and drums consisting of snare, kick, and hi-hat.
-            Do not mention effects but provide how the material will develop. When referencing any previous material, always include the section as well. Be literal in your descriptions. """,
+            Do not mention effects but provide how the material will develop. When referencing any previous material, always include the section as well.""",  # Make sure to include guide for dynamics? maybe 'provide literal musical material' or something of the sort
+            # TODO make prompt less bad (more consistant)
         )
         logger.debug(
             "Prompt:\n" + "\n".join([f"{x.type}: {x.content}" for x in _input])
@@ -71,7 +74,7 @@ The music should be formatted as follows:
 
     # make sure that the output references sections explicitly so it can reference previous material in graph.
 
-    return MusicalMarkup(text=result)
+    return MusicalMarkup(text=result)  # TODO make this model better
 
 
 def parse_music_structure(text):
@@ -116,6 +119,3 @@ if __name__ == "__main__":
     # )
     # logger.info(f"RESULT: {parsed_data_str}")
     logger.info(f"RESULT: {markup.text}")
-
-
-# logger.info
