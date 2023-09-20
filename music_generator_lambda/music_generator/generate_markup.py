@@ -85,8 +85,5 @@ if __name__ == "__main__":
     llm = ChatOpenAI(
         openai_api_key=config.openai_api_key, model="gpt-4", temperature=0.90
     )
-    markup = generate_markup(
-        config=config, llm=llm
-    )  # parsing of dependencies still kind of refuses to work sometimes
-
+    markup = generate_markup(config=config, llm=llm)
     logger.info(f"RESULT: {markup}")

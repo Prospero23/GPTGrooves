@@ -353,13 +353,22 @@ class MusicalMarkup(BaseModel):  # TODO make class methods more readable
     def from_outline(outline: str) -> "MusicalMarkup":
         sections_list = outline.split("##")[1:]
 
+        if not sections_list:
+            raise ValueError("No sections found in the provided outline.")
+
         sections_dict = {}
         for section in sections_list:
             # Process MarkupSection
             lines = section.split("\n")
+            if not lines:
+                raise ValueError(f"Empty section found: {section}")
+
+            # get section name and number of bars
             match = re.search(r"(\w+-?\d?)\s*\((\d+)\s*bars?\)", lines[0])
             if not match:
-                raise ValueError("Number of bars not found in the section definition")
+                raise ValueError(
+                    f"Improper format for title and bars in section: {lines[0]}"
+                )
             section_name = match.group(1)
             bars = int(match.group(2))
 
@@ -367,9 +376,21 @@ class MusicalMarkup(BaseModel):  # TODO make class methods more readable
             for line in lines[1:]:
                 if line:
                     # Process MarkupInstrument
-                    instrument, description = line.split(" - ", 1)
-                    references = re.findall(r"%(\w+-\d+)", description)
+                    parts = line.split(" - ", 1)
+                    if len(parts) != 2:
+                        raise ValueError(
+                            f"Expected 'instrument - description', but got: {line}"
+                        )
+
+                    instrument, description = parts
+                    references = [
+                        match[0] for match in re.findall(r"%(\w+(-\d+)?)", description)
+                    ]
+
                     instrument_name = instrument.replace("*", "").strip()
+                    if not instrument_name:
+                        raise ValueError(f"Invalid instrument name in line: {line}")
+
                     instruments[instrument_name] = MarkupInstrument(
                         description=description.strip(), dependencies=references
                     )
