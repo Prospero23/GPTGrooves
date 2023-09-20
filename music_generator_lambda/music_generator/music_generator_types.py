@@ -340,50 +340,44 @@ class MarkupInstrument(BaseModel):
     description: str
     dependencies: List[str]
 
-    @staticmethod
-    def from_line(line: str) -> "MarkupInstrument":
-        instrument, description = line.split(" - ", 1)
-        references = re.findall(r"%(\w+-\d+)", description)
 
-        return MarkupInstrument(
-            description=description.strip(), dependencies=references
-        )
-
-
-class SongSection(BaseModel):
+class MarkupSection(BaseModel):
     number_bars: int = Field("Number of bars in a section")
     instruments: Dict[str, MarkupInstrument] = Field("Instruments in a section")
 
-    @staticmethod
-    def from_section(section: str) -> "SongSection":
-        lines = section.split("\n")
-
-        # Ensure that re.search() finds a match before calling .group()
-        match = re.search(r"\d+", lines[0])
-        if not match:
-            raise ValueError("Number of bars not found in the section definition")
-        bars = int(match.group())
-
-        instruments = {
-            line.split(" - ")[0]
-            .replace("*", "")
-            .strip(): MarkupInstrument.from_line(line)
-            for line in lines[1:]
-            if line
-        }
-        return SongSection(number_bars=bars, instruments=instruments)
-
 
 class MusicalMarkup(BaseModel):  # TODO make class methods more readable
-    sections: Dict[str, SongSection] = Field("SONG")
+    sections: Dict[str, MarkupSection] = Field("SONG")
 
     @staticmethod
     def from_outline(outline: str) -> "MusicalMarkup":
         sections_list = outline.split("##")[1:]
-        sections_dict = {
-            section.split("\n")[0].split(" ")[0]: SongSection.from_section(section)
-            for section in sections_list
-        }
+
+        sections_dict = {}
+        for section in sections_list:
+            # Process MarkupSection
+            lines = section.split("\n")
+            match = re.search(r"(\w+-?\d?)\s*\((\d+)\s*bars?\)", lines[0])
+            if not match:
+                raise ValueError("Number of bars not found in the section definition")
+            section_name = match.group(1)
+            bars = int(match.group(2))
+
+            instruments = {}
+            for line in lines[1:]:
+                if line:
+                    # Process MarkupInstrument
+                    instrument, description = line.split(" - ", 1)
+                    references = re.findall(r"%(\w+-\d+)", description)
+                    instrument_name = instrument.replace("*", "").strip()
+                    instruments[instrument_name] = MarkupInstrument(
+                        description=description.strip(), dependencies=references
+                    )
+
+            sections_dict[section_name] = MarkupSection(
+                number_bars=bars, instruments=instruments
+            )
+
         return MusicalMarkup(sections=sections_dict)
 
 

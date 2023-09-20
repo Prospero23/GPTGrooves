@@ -60,7 +60,7 @@ any mention of a section should be formatted like %verse-1
                     -Drums: consisting of snare, kick, and hi-hat
                 Provide a detailed, musical description of how each instrument will evolve throughout the track. Avoid mentioning effects or the term 'atmospheric.'
                 Whenever referring to earlier material, mention its specific section.""",  # Make sure to include guide for dynamics? maybe 'provide literal musical material' or something of the sort
-            # TODO make prompt less bad (more consistant)
+            # TODO make prompt less bad (more consistant
         )
         logger.debug(
             "Prompt:\n" + "\n".join([f"{x.type}: {x.content}" for x in _input])
@@ -75,8 +75,6 @@ any mention of a section should be formatted like %verse-1
         result = output.content
     logger.debug(f"Output:\n{result}")
 
-    # make sure that the output references sections explicitly so it can reference previous material in graph.
-
     return MusicalMarkup.from_outline(result)
 
 
@@ -85,8 +83,10 @@ if __name__ == "__main__":
 
     config = Config(**dotenv_values())  # type: ignore
     llm = ChatOpenAI(
-        openai_api_key=config.openai_api_key, model="gpt-4", temperature=0.95
+        openai_api_key=config.openai_api_key, model="gpt-4", temperature=0.90
     )
-    markup = generate_markup(config=config, llm=llm)
+    markup = generate_markup(
+        config=config, llm=llm
+    )  # parsing of dependencies still kind of refuses to work sometimes
 
     logger.info(f"RESULT: {markup}")
