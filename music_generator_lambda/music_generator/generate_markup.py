@@ -60,7 +60,7 @@ any mention of a section should be formatted like %verse-1
                     -Drums: consisting of snare, kick, and hi-hat
                 Provide a detailed, musical description of how each instrument will evolve throughout the track. Avoid mentioning effects or the term 'atmospheric.'
                 Whenever referring to earlier material, mention its specific section.""",  # Make sure to include guide for dynamics? maybe 'provide literal musical material' or something of the sort
-            # TODO make prompt less bad (more consistant
+            # TODO prompt still references things like Main material. Also for parsing, good to pass previous drum part in always?
         )
         logger.debug(
             "Prompt:\n" + "\n".join([f"{x.type}: {x.content}" for x in _input])
