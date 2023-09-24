@@ -344,6 +344,7 @@ class MarkupInstrument(BaseModel):
 class MarkupSection(BaseModel):
     number_bars: int = Field("Number of bars in a section")
     instruments: Dict[str, MarkupInstrument] = Field("Instruments in a section")
+    name: str
 
 
 class MusicalMarkup(BaseModel):
@@ -406,7 +407,7 @@ class MusicalMarkup(BaseModel):
                     )
 
             sections_dict[section_name] = MarkupSection(
-                number_bars=bars, instruments=instruments
+                number_bars=bars, instruments=instruments, name=section_name
             )
 
         return MusicalMarkup(sections=sections_dict)
@@ -414,11 +415,14 @@ class MusicalMarkup(BaseModel):
 
 class SongSection(BaseModel):
     Bars: List[Bar] = Field(description="The list of actualized bars")
+    Name: str
 
     @staticmethod
-    def from_llm_format(text: str) -> "SongSection":
+    def from_llm_format(text: str, name: str, length: int) -> "SongSection":
         """
         :param text: A string representation of the section in the format expected by the LLM.
+        :param name: A string representation of the section name.
+        :param name: An int representing number of bars that should be made.
         :return: A SongSection object.
 
         The format is as follows:
@@ -452,4 +456,13 @@ class SongSection(BaseModel):
             match_bar = Bar.from_llm_format(match)
             bar_array.append(match_bar)
 
-        return SongSection(Bars=bar_array)
+        if len(bar_array) != length:
+            raise ValueError(
+                f"Incorrect number of bars generated, generated {len(bar_array)} bars not {length}"
+            )
+
+        return SongSection(Bars=bar_array, Name=name)
+
+
+class Song(BaseModel):
+    sections: List[SongSection]

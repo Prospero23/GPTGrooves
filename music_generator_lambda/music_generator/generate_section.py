@@ -47,7 +47,7 @@ def generate_section(
 
     1. Structure:
         - Section format: list of bars: bar, bar, bar, bar
-        - Each instrument: 16 notes per bar.
+        - Each instrument: 16 notes per bar. Include all instruments every bar.
         - Note separation: Spaces.
 
     2. Bar Formatting:
@@ -73,7 +73,7 @@ def generate_section(
         )
         _input = chat_prompt_template.format_messages(
             format_instructions=format_instructions,
-            prompt=f"""generate {markup_section.number_bars} bars for the intro of a house song using the following descriptions:
+            prompt=f"""generate {markup_section.number_bars} bars of a house song using the following descriptions:
            bass : {markup_section.instruments['Bass'].description}
             pad: {markup_section.instruments['Pad'].description}
              drums:{markup_section.instruments['Drums'].description}""",
@@ -91,7 +91,9 @@ def generate_section(
         result = output.content
     logger.debug(f"Output:\n{result}")
 
-    return SongSection.from_llm_format(text=result)
+    return SongSection.from_llm_format(
+        text=result, name=markup_section.name, length=markup_section.number_bars
+    )
 
 
 if __name__ == "__main__":
@@ -109,6 +111,7 @@ if __name__ == "__main__":
     sections = {
         "Intro": MarkupSection(
             number_bars=8,
+            name="Intro",
             instruments={
                 "Pad": MarkupInstrument(
                     description="The pad will begin the track, starting at a low volume but gradually increasing in intensity to create a musical build-up.",
@@ -126,6 +129,7 @@ if __name__ == "__main__":
         ),
         "verse-1": MarkupSection(
             number_bars=1,
+            name="verse-1",
             instruments={
                 "Pad": MarkupInstrument(
                     description="The pad will continue from the intro, playing sustained chord progressions that provide the track's harmonic backbone. Some chords will be held for longer periods to add tension.",
@@ -143,6 +147,7 @@ if __name__ == "__main__":
         ),
         "Chorus": MarkupSection(
             number_bars=16,
+            name="Chorus",
             instruments={
                 "Pad": MarkupInstrument(
                     description="Modulates to uplifting chord sequences to differentiate this section from %verse-1.",
@@ -160,6 +165,7 @@ if __name__ == "__main__":
         ),
         "verse-2": MarkupSection(
             number_bars=2,
+            name="verse-2",
             instruments={
                 "Pad": MarkupInstrument(
                     description="The pad reverts to the chord progressions from %verse-1 but with a single additional high melody line for variation.",
@@ -177,6 +183,7 @@ if __name__ == "__main__":
         ),
         "Outro": MarkupSection(
             number_bars=8,
+            name="Outro",
             instruments={
                 "Pad": MarkupInstrument(
                     description="Begins to slowly fade out while maintaining the %verse-2 melody.",
@@ -193,10 +200,14 @@ if __name__ == "__main__":
             },
         ),
     }
+    result = []
+    section_names = list(sections.keys())
     # for section in sections:
 
-    section = generate_section(config=config, llm=llm, markup_section=sections["Intro"])
-    # TODO MAKE ERROR HANDLE FOR LENGTH
+    # section = generate_section(config=config, llm=llm, markup_section=sections["Intro"])
 
     # print(deserialized_bars)
-    logger.info(f"Generated section:\n{section}")
+    # logger.info(f"Generated section:\n{section}")
+
+
+# store previouss sections stuff -> keep running total of previous sections that can be referenced
