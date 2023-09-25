@@ -190,6 +190,16 @@ class Bar(BaseModel):
     bass: BassBar = Field(description="Bass line.")
     pad: PadBar = Field(description="Pad track.")
 
+    def __getitem__(self, key: str):
+        if key.upper() == "DRUMS":
+            return self.drums
+        elif key.upper() == "BASS":
+            return self.bass
+        elif key.upper() == "PAD":
+            return self.pad
+        else:
+            raise KeyError(f"Key '{key}' not found in Bar instance.")
+
     @staticmethod
     def example() -> "Bar":
         return Bar(
@@ -463,6 +473,18 @@ class SongSection(BaseModel):
 
         return SongSection(Bars=bar_array, Name=name)
 
+    def __getitem__(self, index: int) -> Bar:
+        return self.Bars[index]
+
 
 class Song(BaseModel):
-    sections: List[SongSection]
+    sections: List[SongSection] = []
+
+    def __len__(self):
+        return len(self.sections)
+
+    def __getitem__(self, index: int) -> SongSection:
+        return self.sections[index]
+
+    def append_section(self, item: SongSection) -> None:
+        self.sections.append(item)

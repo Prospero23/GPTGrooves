@@ -58,8 +58,8 @@ any mention of a section should be formatted like %verse-1
                     -Pad
                     -Bass
                     -Drums: consisting of snare, kick, and hi-hat
-                Provide a detailed and complete description of how each instrument will evolve throughout the track. Avoid mentioning any effects or filters and focus on complete description of rhythm, harmony, and melody.
-                Whenever referring to earlier material, mention its specific section.""",  # Make sure to include guide for dynamics? maybe 'provide literal musical material' or something of the sort
+                Provide a detailed and complete description of how each instrument will evolve throughout the track. Avoid mentioning any effects or filters and focus on complete descriptions of rhythm, harmony, and melody.
+                Whenever referring to previous material, refer to sections.""",  # Make sure to include guide for dynamics? maybe 'provide literal musical material' or something of the sort
             # TODO prompt still references things like Main material. Also for parsing, good to pass previous drum part in always?
         )
         logger.debug(
@@ -76,6 +76,7 @@ any mention of a section should be formatted like %verse-1
     logger.debug(f"Output:\n{result}")
 
     return MusicalMarkup.from_outline(result)
+    # return result
 
 
 if __name__ == "__main__":
