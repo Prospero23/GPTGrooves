@@ -1,3 +1,4 @@
+import logging
 from typing import Union
 
 # from langchain import PromptTemplate
@@ -10,17 +11,21 @@ from langchain.llms.base import BaseLLM
 from langchain.prompts import ChatPromptTemplate
 from langchain.prompts.chat import HumanMessagePromptTemplate
 from langchain.schema.messages import SystemMessage
-
 from pydantic import ValidationError
-from tenacity import retry, retry_if_exception_type, stop_after_attempt
+from tenacity import (
+    before_sleep_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+)
 
 from music_generator.music_generator_types import (
     Bar,
     Config,
-    MarkupSection,
     MarkupInstrument,
-    SongSection,
+    MarkupSection,
     Song,
+    SongSection,
 )
 from music_generator.utilities.logs import get_logger
 
@@ -28,6 +33,8 @@ logger = get_logger(__name__)
 
 
 @retry(
+    # This line makes tenacity log the produced exception before sleeping for its wait-interval
+    before_sleep=before_sleep_log(logger, logging.WARNING),
     retry=(
         retry_if_exception_type(ValidationError) | retry_if_exception_type(ValueError)
     ),
@@ -39,11 +46,9 @@ def generate_section(
     markup_section: MarkupSection,
     prev_gens: Song,
 ) -> SongSection:
-    # model_name = "text-davinci-003"
-    # temperature = 0.0
-    # model = OpenAI(model_name=model_name, temperature=temperature)
-
-    # Note, {{ in an fstring produces a single {
+    """
+    Generate the notes of a song (SongSection) from an abstract description (MarkupSection) using the given LLM.
+    """
 
     def generate_instrument_description(
         instrument_name: str, prev_sections: Song
@@ -65,21 +70,21 @@ def generate_section(
         return description
 
     format_instructions = f"""
-    FORMAT INSTRUCTIONS:
+# Format
 
-    1. Structure:
-        - Section format: list of bars: bar, bar, bar, bar
-        - Each instrument: 16 notes per bar. Include all instruments every bar.
-        - Note separation: Spaces.
-        -Include all bars. Do not use shorthand.
+## Structure:
+- Section format: list of bars: bar, bar, bar, bar
+- Each instrument: 16 notes per bar. Include all instruments every bar.
+- Note separation: Spaces.
 
-    2. Bar Formatting:
-        - Bar enclosure: {{{{{{ and }}}}}}.
-        - Bar example:
-        {Bar.example().to_llm_format()}
+## Bar Formatting:
+- Bars are enclosed by a triple brace on each side: {{{{{{ content }}}}}}.
+- An example of a properly formatted bar is as follows:
+{Bar.example().to_llm_format()}
 
-    Ensure adherence to this format for accurate parsing.
-    """
+The text you produce will be programatically parsed into a song. Please follow the format instructions carefully.
+List the bars completely; do not use shorthand or english-language specification like "repeats 4 times" or "bars 1-4 are ...".
+""".strip()
 
     if isinstance(llm, BaseLLM):
         # https://python.langchain.com/docs/modules/model_io/prompts/prompt_templates/#chat-prompt-template
@@ -96,10 +101,17 @@ def generate_section(
         )
         _input = chat_prompt_template.format_messages(
             format_instructions=format_instructions,
-            prompt=f"""generate {markup_section.number_bars} bars of a house song using the following descriptions:
-           bass : {generate_instrument_description('Bass', prev_gens)}
-            pad: {generate_instrument_description('Pad', prev_gens)}
-             drums:{generate_instrument_description('Drums', prev_gens)}""",
+            prompt=f"""# Song
+Generate {markup_section.number_bars} bars of a house song using the following descriptions...
+
+## Bass
+{generate_instrument_description('Bass', prev_gens)}
+
+## Pad
+{generate_instrument_description('Pad', prev_gens)}
+
+## Drums
+{generate_instrument_description('Drums', prev_gens)}""".strip(),
         )
         # prompt=f"""generate {markup_section.number_bars} bars of a house song using the following descriptions:
         #    bass : {markup_section.instruments['Bass'].description}
@@ -117,6 +129,7 @@ def generate_section(
             f"Used {cb.total_tokens} tokens ({cb.prompt_tokens} prompt, {cb.completion_tokens} completion) @ ${(cb.total_cost):.3f}"
         )
         result = output.content
+
     logger.debug(f"Output:\n{result}")
 
     return SongSection.from_llm_format(
@@ -142,7 +155,7 @@ if __name__ == "__main__":
             name="Intro",
             instruments={
                 "Pad": MarkupInstrument(
-                    description="The pad will begin the track, starting at a low volume but gradually increasing in intensity to create a musical build-up.",
+                    description="The pad will begin the track, holding a sustained chord to build into the rest of the track.",
                     dependencies=[],
                 ),
                 "Bass": MarkupInstrument(
