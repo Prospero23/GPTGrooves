@@ -41,3 +41,4 @@ export default function Scene({ bars }: { bars: Array<BarType> }) {
     </Canvas>
   );
 }
+//potentially make plane its own component

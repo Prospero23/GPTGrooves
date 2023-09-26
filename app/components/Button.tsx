@@ -219,3 +219,6 @@ export default function Button({
 }
 
 useGLTF.preload("/assets/butttton.glb");
+
+
+//randomly set button color for each day?
