@@ -155,7 +155,7 @@ if __name__ == "__main__":
             name="Intro",
             instruments={
                 "Pad": MarkupInstrument(
-                    description="The pad will begin the track, starting at a low volume but gradually increasing in intensity to create a musical build-up.",
+                    description="The pad will begin the track, holding a sustained chord to build into the rest of the track.",
                     dependencies=[],
                 ),
                 "Bass": MarkupInstrument(
