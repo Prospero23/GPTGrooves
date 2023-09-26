@@ -71,6 +71,7 @@ def generate_section(
         - Section format: list of bars: bar, bar, bar, bar
         - Each instrument: 16 notes per bar. Include all instruments every bar.
         - Note separation: Spaces.
+        -Include all bars. Do not use shorthand.
 
     2. Bar Formatting:
         - Bar enclosure: {{{{{{ and }}}}}}.
@@ -160,7 +161,7 @@ if __name__ == "__main__":
             instruments={
                 "Pad": MarkupInstrument(
                     description="The pad will continue from the intro, playing sustained chord progressions that provide the track's harmonic backbone. Some chords will be held for longer periods to add tension.",
-                    dependencies=[],
+                    dependencies=["intro"],
                 ),
                 "Bass": MarkupInstrument(
                     description="The bass will join, playing a deep groove that complements the chord progressions of the pad.",

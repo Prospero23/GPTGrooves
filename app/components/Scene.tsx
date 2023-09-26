@@ -17,9 +17,15 @@ export default function Scene({ bars }: { bars: Array<BarType> }) {
       <color attach="background" args={["black"]} />
       <ambientLight intensity={0.2} />
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
-        <Html transform position={[0, -2, 0]}>
-          <h1 className=" text-2xl">GPT House</h1>
+        <Html transform position={[0, 2, 0]}>
+          <h1 className=" text-2xl">Composition Date</h1>
           <p className="text-center">{isPlaying ? "playing" : "paused"}</p>
+        </Html>
+        <Html transform position={[2.5,0,0]}>
+          <button className=" hover:text-red-600">next</button>
+        </Html>
+        <Html transform position={[-2.5,0,0]}>
+          <button className=" hover:text-red-600">prev</button>
         </Html>
         <planeGeometry args={[10, 10]} />
         <meshStandardMaterial color="white" />
