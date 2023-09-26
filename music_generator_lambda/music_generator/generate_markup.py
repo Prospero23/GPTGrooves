@@ -1,3 +1,4 @@
+import logging
 from typing import Union
 from langchain.callbacks import get_openai_callback
 from langchain.chat_models import ChatOpenAI
@@ -9,7 +10,12 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.prompts.chat import HumanMessagePromptTemplate
 from langchain.schema.messages import SystemMessage
 from pydantic import ValidationError
-from tenacity import retry, retry_if_exception_type, stop_after_attempt
+from tenacity import (
+    before_sleep_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+)
 
 from music_generator.music_generator_types import Config, MusicalMarkup
 from music_generator.utilities.logs import get_logger
@@ -18,6 +24,7 @@ logger = get_logger(__name__)
 
 
 @retry(
+    before_sleep=before_sleep_log(logger, logging.INFO),  # noqa: F821
     retry=(
         retry_if_exception_type(ValidationError) | retry_if_exception_type(ValueError)
     ),
@@ -55,11 +62,11 @@ any mention of a section should be formatted like %verse-1
         _input = chat_prompt_template.format_messages(
             format_instructions=format_instructions,
             prompt="""Create an outline for a house music track using only the following elements:
-                    -Pad
-                    -Bass
-                    -Drums: consisting of snare, kick, and hi-hat
-                Provide a detailed and complete description of how each instrument will evolve throughout the track. Avoid mentioning any effects or filters and focus on complete descriptions of rhythm, harmony, and melody.
-                Whenever referring to previous material, refer to sections.""",  # Make sure to include guide for dynamics? maybe 'provide literal musical material' or something of the sort
+    -Pad
+    -Bass
+    -Drums: consisting of snare, kick, and hi-hat
+Provide a detailed and complete description of how each instrument will evolve throughout the track. Avoid mentioning any effects or filters and focus on complete descriptions of rhythm, harmony, and melody.
+Whenever referring to previous material, refer to sections.""".strip(),  # Make sure to include guide for dynamics? maybe 'provide literal musical material' or something of the sort
             # TODO prompt still references things like Main material. Also for parsing, good to pass previous drum part in always?
         )
         logger.debug(

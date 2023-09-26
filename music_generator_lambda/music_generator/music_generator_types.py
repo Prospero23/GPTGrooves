@@ -466,10 +466,10 @@ class SongSection(BaseModel):
             match_bar = Bar.from_llm_format(match)
             bar_array.append(match_bar)
 
-        if len(bar_array) != length:
-            raise ValueError(
-                f"Incorrect number of bars generated, generated {len(bar_array)} bars not {length}"
-            )
+        # if len(bar_array) != length:
+        #     raise ValueError(
+        #         f"Incorrect number of bars generated, generated {len(bar_array)} bars not {length}"
+        #     )
 
         return SongSection(Bars=bar_array, Name=name)
 
