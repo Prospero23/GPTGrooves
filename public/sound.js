@@ -78,10 +78,6 @@ export default async function setup() {
     if (dependencies.length)
         await device.loadDataBufferDependencies(dependencies);
 
-    // Connect the device to the web audio graph
-    device.node.connect(outputNode);
-    deviceBass.node.connect(outputNode);
-    deviceSynth.node.connect(outputNode);
 
     // // (Optional) Create a form to send messages to RNBO inputs
     // makeInportForm(device);
@@ -95,9 +91,6 @@ export default async function setup() {
     // // (Optional) Connect MIDI inputs
     // makeMIDIKeyboard(device);
 
-    document.body.onclick = () => {
-        context.resume();
-    }
 
 //     // Skip if you're not using guardrails.js
 //     if (typeof guardrails === "function")
@@ -119,7 +112,6 @@ export default async function setup() {
         document.body.append(el);
     });
   }
-
 
   return {context, device, deviceBass, deviceSynth}
 }
