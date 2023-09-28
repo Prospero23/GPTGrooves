@@ -1,12 +1,11 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { Device, MIDIEvent, MIDIData, TimeNow, MessageEvent } from "@rnbo/js";
 import setup from "@/public/sound";
 import { Vector3 } from "three";
 import { BarType } from "@/library/musicData";
 import noteToMidi from "@/library/noteToMidi";
-import * as Tone from "tone";
 
 interface ButtonProps {
   position: Vector3;
@@ -48,7 +47,7 @@ export default function Button({
   let noteResolution = 0; //0 is 16th, 1 - 8th, 2 - quarter
   const timerID = useRef<number | undefined>(undefined); //setInterval identifier
 
-  const notesInQueue = [];
+  const notesInQueue = []; //FOR FUTURE VISUALS (see playBUTTON link)
 
   //setup function. RUNS ONCE
   useEffect(() => {
@@ -71,13 +70,6 @@ export default function Button({
       audioContext.current?.close();
     };
   }, []);
-
-  useEffect(() => {
-    if (!isPlaying && timerID.current){
-      window.clearTimeout(timerID.current)
-      console.log('THIS RAN')
-    }
-  }, [isPlaying])
 
   function nextNote() {
     //advance time to next 16th note //ADD BARS?
@@ -132,16 +124,11 @@ export default function Button({
       //PAD
       if (pad.current) {
         let padInstance = pad.current as Device;
-
-
-
         playingData[currentBar.current].pad.chord_sequence[currentStep.current].notes.forEach(
           (note) => {
             let midiChannel = 0;
 
-            console.log(time)
 
-            console.log(note)
 
             let midiNote = noteToMidi(note) + 12;
 
@@ -199,7 +186,8 @@ export default function Button({
     }
   }
 
-  async function handleClick() {
+  function handleClick(event:React.MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation() //stop event from firing twice
     //animation
     const anim = actions[names[0]];
     if (anim) {
@@ -215,15 +203,15 @@ export default function Button({
     }
     if (!isPlaying && audioContext.current) {
       // start playing
+      console.log('TRUE')
       currentStep.current = 0;
       currentBar.current = 0;
       nextNoteTime.current = audioContext.current.currentTime;
       scheduler(); // kick off scheduling
       return;
-    } else {
-      console.log('isPlaying: ', isPlaying)
+    } else if (isPlaying){
       window.clearTimeout(timerID.current);
-      console.log("this is the timer ID:", timerID.current);
+      //console.log("this is the timer ID:", timerID.current)
       return;
     }
   }
@@ -236,95 +224,6 @@ export default function Button({
 }
 
 //randomly set button color for each day?
-//I think audio is hooked to wrong place]
-
-// //setIsPlaying(!isPlaying);
-// Tone.Transport.scheduleRepeat((time) => {
-//    console.log('current step: ', currentStep)
-//    console.log('current bar: ' ,currentBar)
-// //   //drums
-// //   for (let drumType in playingData[currentBar.current].drums) {
-// //     // Make sure we have the correct structure
-// //     if (playingData[currentBar.current].drums.hasOwnProperty(drumType)) {
-// //       let inlet = drumInlets[drumType as keyof typeof drumInlets];
-// //       const drumEventTrigger = new MessageEvent(TimeNow, `in${inlet}`, [
-// //         //@ts-ignore
-// //         playingData[currentBar.current].drums[drumType][currentStep.current],
-// //       ]);
-// //       drums.current?.scheduleEvent(drumEventTrigger);
-// //     }
-// //   }
-// //   //bass
-// //   // const bassNote = noteToMidi(
-// //   //   playingData[currentBar.current].bass.pattern[currentStep.current]
-// //   // );
-
-// //   // if (!isNaN(bassNote)) {
-// //   //   const bassEventTrigger = new MessageEvent(TimeNow, `in0`, [bassNote]);
-// //   //   bass.current?.scheduleEvent(bassEventTrigger);
-// //   // }
-// //   //synth
-// //   // if (pad.current) {
-
-// //   //   let padInstance = pad.current as Device;
-
-// //   //   playingData[currentBar.current].pad.chord_sequence[currentStep.current].notes.forEach(
-// //   //     (note) => {
-// //   //       let midiChannel = 0;
-
-// //   //       let midiNote = noteToMidi(note) + 12;
-
-// //   //       // Format a MIDI message paylaod, this constructs a MIDI on event
-// //   //       let noteOnMessage: MIDIData = [
-// //   //         144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
-// //   //         midiNote, // MIDI Note
-// //   //         100, // MIDI Velocity
-// //   //       ];
-
-// //   //       let noteOffMessage: MIDIData = [
-// //   //         128 + midiChannel, // Code for a note off: 10000000 & midi channel (0-15)
-// //   //         midiNote, // MIDI Note
-// //   //         0, // MIDI Velocity
-// //   //       ];
-
-// //   //       // Including rnbo.min.js (or the unminified rnbo.js) will add the RNBO object
-// //   //       // to the global namespace. This includes the TimeNow constant as well as
-// //   //       // the MIDIEvent constructor.
-// //   //       let midiPort = 0;
-// //   //       let noteDurationMs = 250; // TODO: BETTER
-
-// //   //       // When scheduling an event to occur in the future, use the current audio context time
-// //   //       // multiplied by 1000 (converting seconds to milliseconds) for now.
-// //   //       let noteOnEvent = new MIDIEvent(
-// //   //         time,
-// //   //         midiPort,
-// //   //         noteOnMessage
-// //   //       );
-// //   //       let noteOffEvent = new MIDIEvent(
-// //   //         time + noteDurationMs, //maybe * 10000
-// //   //         midiPort,
-// //   //         noteOffMessage
-// //   //       );
-
-// //   //       padInstance.scheduleEvent(noteOnEvent);
-// //   //       padInstance.scheduleEvent(noteOffEvent);
-// //   //     }
-// //   //   );
-// //   // }
-// //   if (currentStep.current <= 16){ //make better later
-// //     currentStep.current += 1
-// //   } else {
-// //     currentStep.current = 0
-// //     currentBar.current += 1
-// //   }
-// }, "16n")
-
-//use setTimeout to nake queue
-//large overall lookahead and reasonably short interval
-//A good place to start is probably 100ms of “lookahead” time, with intervals set to 25ms.
-//up the lookahead time if too complex and stuttering
-
-//3d IS FUCKING WITH TIMING ON RESIZE BC BLOCKING EVERYTHING
 
 
-//only getting eigth notes for the moment
+//better trash disposal needed
