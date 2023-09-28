@@ -62,6 +62,20 @@
             }
         },
         {
+            "name": "Python: Daily Generate Song",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/music_generator_lambda",
+            "module": "music_generator.workflows.daily_generate_song",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "NOCACHE": "0",
+                "PYTHON_LOG_LEVEL": "DEBUG",
+                // "PYTHONPATH": "${workspaceFolder}/music_generator_lambda"
+            }
+        },
+        {
             "name": "Python: Lambda Handler",
             "type": "python",
             "request": "launch",

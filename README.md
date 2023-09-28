@@ -34,3 +34,10 @@ Get API keys and place them in respective keys (defined in music_generator_lambd
 
 https://platform.openai.com/
 https://www.anyscale.com/
+
+
+## Cacheing for Langchain
+
+Add this line to your .env:
+
+    llm_cache_filename="langchain.db"

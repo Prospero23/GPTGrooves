@@ -69,23 +69,6 @@ def generate_section(
 
         return description
 
-    format_instructions = f"""
-# Format
-
-## Structure:
-- Section format: list of bars: bar, bar, bar, bar
-- Each instrument: 16 notes per bar. Include all instruments every bar.
-- Note separation: Spaces.
-
-## Bar Formatting:
-- Bars are enclosed by a triple brace on each side: {{{{{{ content }}}}}}.
-- An example of a properly formatted bar is as follows:
-{Bar.example().to_llm_format()}
-
-The text you produce will be programatically parsed into a song. Please follow the format instructions carefully.
-List the bars completely; do not use shorthand or english-language specification like "repeats 4 times" or "bars 1-4 are ...".
-""".strip()
-
     if isinstance(llm, BaseLLM):
         # https://python.langchain.com/docs/modules/model_io/prompts/prompt_templates/#chat-prompt-template
         # Note, if you don't use format for the format instructions, the formatting will try
@@ -95,23 +78,33 @@ List the bars completely; do not use shorthand or english-language specification
         # https://python.langchain.com/docs/modules/model_io/prompts/prompt_templates/#chat-prompt-template
         chat_prompt_template: ChatPromptTemplate = ChatPromptTemplate.from_messages(  # pyright: ignore[reportUnknownMemberType]
             [
-                SystemMessage(content=f"Answer the user query.\n{format_instructions}"),
+                SystemMessage(
+                    content=f"""
+# Format
+
+## Structure:
+
+## Bar Formatting:
+- Your output will be a sequence of bars
+- Each bar is enclosed by triple braces on each side: {{{{{{ content }}}}}}.
+- Always use 16 notes per bar (Each is a 16th note)
+- Always specify the activity of all instruments in every bar (even if it's a rest)
+- An example of a properly formatted bar is as follows:
+{Bar.example().to_llm_format()}
+
+The text you produce will be programatically parsed into a song. Please follow the format instructions carefully.
+List the bars completely; do not use shorthand or english-language specification like "repeats 4 times" or "bars 1-4 are ...". Do not leave out any instruments.
+""".strip()
+                ),
                 HumanMessagePromptTemplate.from_template("{prompt}"),
             ]
         )
         _input = chat_prompt_template.format_messages(
-            format_instructions=format_instructions,
-            prompt=f"""# Song
-Generate {markup_section.number_bars} bars of a house song using the following descriptions...
+            prompt=f"""Generate {markup_section.number_bars} bars of a house song using the following descriptions...
 
-## Bass
-{generate_instrument_description('Bass', prev_gens)}
-
-## Pad
-{generate_instrument_description('Pad', prev_gens)}
-
-## Drums
-{generate_instrument_description('Drums', prev_gens)}""".strip(),
+Bass: {generate_instrument_description('Bass', prev_gens)}
+Pad: {generate_instrument_description('Pad', prev_gens)}
+Drums: {generate_instrument_description('Drums', prev_gens)}""".strip(),
         )
         # prompt=f"""generate {markup_section.number_bars} bars of a house song using the following descriptions:
         #    bass : {markup_section.instruments['Bass'].description}
@@ -123,6 +116,7 @@ Generate {markup_section.number_bars} bars of a house song using the following d
         )
 
         with get_openai_callback() as cb:
+            logger.info("Generating section (this make take a while)...")
             output = llm(_input)
 
         logger.info(
