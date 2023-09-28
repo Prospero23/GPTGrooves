@@ -424,8 +424,8 @@ class MusicalMarkup(BaseModel):
 
 
 class SongSection(BaseModel):
-    Bars: List[Bar] = Field(description="The list of actualized bars")
-    Name: str
+    bars: List[Bar] = Field(description="The list of actualized bars")
+    name: str
 
     @staticmethod
     def from_llm_format(text: str, name: str, length: int) -> "SongSection":
@@ -471,10 +471,10 @@ class SongSection(BaseModel):
         #         f"Incorrect number of bars generated, generated {len(bar_array)} bars not {length}"
         #     )
 
-        return SongSection(Bars=bar_array, Name=name)
+        return SongSection(bars=bar_array, name=name)
 
     def __getitem__(self, index: int) -> Bar:
-        return self.Bars[index]
+        return self.bars[index]
 
 
 class Song(BaseModel):

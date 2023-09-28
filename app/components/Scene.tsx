@@ -1,16 +1,19 @@
 "use client";
 
+import { type SongType } from "@/library/musicData";
+import { Html, OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import Button from "./Button";
 import { useState } from "react";
-import { OrbitControls, Html } from "@react-three/drei";
 import { Vector3 } from "three";
-import {BarType} from "@/library/musicData"
+import Button from "./Button";
 
-
-
-export default function Scene({ bars }: { bars: Array<BarType> }) {
-  const [isPlaying, setIsPlaying] = useState<Boolean | undefined>(false);
+export default function Scene({ songs }: { songs: SongType[] }) {
+  const [isPlaying, setIsPlaying] = useState<boolean | undefined>(false);
+  // TODO improve this, we're only getting 1
+  console.log(songs[0].sections);
+  const bars = songs[0].sections.flatMap((section) =>
+    section.bars.map((bar) => bar.bar),
+  );
 
   return (
     <Canvas>
@@ -21,10 +24,10 @@ export default function Scene({ bars }: { bars: Array<BarType> }) {
           <h1 className=" text-2xl">Composition Date</h1>
           <p className="text-center">{isPlaying ? "playing" : "paused"}</p>
         </Html>
-        <Html transform position={[2.5,0,0]}>
+        <Html transform position={[2.5, 0, 0]}>
           <button className=" hover:text-red-600">next</button>
         </Html>
-        <Html transform position={[-2.5,0,0]}>
+        <Html transform position={[-2.5, 0, 0]}>
           <button className=" hover:text-red-600">prev</button>
         </Html>
         <planeGeometry args={[10, 10]} />

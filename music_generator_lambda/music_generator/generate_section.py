@@ -60,9 +60,9 @@ def generate_section(
             for dependency in instrument.dependencies:
                 for i in range(len(prev_sections)):  # search for section in prev_gens
                     if (
-                        prev_sections[i].Name.upper() == dependency.upper()
+                        prev_sections[i].name.upper() == dependency.upper()
                     ):  # check if there is a match
-                        matched = prev_sections[i].Bars[0][
+                        matched = prev_sections[i].bars[0][
                             instrument_name.upper()
                         ]  # get measure
                         description += f" {dependency} {instrument} is {matched}."  # add dependency
@@ -89,6 +89,7 @@ def generate_section(
 - Each bar is enclosed by triple braces on each side: {{{{{{ content }}}}}}.
 - Always use 16 notes per bar (Each is a 16th note)
 - Always specify the activity of all instruments in every bar (even if it's a rest)
+- Even if bars repeat, you must specify each bar individually. Do not say something like "Bars 2-4 are the same as Bar 1".
 - An example of a properly formatted bar is as follows:
 {Bar.example().to_llm_format()}
 

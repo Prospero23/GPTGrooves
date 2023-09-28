@@ -1,15 +1,15 @@
-import { getBars } from "@/library/db";
+import { getSongs } from "@/library/db";
 import Scene from "./components/Scene";
 
 export default async function Home() {
-  const bars = await getBars();
-  const barsArray = bars.map(item => item.bar);
+  const bars = await getSongs();
+  const songsArray = bars.map(item => item.song);
 
   return (
     <main className="min-h-screen p-24 flex">
       <h1>GPT House</h1>
        <div className="w-screen h-screen">
-        <Scene bars={barsArray}/>
+        <Scene songs={songsArray}/>
       </div>
       {/* <div className="absolute bg-transparent">
         {bars.map((bar) => {
