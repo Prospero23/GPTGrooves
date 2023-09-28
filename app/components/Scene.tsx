@@ -10,10 +10,9 @@ import Button from "./Button";
 export default function Scene({ songs }: { songs: SongType[] }) {
   const [isPlaying, setIsPlaying] = useState<boolean | undefined>(false);
   // TODO improve this, we're only getting 1
-  console.log(songs[0].sections);
-  const bars = songs[0].sections.flatMap((section) =>
-    section.bars.map((bar) => bar.bar),
-  );
+  const bars = songs[0].sections.flatMap((section) => section.bars);
+
+  // console.log(bars);
 
   return (
     <Canvas>

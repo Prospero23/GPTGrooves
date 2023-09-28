@@ -1,18 +1,15 @@
-import datetime
-
 import langchain
 from langchain import OpenAI
 from langchain.cache import SQLiteCache
 from langchain.chat_models import ChatOpenAI
-from music_generator.db import insert_bar
 
-from music_generator.generator import generate_bar
-from music_generator.music_generator_types import BarRecord, Config
+from music_generator.music_generator_types import Config
 from music_generator.utilities.logs import get_logger
 
 logger = get_logger(__name__)
 
 
+# This is not relevant, we generate songs not bars
 def generate_and_save_bars(config: Config) -> None:
     """
     Generate a bar using each of the LLMs and save them to the database.
@@ -39,16 +36,17 @@ def generate_and_save_bars(config: Config) -> None:
     ]
     for llm in llms:
         logger.debug(f"Generating Bar with {llm.model_name}...")
-        bar = generate_bar(config=config, llm=llm)  # type: ignore
-        insert_bar(
-            config=config,
-            bar_record=BarRecord(
-                bar=bar,
-                model=llm.model_name,
-                created_at_utc=datetime.datetime.utcnow().isoformat(),
-            ),
-        )
-        logger.info(f"Generated Bar with {llm.model_name}\n:{bar.to_keypairs()}")
+        # bar = generate_bar(config=config, llm=llm)  # type: ignore
+        # insert_bar(
+        #     config=config,
+        #     bar_record=BarRecord(
+        #         bar=bar,
+        #         model=llm.model_name,
+        #         created_at_utc=datetime.datetime.utcnow().isoformat(),
+        #     ),
+        # )
+        # logger.info(f"Generated Bar with {llm.model_name}\n:{bar.to_keypairs()}")
+        ...
 
 
 if __name__ == "__main__":
