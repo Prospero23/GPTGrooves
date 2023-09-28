@@ -203,7 +203,6 @@ export default function Button({
     }
     if (!isPlaying && audioContext.current) {
       // start playing
-      console.log('TRUE')
       currentStep.current = 0;
       currentBar.current = 0;
       nextNoteTime.current = audioContext.current.currentTime;

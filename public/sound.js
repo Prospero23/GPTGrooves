@@ -116,7 +116,7 @@ export default async function setup() {
         document.body.append(el);
     });
   }
-  console.log('all good')
+  //console.log('all good')
   return {context, device, deviceBass, deviceSynth}
 }
 
