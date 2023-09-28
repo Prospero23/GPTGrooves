@@ -65,6 +65,10 @@ export default async function setup() {
         device = await RNBO.createDevice({ context, patcher:patcher });
         deviceBass = await RNBO.createDevice({ context, patcher:patcherBass });
         deviceSynth = await RNBO.createDevice({ context, patcher:patcherSynth });
+
+        device.node.connect(outputNode)
+        deviceBass.node.connect(outputNode)
+        deviceSynth.node.connect(outputNode)
     } catch (err) {
         if (typeof guardrails === "function") {
             guardrails({ error: err });
@@ -112,7 +116,7 @@ export default async function setup() {
         document.body.append(el);
     });
   }
-
+  console.log('all good')
   return {context, device, deviceBass, deviceSynth}
 }
 

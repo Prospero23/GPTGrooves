@@ -6,8 +6,7 @@ import setup from "@/public/sound";
 import { Vector3 } from "three";
 import { BarType } from "@/library/musicData";
 import noteToMidi from "@/library/noteToMidi";
-import * as Tone from 'tone'
-
+import * as Tone from "tone";
 
 interface ButtonProps {
   position: Vector3;
@@ -34,29 +33,33 @@ export default function Button({
 
   //audio devices and context
   const audioContext = useRef<AudioContext | undefined>(undefined);
-  const ToneContext = useRef<AudioContext | undefined>(undefined);
   const drums = useRef<Device | undefined>(undefined);
   const bass = useRef<Device | undefined>(undefined);
   const pad = useRef<Device | undefined>(undefined);
-  const [audioAllowed, setAudioAllowed] = useState(false)
-  //timing
 
-  const currentBar = useRef<number>(0)
-  const currentStep = useRef<number>(0)
+  //sequence stuff
+  const startTime = useRef<number | undefined>(undefined); //start time of sequence
+  const currentStep = useRef<number>(0); //what step of bar is currently being scheduled?
+  const currentBar = useRef<number>(0); //current Bar
+  const tempo = 140.0; //current tempo (bpm)
+  const lookahead = 25.0; //how frequent to call schedule function in ms
+  const scheduleAheadTime = 0.1; //how far ahead to schedule audio in sec
+  let nextNoteTime = useRef<number>(0.0); //when next note is due
+  let noteResolution = 0; //0 is 16th, 1 - 8th, 2 - quarter
+  const timerID = useRef<number | undefined>(undefined); //setInterval identifier
+
+  const notesInQueue = [];
 
   //setup function. RUNS ONCE
   useEffect(() => {
     // This code runs after the component has been rendered
     async function init() {
-      const result = await setup();
+      const result = await setup(); //TODO: CHECK THE GAIN NODE
       if (result) {
         drums.current = result.device;
         bass.current = result.deviceBass;
         pad.current = result.deviceSynth;
-        audioContext.current = result.context
-
-        //drums.current.node
-
+        audioContext.current = result.context;
       } else {
         // Handle the undefined case, maybe log an error or throw an exception
         console.log("initializing audio failed. Reload the page.");
@@ -65,19 +68,163 @@ export default function Button({
     init();
     // Optional: Return a function to run on component unmount / before re-running the effect
     return () => {
-      audioContext.current?.close()
+      audioContext.current?.close();
     };
   }, []);
 
+  useEffect(() => {
+    if (!isPlaying && timerID.current){
+      window.clearTimeout(timerID.current)
+      console.log('THIS RAN')
+    }
+  }, [isPlaying])
+
+  function nextNote() {
+    //advance time to next 16th note //ADD BARS?
+    let secondsPerBeat = 60.0 / tempo;
+
+    nextNoteTime.current += 0.25 * secondsPerBeat;
+
+    currentStep.current++;
+    if (currentStep.current == 16) {
+      //wrap 16 to 0
+      currentStep.current = 0;
+      currentBar.current++;
+    }
+  }
+
+  function scheduleNote(beatNumber: number, time: number) {
+    // push the note on the queue, even if we're not playing.
+    //notesInQueue.push( { note: beatNumber, time: time } ); ADD BACK LATER
+
+    if (noteResolution == 1 && beatNumber % 2)
+      //only runs when res is set to 1
+      return; // we're not playing non-8th 16th notes
+    if (noteResolution == 2 && beatNumber % 4)
+      //only runs when res is set to 2
+      return; // we're not playing non-quarter 8th notes
+
+    // logic for scheduling
+    if (audioContext.current && drums.current) {
+      //drums logic
+      for (let drumType in playingData[currentBar.current].drums) {
+        //check for correct structure
+        if (playingData[currentBar.current].drums.hasOwnProperty(drumType)) {
+          let inlet = drumInlets[drumType as keyof typeof drumInlets];
+          const drumEventTrigger = new MessageEvent(time, `in${inlet}`, [
+            //@ts-ignore
+            playingData[currentBar.current].drums[drumType][
+              currentStep.current
+            ],
+          ]);
+          drums.current.scheduleEvent(drumEventTrigger);
+        }
+      }
+      //bass
+      const bassNote = noteToMidi(
+        playingData[currentBar.current].bass.pattern[currentStep.current]
+      );
+
+      if (!isNaN(bassNote)) {
+        const bassEventTrigger = new MessageEvent(TimeNow, `in0`, [bassNote]);
+        bass.current?.scheduleEvent(bassEventTrigger);
+      }
+      //PAD
+      if (pad.current) {
+        let padInstance = pad.current as Device;
+
+
+
+        playingData[currentBar.current].pad.chord_sequence[currentStep.current].notes.forEach(
+          (note) => {
+            let midiChannel = 0;
+
+            console.log(time)
+
+            console.log(note)
+
+            let midiNote = noteToMidi(note) + 12;
+
+            // Format a MIDI message paylaod, this constructs a MIDI on event
+           let noteOnMessage: MIDIData = [
+               144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
+               midiNote, // MIDI Note
+               100, // MIDI Velocity
+             ];
+
+             let noteOffMessage: MIDIData = [
+               128 + midiChannel, // Code for a note off: 10000000 & midi channel (0-15)
+               midiNote, // MIDI Note
+               0, // MIDI Velocity
+             ];
+
+             let midiPort = 0;
+             let noteDurationMs = 250; // TODO: BETTER
+
+             // When scheduling an event to occur in the future, use the current audio context time
+             // multiplied by 1000 (converting seconds to milliseconds) for now.
+             let noteOnEvent = new MIDIEvent(
+               time * 1000,
+               midiPort,
+               noteOnMessage
+             );
+             let noteOffEvent = new MIDIEvent(
+               time * 1000 + noteDurationMs,
+               midiPort,
+               noteOffMessage
+             );
+             padInstance.scheduleEvent(noteOnEvent);
+             padInstance.scheduleEvent(noteOffEvent);
+           }
+         );
+       }
+    } else {
+      console.log("AudioContext is undefined");
+
+  }
+}
+
+  function scheduler() {
+    // while there are notes that will need to play before the next interval,
+    // schedule them and advance the pointer.
+    if (audioContext.current) {
+      while (
+        nextNoteTime.current <
+        audioContext.current.currentTime + scheduleAheadTime
+      ) {
+        scheduleNote(currentStep.current, nextNoteTime.current); //schedule note to play
+        nextNote(); //push to next 16th
+      }
+      timerID.current = window.setTimeout(scheduler, lookahead);
+    }
+  }
+
   async function handleClick() {
-    await Tone.context.resume()
-    console.log(Tone.context.state)
+    //animation
     const anim = actions[names[0]];
     if (anim) {
-        anim.reset();
-        anim.repetitions = 1;
-        anim.setDuration(0.2);
-        anim.play();
+      anim.reset();
+      anim.repetitions = 1;
+      anim.setDuration(0.2);
+      anim.play();
+    }
+    //logic
+    setIsPlaying(!isPlaying);
+    if (audioContext.current?.state == "suspended") {
+      audioContext.current?.resume();
+    }
+    if (!isPlaying && audioContext.current) {
+      // start playing
+      currentStep.current = 0;
+      currentBar.current = 0;
+      nextNoteTime.current = audioContext.current.currentTime;
+      scheduler(); // kick off scheduling
+      return;
+    } else {
+      console.log('isPlaying: ', isPlaying)
+      window.clearTimeout(timerID.current);
+      console.log("this is the timer ID:", timerID.current);
+      return;
     }
   }
 
@@ -88,95 +235,96 @@ export default function Button({
   );
 }
 
-
 //randomly set button color for each day?
 //I think audio is hooked to wrong place]
 
-    // //setIsPlaying(!isPlaying);
-    // Tone.Transport.scheduleRepeat((time) => {
-    //    console.log('current step: ', currentStep)
-    //    console.log('current bar: ' ,currentBar)
-    // //   //drums
-    // //   for (let drumType in playingData[currentBar.current].drums) {
-    // //     // Make sure we have the correct structure
-    // //     if (playingData[currentBar.current].drums.hasOwnProperty(drumType)) {
-    // //       let inlet = drumInlets[drumType as keyof typeof drumInlets];
-    // //       const drumEventTrigger = new MessageEvent(TimeNow, `in${inlet}`, [
-    // //         //@ts-ignore
-    // //         playingData[currentBar.current].drums[drumType][currentStep.current],
-    // //       ]);
-    // //       drums.current?.scheduleEvent(drumEventTrigger);
-    // //     }
-    // //   }
-    // //   //bass
-    // //   // const bassNote = noteToMidi(
-    // //   //   playingData[currentBar.current].bass.pattern[currentStep.current]
-    // //   // );
+// //setIsPlaying(!isPlaying);
+// Tone.Transport.scheduleRepeat((time) => {
+//    console.log('current step: ', currentStep)
+//    console.log('current bar: ' ,currentBar)
+// //   //drums
+// //   for (let drumType in playingData[currentBar.current].drums) {
+// //     // Make sure we have the correct structure
+// //     if (playingData[currentBar.current].drums.hasOwnProperty(drumType)) {
+// //       let inlet = drumInlets[drumType as keyof typeof drumInlets];
+// //       const drumEventTrigger = new MessageEvent(TimeNow, `in${inlet}`, [
+// //         //@ts-ignore
+// //         playingData[currentBar.current].drums[drumType][currentStep.current],
+// //       ]);
+// //       drums.current?.scheduleEvent(drumEventTrigger);
+// //     }
+// //   }
+// //   //bass
+// //   // const bassNote = noteToMidi(
+// //   //   playingData[currentBar.current].bass.pattern[currentStep.current]
+// //   // );
 
-    // //   // if (!isNaN(bassNote)) {
-    // //   //   const bassEventTrigger = new MessageEvent(TimeNow, `in0`, [bassNote]);
-    // //   //   bass.current?.scheduleEvent(bassEventTrigger);
-    // //   // }
-    // //   //synth
-    // //   // if (pad.current) {
+// //   // if (!isNaN(bassNote)) {
+// //   //   const bassEventTrigger = new MessageEvent(TimeNow, `in0`, [bassNote]);
+// //   //   bass.current?.scheduleEvent(bassEventTrigger);
+// //   // }
+// //   //synth
+// //   // if (pad.current) {
 
-    // //   //   let padInstance = pad.current as Device;
+// //   //   let padInstance = pad.current as Device;
 
-    // //   //   playingData[currentBar.current].pad.chord_sequence[currentStep.current].notes.forEach(
-    // //   //     (note) => {
-    // //   //       let midiChannel = 0;
+// //   //   playingData[currentBar.current].pad.chord_sequence[currentStep.current].notes.forEach(
+// //   //     (note) => {
+// //   //       let midiChannel = 0;
 
-    // //   //       let midiNote = noteToMidi(note) + 12;
+// //   //       let midiNote = noteToMidi(note) + 12;
 
-    // //   //       // Format a MIDI message paylaod, this constructs a MIDI on event
-    // //   //       let noteOnMessage: MIDIData = [
-    // //   //         144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
-    // //   //         midiNote, // MIDI Note
-    // //   //         100, // MIDI Velocity
-    // //   //       ];
+// //   //       // Format a MIDI message paylaod, this constructs a MIDI on event
+// //   //       let noteOnMessage: MIDIData = [
+// //   //         144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
+// //   //         midiNote, // MIDI Note
+// //   //         100, // MIDI Velocity
+// //   //       ];
 
-    // //   //       let noteOffMessage: MIDIData = [
-    // //   //         128 + midiChannel, // Code for a note off: 10000000 & midi channel (0-15)
-    // //   //         midiNote, // MIDI Note
-    // //   //         0, // MIDI Velocity
-    // //   //       ];
+// //   //       let noteOffMessage: MIDIData = [
+// //   //         128 + midiChannel, // Code for a note off: 10000000 & midi channel (0-15)
+// //   //         midiNote, // MIDI Note
+// //   //         0, // MIDI Velocity
+// //   //       ];
 
-    // //   //       // Including rnbo.min.js (or the unminified rnbo.js) will add the RNBO object
-    // //   //       // to the global namespace. This includes the TimeNow constant as well as
-    // //   //       // the MIDIEvent constructor.
-    // //   //       let midiPort = 0;
-    // //   //       let noteDurationMs = 250; // TODO: BETTER
+// //   //       // Including rnbo.min.js (or the unminified rnbo.js) will add the RNBO object
+// //   //       // to the global namespace. This includes the TimeNow constant as well as
+// //   //       // the MIDIEvent constructor.
+// //   //       let midiPort = 0;
+// //   //       let noteDurationMs = 250; // TODO: BETTER
 
-    // //   //       // When scheduling an event to occur in the future, use the current audio context time
-    // //   //       // multiplied by 1000 (converting seconds to milliseconds) for now.
-    // //   //       let noteOnEvent = new MIDIEvent(
-    // //   //         time,
-    // //   //         midiPort,
-    // //   //         noteOnMessage
-    // //   //       );
-    // //   //       let noteOffEvent = new MIDIEvent(
-    // //   //         time + noteDurationMs, //maybe * 10000
-    // //   //         midiPort,
-    // //   //         noteOffMessage
-    // //   //       );
+// //   //       // When scheduling an event to occur in the future, use the current audio context time
+// //   //       // multiplied by 1000 (converting seconds to milliseconds) for now.
+// //   //       let noteOnEvent = new MIDIEvent(
+// //   //         time,
+// //   //         midiPort,
+// //   //         noteOnMessage
+// //   //       );
+// //   //       let noteOffEvent = new MIDIEvent(
+// //   //         time + noteDurationMs, //maybe * 10000
+// //   //         midiPort,
+// //   //         noteOffMessage
+// //   //       );
 
-    // //   //       padInstance.scheduleEvent(noteOnEvent);
-    // //   //       padInstance.scheduleEvent(noteOffEvent);
-    // //   //     }
-    // //   //   );
-    // //   // }
-    // //   if (currentStep.current <= 16){ //make better later
-    // //     currentStep.current += 1
-    // //   } else {
-    // //     currentStep.current = 0
-    // //     currentBar.current += 1
-    // //   }
-    // }, "16n")
+// //   //       padInstance.scheduleEvent(noteOnEvent);
+// //   //       padInstance.scheduleEvent(noteOffEvent);
+// //   //     }
+// //   //   );
+// //   // }
+// //   if (currentStep.current <= 16){ //make better later
+// //     currentStep.current += 1
+// //   } else {
+// //     currentStep.current = 0
+// //     currentBar.current += 1
+// //   }
+// }, "16n")
 
-
-
-
-    //use setTimeout to nake queue
+//use setTimeout to nake queue
 //large overall lookahead and reasonably short interval
 //A good place to start is probably 100ms of “lookahead” time, with intervals set to 25ms.
 //up the lookahead time if too complex and stuttering
+
+//3d IS FUCKING WITH TIMING ON RESIZE BC BLOCKING EVERYTHING
+
+
+//only getting eigth notes for the moment

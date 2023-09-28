@@ -9,12 +9,16 @@ import { Device, MessageEvent, TimeNow, MIDIEvent, MIDIData } from "@rnbo/js";
 export default function PlayButton() {
   //instruments
   const osc = useRef<OscillatorNode | undefined>(undefined); //test oscillator
+  const drums = useRef<Device | undefined>(undefined); //test oscillator
+  const bass = useRef<Device | undefined>(undefined); //test oscillator
+  const pad = useRef<Device | undefined>(undefined); //test oscillator
   const [isPlaying, setIsPlaying] = useState<Boolean | undefined>(false); //is sequence playing?
   const audioContext = useRef<AudioContext | undefined>(
     undefined
   ); //reference to the audioContext
   const startTime = useRef<number | undefined>(undefined) //start time of sequence
   const current16thNote = useRef<number>(0) //what step of bar is currently being scheduled?
+  const currentBar = useRef<number>(0) //current Bar
   const tempo = 120.0 //current tempo (bpm)
   const lookahead = 25.0 //how frequent to call schedule function in ms
   const scheduleAheadTime = 0.1 //how far ahead to schedule audio in sec
@@ -54,11 +58,27 @@ export default function PlayButton() {
 
   //Get webAudio context setup
   useEffect(() => {
-    //@ts-ignore
-    const WAContext = window.AudioContext || window.webkitAudioContext;
-    const context = new WAContext();
-    audioContext.current = context;
-  }, [])
+    // This code runs after the component has been rendered
+    async function init() {
+      const result = await setup();
+      if (result) {
+        audioContext.current =result.context;
+        drums.current = result.device;
+        bass.current = result.deviceBass;
+        pad.current = result.deviceSynth;
+      } else {
+        // Handle the undefined case, maybe log an error or throw an exception
+        console.log("error in initializing audio");
+      }
+    }
+    init();
+    // Optional: Return a function to run on component unmount / before re-running the effect
+    return () => {
+      if (audioContext.current) {
+        audioContext.current.close();
+      }
+    };
+  }, []);
 
   function nextNote() { //advance time to next 16th note //ADD BARS?
     let secondsPerBeat = 60.0 / tempo;
@@ -116,22 +136,92 @@ function handleClick() {
       current16thNote.current = 0;
       nextNoteTime.current = audioContext.current.currentTime;
       scheduler();    // kick off scheduling
-      return "stop";
+      return
   } else {
       window.clearTimeout( timerID.current );
-      return "play";
+      return
   }
+}
+
+function handleClickDrums(
+  event: React.MouseEvent<HTMLButtonElement>,
+  inlet: number
+) {
+  if (audioContext.current.state == "suspended"){
+    audioContext.current?.resume()
+  }
+  const eventTrigger = new MessageEvent(TimeNow, `in${inlet}`, [1]);
+  if (drums.current) {
+    drums.current.scheduleEvent(eventTrigger);
+  }
+}
+
+function handleClickBass(event: React.MouseEvent<HTMLButtonElement>) {
+  const eventTrigger = new MessageEvent(TimeNow, `in0`, [
+    Math.random() * 10 + 30,
+  ]);
+  if (bass.current) {
+    bass.current.scheduleEvent(eventTrigger);
+  }
+}
+function createChord() {
+  let midiNotes: number[] = [];
+  const numberNotes = 4;
+  for (let i = 0; i < 4; i++) {
+    midiNotes.push(Math.floor(Math.random() * 60 + 20));
+  }
+  if (pad.current) {
+    midiNotes.forEach((note) => {
+      let midiChannel = 0;
+
+      // Format a MIDI message paylaod, this constructs a MIDI on event
+      let noteOnMessage: MIDIData = [
+        144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
+        note, // MIDI Note
+        100, // MIDI Velocity
+      ];
+
+      let noteOffMessage: MIDIData = [
+        128 + midiChannel, // Code for a note off: 10000000 & midi channel (0-15)
+        note, // MIDI Note
+        0, // MIDI Velocity
+      ];
+
+      // Including rnbo.min.js (or the unminified rnbo.js) will add the RNBO object
+      // to the global namespace. This includes the TimeNow constant as well as
+      // the MIDIEvent constructor.
+      let midiPort = 0;
+      let noteDurationMs = 250;
+
+      // When scheduling an event to occur in the future, use the current audio context time
+      // multiplied by 1000 (converting seconds to milliseconds) for now.
+      let noteOnEvent = new MIDIEvent(
+pad.current.context.currentTime * 1000,
+        midiPort,
+        noteOnMessage
+      );
+      let noteOffEvent = new MIDIEvent(
+        pad.current.context.currentTime * 1000 + noteDurationMs,
+        midiPort,
+        noteOffMessage
+      );
+
+      pad.current.scheduleEvent(noteOnEvent);
+      pad.current.scheduleEvent(noteOffEvent);
+    });
+  }
+}
+
+function handleClickSynth(event: React.MouseEvent<HTMLButtonElement>) {
+  createChord()
 }
   return (
     <div className="flex flex-col">
-      {/* <button onClick={(e) => handleClickDrums(e, 1)}>Hat</button>
+      <button onClick={(e) => handleClickDrums(e, 1)}>Hat</button>
       <button onClick={(e) => handleClickDrums(e, 2)}>Kick</button>
       <button onClick={(e) => handleClickDrums(e, 3)}>Snare</button>
       <button onClick={(e) => handleClickBass(e)}>Bass</button>
       <button onClick={(e) => handleClickSynth(e)}>Synth</button>
-      <button className="bg-green-400" onClick={handleClick}>
-        {isPlaying ? "Playing" : "Stopped"}
-      </button> */}
       <button className="hover:bg-green-500" onClick={handleClick}>{isPlaying ? "stop" : "start"}</button>
     </div>
   );
@@ -144,99 +234,6 @@ function handleClick() {
 // const bass = useRef<Device | undefined>(undefined);
 // const pad = useRef<Device | undefined>(undefined);
 
-  // useEffect(() => {
-  //   // This code runs after the component has been rendered
-  //   async function init() {
-  //     const result = await setup();
-  //     if (result) {
-  //       audioContext.current =result.context;
-  //       drums.current = result.device;
-  //       bass.current = result.deviceBass;
-  //       pad.current = result.deviceSynth;
-  //       // console.log(bass)
-  //     } else {
-  //       // Handle the undefined case, maybe log an error or throw an exception
-  //       console.log("error in initializing audio");
-  //     }
-  //   }
-  //   init();
-  //   // Optional: Return a function to run on component unmount / before re-running the effect
-  //   return () => {
-  //     if (audioContext.current) {
-  //       audioContext.current.close();
-  //     }
-  //   };
-  // }, []);
-
-  // function handleClickDrums(
-  //   event: React.MouseEvent<HTMLButtonElement>,
-  //   inlet: number
-  // ) {
-  //   const eventTrigger = new MessageEvent(TimeNow, `in${inlet}`, [1]);
-  //   if (drums.current) {
-  //     drums.current.scheduleEvent(eventTrigger);
-  //   }
-  // }
-
-  // function handleClickBass(event: React.MouseEvent<HTMLButtonElement>) {
-  //   const eventTrigger = new MessageEvent(TimeNow, `in0`, [
-  //     Math.random() * 10 + 30,
-  //   ]);
-  //   if (bass.current) {
-  //     bass.current.scheduleEvent(eventTrigger);
-  //   }
-  // }
-  // function createChord() {
-  //   let midiNotes: number[] = [];
-  //   const numberNotes = 4;
-  //   for (let i = 0; i < 4; i++) {
-  //     midiNotes.push(Math.floor(Math.random() * 60 + 20));
-  //   }
-  //   if (pad.current) {
-  //     midiNotes.forEach((note) => {
-  //       let midiChannel = 0;
-
-  //       // Format a MIDI message paylaod, this constructs a MIDI on event
-  //       let noteOnMessage: MIDIData = [
-  //         144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
-  //         note, // MIDI Note
-  //         100, // MIDI Velocity
-  //       ];
-
-  //       let noteOffMessage: MIDIData = [
-  //         128 + midiChannel, // Code for a note off: 10000000 & midi channel (0-15)
-  //         note, // MIDI Note
-  //         0, // MIDI Velocity
-  //       ];
-
-  //       // Including rnbo.min.js (or the unminified rnbo.js) will add the RNBO object
-  //       // to the global namespace. This includes the TimeNow constant as well as
-  //       // the MIDIEvent constructor.
-  //       let midiPort = 0;
-  //       let noteDurationMs = 250;
-
-  //       // When scheduling an event to occur in the future, use the current audio context time
-  //       // multiplied by 1000 (converting seconds to milliseconds) for now.
-  //       let noteOnEvent = new MIDIEvent(
-  // pad.current.context.currentTime * 1000,
-  //         midiPort,
-  //         noteOnMessage
-  //       );
-  //       let noteOffEvent = new MIDIEvent(
-  //         pad.current.context.currentTime * 1000 + noteDurationMs,
-  //         midiPort,
-  //         noteOffMessage
-  //       );
-
-  //       pad.current.scheduleEvent(noteOnEvent);
-  //       pad.current.scheduleEvent(noteOffEvent);
-  //     });
-  //   }
-  // }
-
-  // function handleClickSynth(event: React.MouseEvent<HTMLButtonElement>) {
-  //   createChord()
-  // }
   //change this to use transport later (https://rnbo.cycling74.com/learn/musical-time-events)
   // function stepSeq() {
   //   let intervalID;
