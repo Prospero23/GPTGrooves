@@ -1,6 +1,6 @@
 import { getSongs } from "@/library/db";
 import Scene from "./components/Scene";
-import PlayButton from "./components/PlayButton"
+import PlayButton from "./components/PlayButton";
 export default async function Home() {
   const bars = await getSongs();
   const songsArray = bars.map((item) => item.song);
@@ -14,4 +14,4 @@ export default async function Home() {
   );
 }
 
-//bars={barsArray}
+// bars={barsArray}

@@ -32,6 +32,7 @@ export default function Scene({ songs }: { songs: SongType[] }) {
         <planeGeometry args={[10, 10]} />
         <meshStandardMaterial color="white" />
       </mesh>
+      {/* eslint-disable-next-line react/no-unknown-property */}
       <directionalLight color="white" position={[0, 2, 5]} />
       <OrbitControls />
       <Button
@@ -44,4 +45,4 @@ export default function Scene({ songs }: { songs: SongType[] }) {
     </Canvas>
   );
 }
-//potentially make plane its own component
+// potentially make plane its own component
