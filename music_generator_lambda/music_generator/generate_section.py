@@ -81,7 +81,7 @@ def generate_section(
 - Your output will be a sequence of bars.
 - Each bar is enclosed by triple braces on each side: {{{{{{ content }}}}}}.
 - Always use 16 notes per bar (Each is a 16th note)
-- Always specify the activity of *all* instruments in every bar.
+- Always specify the activity of *all* instruments in every bar. Even if an instrument of effect is completely inactive, it must be present in the bar.
 - Don't use shorthand such as "repeats 4 times" or "bars 1-4 are ...". Even if your bar repeats, write them out in full.
 - An example of a properly formatted bar is as follows:
 {Bar.example().to_llm_format()}
@@ -97,7 +97,8 @@ The text you produce will be programatically parsed into a song. Please follow t
 
 Bass: {generate_instrument_description('Bass', prev_gens)}
 Pad: {generate_instrument_description('Pad', prev_gens)}
-Drums: {generate_instrument_description('Drums', prev_gens)}""".strip(),
+Drums: {generate_instrument_description('Drums', prev_gens)}
+Effects: {generate_instrument_description('Effects', prev_gens)}""".strip(),
         )
         # prompt=f"""generate {markup_section.number_bars} bars of a house song using the following descriptions:
         #    bass : {markup_section.instruments['Bass'].description}

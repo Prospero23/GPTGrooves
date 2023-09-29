@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Optional, TypeVar, List, Dict
 from pydantic import BaseModel, Field, validator
 import re
@@ -185,10 +186,55 @@ class PadBar(BaseModel):
         return PadBar(chord_sequence=chord_sequences)
 
 
+class EffectsBar(BaseModel):
+    delay: list[Decimal] = Field(
+        description="Delay value at each 16th note. 0.0 = off, 1.0 = full."
+    )
+    reverb: list[Decimal] = Field(
+        description="Reverb value at each 16th note. 0.0 = off, 1.0 = full."
+    )
+
+    def to_keypairs(self) -> dict[str, str]:
+        # Yep this is a special case, returns a dict
+        return {
+            effect_type: " ".join([str(val) for val in sequence])
+            for effect_type, sequence in self.dict().items()
+        }
+
+    @staticmethod
+    def from_keypairs(data: dict[str, str]) -> "EffectsBar":
+        # fmt: off
+        assert not data["delay"].startswith("delay "), "Invalid structured text format. Only pass data."
+        assert not data["reverb"].startswith("reverb "), "Invalid structured text format. Only pass data."
+        # fmt: on
+        return EffectsBar(
+            # Quantize to 2 decimal places
+            delay=[
+                Decimal(val).quantize(Decimal("1.00")) for val in data["delay"].split()
+            ],
+            reverb=[
+                Decimal(val).quantize(Decimal("1.00")) for val in data["reverb"].split()
+            ],
+        )
+
+    @validator("delay", "reverb")
+    def validate_drums(cls, field: list[int]) -> list[int]:
+        if len(field) != 16:
+            raise ValueError("Drum track must be 16 notes long.")
+        return field
+
+    @validator("delay", "reverb", each_item=True)
+    def validate_item(cls, item: int) -> int:
+        if not Decimal("0.0") <= Decimal(item) <= Decimal("1.0"):
+            raise ValueError("Drum value must be between 0 and 1.")
+        return item
+
+
 class Bar(BaseModel):
     drums: DrumBar = Field(description="Drum track.")
     bass: BassBar = Field(description="Bass line.")
     pad: PadBar = Field(description="Pad track.")
+    effects: Optional[EffectsBar] = Field(description="Effects track.")
 
     def __getitem__(self, key: str):
         if key.upper() == "DRUMS":
@@ -197,6 +243,8 @@ class Bar(BaseModel):
             return self.bass
         elif key.upper() == "PAD":
             return self.pad
+        elif key.upper() == "EFFECTS":
+            return self.effects
         else:
             raise KeyError(f"Key '{key}' not found in Bar instance.")
 
@@ -231,6 +279,16 @@ class Bar(BaseModel):
                     Chord(notes=[]),
                     Chord(notes=[])
                 ]
+            ),
+            effects=EffectsBar(
+                delay=[
+                    # Generate a ramp of two digit decimals from 0.0 to 1.0 with 16 steps
+                    Decimal(val).quantize(Decimal("1.00")) for val in [i / 15 for i in range(16)]
+                ],
+                reverb=list(reversed([
+                    # Generate a ramp of two digit decimals from 0.0 to 1.0 with 16 steps
+                    Decimal(val).quantize(Decimal("1.00")) for val in [i / 15 for i in range(16)]
+                ])),
             )
             # fmt: on
         )
@@ -249,6 +307,8 @@ class Bar(BaseModel):
         snare 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0
         bass B2 0 0 0 Cb2 0 0 0 F#2 0 0 0 C2 0 0 0
         pad [C3 E3 G3 B3] [] [] [] [A3 C4 E4 G4] [] [] [] [F3 A3 C4 E4] [] [] [] [G3 B3 D4 F4] [] [] []
+        delay 0.00 0.07 0.13 0.20 0.27 0.33 0.40 0.47 0.53 0.60 0.67 0.73 0.80 0.87 0.93 1.00
+        reverb 1.00 0.93 0.87 0.80 0.73 0.67 0.60 0.53 0.47 0.40 0.33 0.27 0.20 0.13 0.07 0.00
         }}}
 
         """
@@ -269,7 +329,7 @@ class Bar(BaseModel):
                 line[len(k) + 1 :]
                 for line in filter(lambda line: line.startswith(k), lines)
             ]
-            for k in ("hi_hat", "kick", "snare", "bass", "pad")
+            for k in ("hi_hat", "kick", "snare", "bass", "pad", "delay", "reverb")
         }
 
         for k, v in data.items():
@@ -301,6 +361,7 @@ class Bar(BaseModel):
             drums=DrumBar.from_keypairs({k: v for k, v in data.items() if k in ("hi_hat", "kick", "snare")}),
             bass=BassBar.from_keypairs({k: v for k, v in data.items() if k in ("bass",)}),
             pad=PadBar.from_keypairs({k: v for k, v in data.items() if k in ("pad",)}),
+            effects=EffectsBar.from_keypairs({k: v for k, v in data.items() if k in ("delay", "reverb")})
             # fmt: on
         )
 
@@ -311,12 +372,15 @@ class Bar(BaseModel):
         drums = self.drums.to_keypairs()
         bass = self.bass.to_keypairs()
         pad = self.pad.to_keypairs()
+        effects = self.effects.to_keypairs() if self.effects else {}
         return {
             "hi_hat": drums["hi_hat"],
             "kick": drums["kick"],
             "snare": drums["snare"],
             "bass": bass["bass"],
             "pad": pad["pad"],
+            "delay": effects["delay"],
+            "reverb": effects["reverb"],
         }
 
     def to_llm_format(self) -> str:
@@ -333,6 +397,8 @@ class Bar(BaseModel):
                     "snare " + structured_text["snare"],
                     "bass " + structured_text["bass"],
                     "pad " + structured_text["pad"],
+                    "delay " + structured_text["delay"],
+                    "reverb " + structured_text["reverb"],
                 ]
             )
             + "\n}}}"
@@ -363,6 +429,7 @@ class MusicalMarkup(BaseModel):
         *Pad: asdfadsfadfafd
         *Bass: asdfasdfasdf %outro
         *Drums: asdhadfiodf
+        *Effects: asdfasdfasdf
 
         """
         sections_list = outline.split("##")[1:]
@@ -436,6 +503,7 @@ class SongSection(BaseModel):
         snare 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0
         bass B2 0 0 0 Cb2 0 0 0 F#2 0 0 0 C2 0 0 0
         pad [C3 E3 G3 B3] [] [] [] [A3 C4 E4 G4] [] [] [] [F3 A3 C4 E4] [] [] [] [G3 B3 D4 F4] [] [] []
+        delay 0.00 0.07 0.13 0.20 0.27 0.33 0.40 0.47 0.53 0.60 0.67 0.73 0.80 0.87 0.93 1.00
         }}},
         {{{
         hi_hat 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0
@@ -443,6 +511,7 @@ class SongSection(BaseModel):
         snare 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0
         bass B2 0 0 0 Cb2 0 0 0 F#2 0 0 0 C2 0 0 0
         pad [C3 E3 G3 B3] [] [] [] [A3 C4 E4 G4] [] [] [] [F3 A3 C4 E4] [] [] [] [G3 B3 D4 F4] [] [] []
+        delay 0.00 0.07 0.13 0.20 0.27 0.33 0.40 0.47 0.53 0.60 0.67 0.73 0.80 0.87 0.93 1.00
         }}}
 
         """

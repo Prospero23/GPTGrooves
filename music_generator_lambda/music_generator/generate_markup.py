@@ -43,12 +43,13 @@ A section should be formatted as follows:
 *Pad - detailed description of the synth pad will do in this section
 *Bass - detailed description of what the bass will do in this section
 *Drums - detailed description of what the drums will do in section. Reference only "snare", "kick", and "hi-hat"
+*Effects - detailed description of what the effects will do in this section. Reference only "reverb" and "delay"
 
 If one section mentions another, then format that reference: %verse-1
 
-Provide a detailed and complete description of how each instrument will evolve throughout the track.
+Do not mention any other instruments or any effects other than "reverb" and "delay".
 
-Avoid mentioning any effects or filters and focus on complete descriptions of rhythm, harmony, and melody.
+Provide a detailed and complete description of how each instrument will evolve throughout the track.
 
 Whenever referring to previous material, refer to sections.
 """
@@ -65,12 +66,14 @@ Whenever referring to previous material, refer to sections.
                 SystemMessage(
                     content=f"Perform the following task.\n{format_instructions}"
                 ),
-                HumanMessagePromptTemplate.from_template("{prompt}"),
+                HumanMessagePromptTemplate.from_template(
+                    "Generate a song with the following description: {song_description}"
+                ),
             ]
         )
         _input = chat_prompt_template.format_messages(
             format_instructions=format_instructions,
-            prompt=song_description,  # Make sure to include guide for dynamics? maybe 'provide literal musical material' or something of the sort
+            song_description=song_description,  # Make sure to include guide for dynamics? maybe 'provide literal musical material' or something of the sort
             # TODO prompt still references things like Main material. Also for parsing, good to pass previous drum part in always?
         )
         logger.debug(
@@ -101,5 +104,5 @@ if __name__ == "__main__":
         streaming=True,
         callbacks=[StreamingStdOutCallbackHandler()],
     )
-    markup = generate_markup(llm=llm)
+    markup = generate_markup(song_description="A house song.", llm=llm)
     logger.info(f"RESULT: {markup}")
