@@ -6,8 +6,7 @@ import { useState } from "react";
 import { OrbitControls, Html } from "@react-three/drei";
 import { Vector3 } from "three";
 import {BarType} from "@/library/musicData"
-
-
+import RandomButton from '@/app/components/RandomButton'
 
 export default function Scene({ bars }: { bars: Array<BarType> }) {
   const [isPlaying, setIsPlaying] = useState<Boolean | undefined>(false);
@@ -38,6 +37,7 @@ export default function Scene({ bars }: { bars: Array<BarType> }) {
         setIsPlaying={setIsPlaying}
         playingData={bars}
       />
+      {/* <RandomButton position={new Vector3(0, -1.01, 0)}/> */}
     </Canvas>
   );
 }

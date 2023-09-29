@@ -33,8 +33,11 @@ export default function Button({
   //audio devices and context
   const audioContext = useRef<AudioContext | undefined>(undefined);
   const drums = useRef<Device | undefined>(undefined);
+  const drumsGain = useRef<AudioNode | undefined>(undefined);
   const bass = useRef<Device | undefined>(undefined);
+  const bassGain = useRef<AudioNode | undefined>(undefined);
   const pad = useRef<Device | undefined>(undefined);
+  const padGain = useRef<GainNode | undefined>(undefined);
 
   //sequence stuff
   const startTime = useRef<number | undefined>(undefined); //start time of sequence
@@ -59,6 +62,20 @@ export default function Button({
         bass.current = result.deviceBass;
         pad.current = result.deviceSynth;
         audioContext.current = result.context;
+
+        drumsGain.current = audioContext.current
+          .createGain()
+          .connect(audioContext.current.destination);
+        drumsGain.current = audioContext.current
+          .createGain()
+          .connect(audioContext.current.destination);
+        drumsGain.current = audioContext.current
+          .createGain()
+          .connect(audioContext.current.destination);
+
+        drums.current?.node.connect(drumsGain.current as GainNode); //fix
+        bass.current?.node.connect(bassGain.current as GainNode); //fix
+        pad.current?.node.connect(padGain.current as GainNode); //fix
       } else {
         // Handle the undefined case, maybe log an error or throw an exception
         console.log("initializing audio failed. Reload the page.");
@@ -85,20 +102,8 @@ export default function Button({
     }
   }
 
-  function scheduleNote(beatNumber: number, time: number) {
-    // push the note on the queue, even if we're not playing.
-    //notesInQueue.push( { note: beatNumber, time: time } ); ADD BACK LATER
-
-    if (noteResolution == 1 && beatNumber % 2)
-      //only runs when res is set to 1
-      return; // we're not playing non-8th 16th notes
-    if (noteResolution == 2 && beatNumber % 4)
-      //only runs when res is set to 2
-      return; // we're not playing non-quarter 8th notes
-
-    // logic for scheduling
-    if (audioContext.current && drums.current) {
-      //drums logic
+  function scheduleDrums(time: number) {
+    if (drums.current) {
       for (let drumType in playingData[currentBar.current].drums) {
         //check for correct structure
         if (playingData[currentBar.current].drums.hasOwnProperty(drumType)) {
@@ -112,7 +117,12 @@ export default function Button({
           drums.current.scheduleEvent(drumEventTrigger);
         }
       }
-      //bass
+    } else {
+    }
+  }
+
+  function scheduleBass(time: number) {
+    if (bass.current) {
       const bassNote = noteToMidi(
         playingData[currentBar.current].bass.pattern[currentStep.current]
       );
@@ -121,55 +131,69 @@ export default function Button({
         const bassEventTrigger = new MessageEvent(TimeNow, `in0`, [bassNote]);
         bass.current?.scheduleEvent(bassEventTrigger);
       }
-      //PAD
-      if (pad.current) {
-        let padInstance = pad.current as Device;
-        playingData[currentBar.current].pad.chord_sequence[currentStep.current].notes.forEach(
-          (note) => {
-            let midiChannel = 0;
+    }
+  }
 
+  function schedulePad(time: number) {
+    if (pad.current) {
+      let padInstance = pad.current as Device;
+      playingData[currentBar.current].pad.chord_sequence[
+        currentStep.current
+      ].notes.forEach((note) => {
+        let midiChannel = 0;
 
+        let midiNote = noteToMidi(note) + 12;
 
-            let midiNote = noteToMidi(note) + 12;
+        // Format a MIDI message paylaod, this constructs a MIDI on event
+        let noteOnMessage: MIDIData = [
+          144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
+          midiNote, // MIDI Note
+          100, // MIDI Velocity
+        ];
 
-            // Format a MIDI message paylaod, this constructs a MIDI on event
-           let noteOnMessage: MIDIData = [
-               144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
-               midiNote, // MIDI Note
-               100, // MIDI Velocity
-             ];
+        let noteOffMessage: MIDIData = [
+          128 + midiChannel, // Code for a note off: 10000000 & midi channel (0-15)
+          midiNote, // MIDI Note
+          0, // MIDI Velocity
+        ];
 
-             let noteOffMessage: MIDIData = [
-               128 + midiChannel, // Code for a note off: 10000000 & midi channel (0-15)
-               midiNote, // MIDI Note
-               0, // MIDI Velocity
-             ];
+        let midiPort = 0;
+        let noteDurationMs = 250; // TODO: BETTER
 
-             let midiPort = 0;
-             let noteDurationMs = 250; // TODO: BETTER
+        // When scheduling an event to occur in the future, use the current audio context time
+        // multiplied by 1000 (converting seconds to milliseconds) for now.
+        let noteOnEvent = new MIDIEvent(time * 1000, midiPort, noteOnMessage);
+        let noteOffEvent = new MIDIEvent(
+          time * 1000 + noteDurationMs,
+          midiPort,
+          noteOffMessage
+        );
+        padInstance.scheduleEvent(noteOnEvent);
+        padInstance.scheduleEvent(noteOffEvent);
+      });
+    }
+  }
 
-             // When scheduling an event to occur in the future, use the current audio context time
-             // multiplied by 1000 (converting seconds to milliseconds) for now.
-             let noteOnEvent = new MIDIEvent(
-               time * 1000,
-               midiPort,
-               noteOnMessage
-             );
-             let noteOffEvent = new MIDIEvent(
-               time * 1000 + noteDurationMs,
-               midiPort,
-               noteOffMessage
-             );
-             padInstance.scheduleEvent(noteOnEvent);
-             padInstance.scheduleEvent(noteOffEvent);
-           }
-         );
-       }
+  function scheduleEvents(time: number) {
+    // push the note on the queue, even if we're not playing.
+    //notesInQueue.push( { note: beatNumber, time: time } ); ADD BACK LATER
+
+    if (noteResolution == 1 && currentStep.current % 2)
+      //only runs when res is set to 1
+      return; // we're not playing non-8th 16th notes
+    if (noteResolution == 2 && currentStep.current % 4)
+      //only runs when res is set to 2
+      return; // we're not playing non-quarter 8th notes
+
+    // logic for scheduling
+    if (audioContext.current) {
+      scheduleDrums(time);
+      scheduleBass(time);
+      schedulePad(time);
     } else {
       console.log("AudioContext is undefined");
-
+    }
   }
-}
 
   function scheduler() {
     // while there are notes that will need to play before the next interval,
@@ -179,15 +203,15 @@ export default function Button({
         nextNoteTime.current <
         audioContext.current.currentTime + scheduleAheadTime
       ) {
-        scheduleNote(currentStep.current, nextNoteTime.current); //schedule note to play
+        scheduleEvents(nextNoteTime.current); //schedule note to play
         nextNote(); //push to next 16th
       }
       timerID.current = window.setTimeout(scheduler, lookahead);
     }
   }
 
-  function handleClick(event:React.MouseEvent<HTMLButtonElement>) {
-    event.stopPropagation() //stop event from firing twice
+  function handleClick(event: React.MouseEvent<HTMLButtonElement>) {
+    event.stopPropagation(); //stop event from firing twice
     //animation
     const anim = actions[names[0]];
     if (anim) {
@@ -208,7 +232,7 @@ export default function Button({
       nextNoteTime.current = audioContext.current.currentTime;
       scheduler(); // kick off scheduling
       return;
-    } else if (isPlaying){
+    } else if (isPlaying) {
       window.clearTimeout(timerID.current);
       //console.log("this is the timer ID:", timerID.current)
       return;
@@ -224,5 +248,6 @@ export default function Button({
 
 //randomly set button color for each day?
 
-
 //better trash disposal needed
+//BETTER ERROR HANDLING
+//maybe better scoping of variables?
