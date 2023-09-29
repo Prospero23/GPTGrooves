@@ -46,20 +46,20 @@ export const Bar = z.object({
   pad: PadBar,
 });
 
-export const BarRecord = z.object({
-  bar: Bar,
-  created_at_utc: z.string(),
-});
-
 export const SongSection = z.object({
-  bars: z.array(BarRecord),
+  bars: z.array(Bar),
+  name: z.string(),
 });
 
 export const Song = z.object({
   sections: z.array(SongSection),
 });
+export const SongRecord = z.object({
+  song: Song,
+  created_at_utc: z.string(),
+});
 
 export type BarType = z.infer<typeof Bar>;
-export type BarRecordType = z.infer<typeof BarRecord>;
 export type SongSectionType = z.infer<typeof SongSection>;
 export type SongType = z.infer<typeof Song>;
+export type SongRecordType = z.infer<typeof SongRecord>;

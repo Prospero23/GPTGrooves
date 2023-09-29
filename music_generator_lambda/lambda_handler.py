@@ -3,12 +3,11 @@ import os
 
 from boto3.session import Session
 from botocore.exceptions import ClientError
-from bson.raw_bson import RawBSONDocument
 from mypy_boto3_secretsmanager.client import SecretsManagerClient
-from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
+from music_generator.workflows.daily_generate_song import (
+    daily_generate_song_and_persist,
+)
 
-from music_generator.generate_bar_assortment import generate_and_save_bars  # noqa: E402
 from music_generator.music_generator_types import Config
 from music_generator.utilities.logs import get_logger
 
@@ -35,28 +34,11 @@ def get_secret(session: Session, secret_id: str, region_name: str) -> dict[str, 
     return secret
 
 
-def ping_database(config: Config) -> None:
-    # Create a new client and connect to the server
-    client = MongoClient(
-        config.atlas_cluster_uri,
-        server_api=ServerApi("1"),
-        document_class=RawBSONDocument,
-    )
-    # Send a ping to confirm a successful connection
-    try:
-        client.admin.command("ping")
-        print("Pinged your deployment. You successfully connected to MongoDB!")
-    except Exception as e:
-        print(e)
-        raise e
-
-
 def configure_lambda() -> Config:
     logger.info("Generating configuration using Lambda context...")
     secret_id = os.environ["SECRETS_MANAGER_SECRET_ID"]
     region = os.environ["AWS_REGION"]
-    print(f"Region is: {region}. Secrets stored at {secret_id}.")
-
+    logger.info(f"AWS Region is: {region}. Secrets stored at {secret_id}.")
     session = Session()
     secrets = get_secret(session=session, secret_id=secret_id, region_name=region)
     config = Config(**secrets)
@@ -78,7 +60,7 @@ def handler(event, context):  # type: ignore
         logger.info("Lambda environment setup failed. Opting for local.")
         config = configure_local()
 
-    generate_and_save_bars(config=config)
+    daily_generate_song_and_persist(config=config)
 
     return {
         "statusCode": 200,

@@ -41,10 +41,9 @@ logger = get_logger(__name__)
     stop=stop_after_attempt(3),
 )
 def generate_section(
-    config: Config,
-    llm: Union[BaseChatModel, BaseLLM],
     markup_section: MarkupSection,
     prev_gens: Song,
+    llm: Union[BaseChatModel, BaseLLM],
 ) -> SongSection:
     """
     Generate the notes of a song (SongSection) from an abstract description (MarkupSection) using the given LLM.
@@ -60,58 +59,45 @@ def generate_section(
             for dependency in instrument.dependencies:
                 for i in range(len(prev_sections)):  # search for section in prev_gens
                     if (
-                        prev_sections[i].Name.upper() == dependency.upper()
+                        prev_sections[i].name.upper() == dependency.upper()
                     ):  # check if there is a match
-                        matched = prev_sections[i].Bars[0][
+                        matched = prev_sections[i].bars[0][
                             instrument_name.upper()
                         ]  # get measure
                         description += f" {dependency} {instrument} is {matched}."  # add dependency
 
         return description
 
-    format_instructions = f"""
-# Format
-
-## Structure:
-- Section format: list of bars: bar, bar, bar, bar
-- Each instrument: 16 notes per bar. Include all instruments every bar.
-- Note separation: Spaces.
-
-## Bar Formatting:
-- Bars are enclosed by a triple brace on each side: {{{{{{ content }}}}}}.
-- An example of a properly formatted bar is as follows:
-{Bar.example().to_llm_format()}
-
-The text you produce will be programatically parsed into a song. Please follow the format instructions carefully.
-List the bars completely; do not use shorthand or english-language specification like "repeats 4 times" or "bars 1-4 are ...".
-""".strip()
-
     if isinstance(llm, BaseLLM):
-        # https://python.langchain.com/docs/modules/model_io/prompts/prompt_templates/#chat-prompt-template
-        # Note, if you don't use format for the format instructions, the formatting will try
-        # to interpret the {{ as a format string, and fail.
-        result = ""
+        raise NotImplementedError("This only works with chat models")
     else:
         # https://python.langchain.com/docs/modules/model_io/prompts/prompt_templates/#chat-prompt-template
         chat_prompt_template: ChatPromptTemplate = ChatPromptTemplate.from_messages(  # pyright: ignore[reportUnknownMemberType]
             [
-                SystemMessage(content=f"Answer the user query.\n{format_instructions}"),
+                SystemMessage(
+                    content=f"""Your job is to take a text description of a section of a song and express it in a machine readable tabular format.
+
+# Formatting:
+- Your output will be a sequence of bars.
+- Each bar is enclosed by triple braces on each side: {{{{{{ content }}}}}}.
+- Always use 16 notes per bar (Each is a 16th note)
+- Always specify the activity of *all* instruments in every bar.
+- Don't use shorthand such as "repeats 4 times" or "bars 1-4 are ...". Even if your bar repeats, write them out in full.
+- An example of a properly formatted bar is as follows:
+{Bar.example().to_llm_format()}
+
+The text you produce will be programatically parsed into a song. Please follow the format instructions carefully.
+""".strip()
+                ),
                 HumanMessagePromptTemplate.from_template("{prompt}"),
             ]
         )
         _input = chat_prompt_template.format_messages(
-            format_instructions=format_instructions,
-            prompt=f"""# Song
-Generate {markup_section.number_bars} bars of a house song using the following descriptions...
+            prompt=f"""Generate {markup_section.number_bars} bars of a house song using the following descriptions...
 
-## Bass
-{generate_instrument_description('Bass', prev_gens)}
-
-## Pad
-{generate_instrument_description('Pad', prev_gens)}
-
-## Drums
-{generate_instrument_description('Drums', prev_gens)}""".strip(),
+Bass: {generate_instrument_description('Bass', prev_gens)}
+Pad: {generate_instrument_description('Pad', prev_gens)}
+Drums: {generate_instrument_description('Drums', prev_gens)}""".strip(),
         )
         # prompt=f"""generate {markup_section.number_bars} bars of a house song using the following descriptions:
         #    bass : {markup_section.instruments['Bass'].description}
@@ -123,6 +109,7 @@ Generate {markup_section.number_bars} bars of a house song using the following d
         )
 
         with get_openai_callback() as cb:
+            logger.info("Generating section (this make take a while)...")
             output = llm(_input)
 
         logger.info(
@@ -244,7 +231,7 @@ if __name__ == "__main__":
     result = Song()
     for section in sections:
         generated_section = generate_section(
-            config=config, llm=llm, markup_section=sections[section], prev_gens=result
+            markup_section=sections[section], prev_gens=result, llm=llm
         )
         result.append_section(generated_section)
 
