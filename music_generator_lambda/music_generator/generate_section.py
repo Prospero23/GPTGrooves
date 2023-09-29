@@ -41,10 +41,9 @@ logger = get_logger(__name__)
     stop=stop_after_attempt(3),
 )
 def generate_section(
-    config: Config,
-    llm: Union[BaseChatModel, BaseLLM],
     markup_section: MarkupSection,
     prev_gens: Song,
+    llm: Union[BaseChatModel, BaseLLM],
 ) -> SongSection:
     """
     Generate the notes of a song (SongSection) from an abstract description (MarkupSection) using the given LLM.
@@ -70,31 +69,24 @@ def generate_section(
         return description
 
     if isinstance(llm, BaseLLM):
-        # https://python.langchain.com/docs/modules/model_io/prompts/prompt_templates/#chat-prompt-template
-        # Note, if you don't use format for the format instructions, the formatting will try
-        # to interpret the {{ as a format string, and fail.
-        result = ""
+        raise NotImplementedError("This only works with chat models")
     else:
         # https://python.langchain.com/docs/modules/model_io/prompts/prompt_templates/#chat-prompt-template
         chat_prompt_template: ChatPromptTemplate = ChatPromptTemplate.from_messages(  # pyright: ignore[reportUnknownMemberType]
             [
                 SystemMessage(
-                    content=f"""
-# Format
+                    content=f"""Your job is to take a text description of a section of a song and express it in a machine readable tabular format.
 
-## Structure:
-
-## Bar Formatting:
-- Your output will be a sequence of bars
+# Formatting:
+- Your output will be a sequence of bars.
 - Each bar is enclosed by triple braces on each side: {{{{{{ content }}}}}}.
 - Always use 16 notes per bar (Each is a 16th note)
-- Always specify the activity of all instruments in every bar (even if it's a rest)
-- Even if bars repeat, you must specify each bar individually. Do not say something like "Bars 2-4 are the same as Bar 1".
+- Always specify the activity of *all* instruments in every bar.
+- Don't use shorthand such as "repeats 4 times" or "bars 1-4 are ...". Even if your bar repeats, write them out in full.
 - An example of a properly formatted bar is as follows:
 {Bar.example().to_llm_format()}
 
 The text you produce will be programatically parsed into a song. Please follow the format instructions carefully.
-List the bars completely; do not use shorthand or english-language specification like "repeats 4 times" or "bars 1-4 are ...". Do not leave out any instruments.
 """.strip()
                 ),
                 HumanMessagePromptTemplate.from_template("{prompt}"),
@@ -239,7 +231,7 @@ if __name__ == "__main__":
     result = Song()
     for section in sections:
         generated_section = generate_section(
-            config=config, llm=llm, markup_section=sections[section], prev_gens=result
+            markup_section=sections[section], prev_gens=result, llm=llm
         )
         result.append_section(generated_section)
 

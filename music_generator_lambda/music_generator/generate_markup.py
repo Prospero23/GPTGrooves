@@ -31,7 +31,7 @@ logger = get_logger(__name__)
     stop=stop_after_attempt(3),
 )
 def generate_markup(
-    config: Config, llm: Union[BaseChatModel, BaseLLM]
+    song_description: str, llm: Union[BaseChatModel, BaseLLM]
 ) -> MusicalMarkup:
     format_instructions = """You are generating songs in a musical markup language.
 
@@ -70,7 +70,7 @@ Whenever referring to previous material, refer to sections.
         )
         _input = chat_prompt_template.format_messages(
             format_instructions=format_instructions,
-            prompt="""Create an outline for a house music track""".strip(),  # Make sure to include guide for dynamics? maybe 'provide literal musical material' or something of the sort
+            prompt=song_description,  # Make sure to include guide for dynamics? maybe 'provide literal musical material' or something of the sort
             # TODO prompt still references things like Main material. Also for parsing, good to pass previous drum part in always?
         )
         logger.debug(
@@ -101,5 +101,5 @@ if __name__ == "__main__":
         streaming=True,
         callbacks=[StreamingStdOutCallbackHandler()],
     )
-    markup = generate_markup(config=config, llm=llm)
+    markup = generate_markup(llm=llm)
     logger.info(f"RESULT: {markup}")

@@ -273,10 +273,10 @@ class Bar(BaseModel):
         }
 
         for k, v in data.items():
-            if len(v) != 1:
+            if len(v) > 1:
                 logger.warning(f"Invalid structured text format:\n{text}")
                 raise ValueError(
-                    f"Invalid structured text format. {k} must be present exactly once. Got {v}"
+                    f"Invalid structured text format. {k} must must not be duplicated. Got {v}"
                 )
 
         # We know there is one per key
