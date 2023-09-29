@@ -33,9 +33,9 @@ export default function Button({
   //audio devices and context
   const audioContext = useRef<AudioContext | undefined>(undefined);
   const drums = useRef<Device | undefined>(undefined);
-  const drumsGain = useRef<AudioNode | undefined>(undefined);
+  const drumsGain = useRef<GainNode | undefined>(undefined);
   const bass = useRef<Device | undefined>(undefined);
-  const bassGain = useRef<AudioNode | undefined>(undefined);
+  const bassGain = useRef<GainNode | undefined>(undefined);
   const pad = useRef<Device | undefined>(undefined);
   const padGain = useRef<GainNode | undefined>(undefined);
 
@@ -58,24 +58,24 @@ export default function Button({
     async function init() {
       const result = await setup(); //TODO: CHECK THE GAIN NODE
       if (result) {
+        //get the initialized devices
         drums.current = result.device;
         bass.current = result.deviceBass;
         pad.current = result.deviceSynth;
         audioContext.current = result.context;
 
-        drumsGain.current = audioContext.current
-          .createGain()
-          .connect(audioContext.current.destination);
-        drumsGain.current = audioContext.current
-          .createGain()
-          .connect(audioContext.current.destination);
-        drumsGain.current = audioContext.current
-          .createGain()
-          .connect(audioContext.current.destination);
+        //make the three gains
+        drumsGain.current = audioContext.current.createGain();
+          drumsGain.current.connect(audioContext.current.destination);
+        bassGain.current = audioContext.current.createGain();
+          bassGain.current.connect(audioContext.current.destination);
+        padGain.current = audioContext.current.createGain()
+        padGain.current.connect(audioContext.current.destination);
 
-        drums.current?.node.connect(drumsGain.current as GainNode); //fix
-        bass.current?.node.connect(bassGain.current as GainNode); //fix
-        pad.current?.node.connect(padGain.current as GainNode); //fix
+        //connect devices to their gain nodes
+        drums.current?.node.connect(drumsGain.current);
+        bass.current?.node.connect(bassGain.current);
+        pad.current?.node.connect(padGain.current);
       } else {
         // Handle the undefined case, maybe log an error or throw an exception
         console.log("initializing audio failed. Reload the page.");
@@ -251,3 +251,6 @@ export default function Button({
 //better trash disposal needed
 //BETTER ERROR HANDLING
 //maybe better scoping of variables?
+
+
+// <primitive object={scene} onClick={handleClick} position={position} /> change this to new button?
