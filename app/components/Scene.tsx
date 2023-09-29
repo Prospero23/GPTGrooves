@@ -43,3 +43,4 @@ export default function Scene({ songs }: { songs: SongType[] }) {
     </Canvas>
   );
 }
+//potentially make plane its own component

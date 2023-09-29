@@ -65,6 +65,10 @@ export default async function setup() {
         device = await RNBO.createDevice({ context, patcher:patcher });
         deviceBass = await RNBO.createDevice({ context, patcher:patcherBass });
         deviceSynth = await RNBO.createDevice({ context, patcher:patcherSynth });
+
+        device.node.connect(outputNode)
+        deviceBass.node.connect(outputNode)
+        deviceSynth.node.connect(outputNode)
     } catch (err) {
         if (typeof guardrails === "function") {
             guardrails({ error: err });
@@ -78,10 +82,6 @@ export default async function setup() {
     if (dependencies.length)
         await device.loadDataBufferDependencies(dependencies);
 
-    // Connect the device to the web audio graph
-    device.node.connect(outputNode);
-    deviceBass.node.connect(outputNode);
-    deviceSynth.node.connect(outputNode);
 
     // // (Optional) Create a form to send messages to RNBO inputs
     // makeInportForm(device);
@@ -95,9 +95,6 @@ export default async function setup() {
     // // (Optional) Connect MIDI inputs
     // makeMIDIKeyboard(device);
 
-    document.body.onclick = () => {
-        context.resume();
-    }
 
 //     // Skip if you're not using guardrails.js
 //     if (typeof guardrails === "function")
@@ -119,8 +116,7 @@ export default async function setup() {
         document.body.append(el);
     });
   }
-
-
+  //console.log('all good')
   return {context, device, deviceBass, deviceSynth}
 }
 
