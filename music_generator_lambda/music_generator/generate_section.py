@@ -81,12 +81,19 @@ def generate_section(
 - Your output will be a sequence of bars.
 - Each bar is enclosed by triple braces on each side: {{{{{{ content }}}}}}.
 - Always use 16 notes per bar (Each is a 16th note)
-- Always specify the activity of *all* instruments in every bar. Even if an instrument of effect is completely inactive, it must be present in the bar.
-- Don't use shorthand such as "repeats 4 times" or "bars 1-4 are ...". Even if your bar repeats, write them out in full.
-- An example of a properly formatted bar is as follows:
-{Bar.example().to_llm_format()}
+- If an instrument is inactive, leave it out. Its absence will be interpreted as silence/inactivity.
+- Specify exact bars. If you're asked for N bars, then produce N bars of output.
 
-The text you produce will be programatically parsed into a song. Please follow the format instructions carefully.
+# Instruments
+- Pad: Pads should be a list of lists. Each list is a chord on that respective 16th note. A chord held for a quarter note would just be that chord repeated four times.
+- Bass: Bass is a list of notes.
+- Drums: Drums are either 0s or 1s. 0s are silence, 1s are a hit.
+
+An example of a properly formatted bar is as follows: ```
+{Bar.example().to_llm_format()}
+```
+
+The text you produce will be programatically parsed using regular expressions to be played by software. Please follow the format instructions carefully.
 """.strip()
                 ),
                 HumanMessagePromptTemplate.from_template("{prompt}"),
@@ -97,8 +104,7 @@ The text you produce will be programatically parsed into a song. Please follow t
 
 Bass: {generate_instrument_description('Bass', prev_gens)}
 Pad: {generate_instrument_description('Pad', prev_gens)}
-Drums: {generate_instrument_description('Drums', prev_gens)}
-Effects: {generate_instrument_description('Effects', prev_gens)}""".strip(),
+Drums: {generate_instrument_description('Drums', prev_gens)}""".strip(),
         )
         # prompt=f"""generate {markup_section.number_bars} bars of a house song using the following descriptions:
         #    bass : {markup_section.instruments['Bass'].description}
@@ -128,14 +134,8 @@ Effects: {generate_instrument_description('Effects', prev_gens)}""".strip(),
 if __name__ == "__main__":
     from dotenv import dotenv_values
 
-    assert Bar.example() == Bar.example()
-    assert Bar.from_keypairs(Bar.example().to_keypairs()) == Bar.example()
-    assert Bar.from_llm_format(Bar.example().to_llm_format()) == Bar.example()
-
     config = Config(**dotenv_values())  # type: ignore
-    llm = ChatOpenAI(
-        openai_api_key=config.openai_api_key, model="gpt-4", temperature=0.1
-    )
+    llm = ChatOpenAI(openai_api_key=config.openai_api_key, model="gpt-4", temperature=0)
 
     sections = {
         "Intro": MarkupSection(

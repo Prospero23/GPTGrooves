@@ -18,10 +18,14 @@ class Config(BaseModel):
     llm_cache_filename: Optional[str]
 
 
+class InvalidNoteError(Exception):
+    pass
+
+
 def validate_note(note: str) -> str:
     pattern = re.compile(r"^[A-G][#b]?[0-8]$")
     if not pattern.match(note):
-        raise ValueError(f"{note} is not a valid note format.")
+        raise InvalidNoteError(f"{note} is not a valid note format.")
     return note
 
 
@@ -29,68 +33,78 @@ class BassBar(BaseModel):
     # "bass": {
     #   "pattern": ["C3", "0", "0", "0", "E3", "0", "0", "0", "F3", "0", "0", "0", "G3", "0", "0", "0"]
     # },
-    pattern: list[str] = Field(
+    pattern: Optional[list[str]] = Field(
         description="Bass-line of a house song. Sixteenth notes. '0' = rest, 'Cb3' = C-flat 3 note, 'E2' = E2 note, 'G#4' = G-sharp 4 note, etc."
     )
 
     @validator("pattern")
-    def validate_note_count(cls, field: list[str]) -> list[str]:
-        if len(field) != 16:
-            raise ValueError("Bass line must be 16 notes long.")
+    def validate_note_count(cls, field: list[str]) -> Optional[list[str]]:
+        if field is not None:
+            if len(field) != 16:
+                raise ValueError("Bass line must be 16 notes long.")
+            for note in field:
+                try:
+                    validate_note(note)
+                except InvalidNoteError:
+                    if note != "0":
+                        raise
         return field
 
-    @validator("pattern", each_item=True)
-    def validate_item(cls, item: str) -> str:
-        return item if item == "0" else validate_note(item)
-
     def to_keypairs(self) -> dict[str, str]:
-        return {"bass": " ".join(self.pattern)}
+        return {"bass": " ".join(self.pattern)} if self.pattern else {}
 
     @staticmethod
     def from_keypairs(data: dict[str, str]) -> "BassBar":
-        text = data["bass"]
-        # fmt: off
-        assert not text.startswith("bass "), "Invalid structured text format. Only pass data."
-        # fmt: on
-        return BassBar(pattern=text.split())
+        if "bass" in data:
+            text = data["bass"]
+            # fmt: off
+            assert not text.startswith("bass "), "Invalid structured text format. Only pass data."
+            # fmt: on
+            return BassBar(pattern=text.split())
+        else:
+            return BassBar(pattern=None)
 
 
 class DrumBar(BaseModel):
-    hi_hat: list[int] = Field(description="Hi-hat track, 16ths. 1 = hit, 0 = rest.")
-    kick: list[int] = Field(description="Kick track, 16ths. 1 = hit, 0 = rest.")
-    snare: list[int] = Field(description="Snare track, 16ths. 1 = hit, 0 = rest.")
+    hi_hat: Optional[list[int]] = Field(
+        description="Hi-hat track, 16ths. 1 = hit, 0 = rest."
+    )
+    kick: Optional[list[int]] = Field(
+        description="Kick track, 16ths. 1 = hit, 0 = rest."
+    )
+    snare: Optional[list[int]] = Field(
+        description="Snare track, 16ths. 1 = hit, 0 = rest."
+    )
 
     def to_keypairs(self) -> dict[str, str]:
         # Yep this is a special case, returns a dict
         return {
             drum_type: " ".join([str(val) for val in sequence])
             for drum_type, sequence in self.dict().items()
+            if sequence is not None
         }
 
     @staticmethod
     def from_keypairs(data: dict[str, str]) -> "DrumBar":
         # fmt: off
-        assert not data["hi_hat"].startswith("hi_hat "), "Invalid structured text format. Only pass data."
-        assert not data["kick"].startswith("kick "), "Invalid structured text format. Only pass data."
-        assert not data["snare"].startswith("snare "), "Invalid structured text format. Only pass data."
-        # fmt: on
+        for key in ("hi_hat", "kick", "snare"):
+            if key in data:
+                assert not data[key].startswith(key), "Invalid structured text format. Only pass data."
         return DrumBar(
-            hi_hat=[int(val) for val in data["hi_hat"].split()],
-            kick=[int(val) for val in data["kick"].split()],
-            snare=[int(val) for val in data["snare"].split()],
+            hi_hat=[int(val) for val in data["hi_hat"].split()] if "hi_hat" in data else None,
+            kick=[int(val) for val in data["kick"].split()] if "kick" in data else None,
+            snare=[int(val) for val in data["snare"].split()] if "snare" in data else None,
         )
+        # fmt: on
 
     @validator("hi_hat", "kick", "snare")
-    def validate_drums(cls, field: list[int]) -> list[int]:
-        if len(field) != 16:
-            raise ValueError("Drum track must be 16 notes long.")
+    def validate_drums(cls, field: Optional[list[int]]) -> Optional[list[int]]:
+        if field is not None:
+            if len(field) != 16:
+                raise ValueError("Drum track must be 16 notes long.")
+            if any(val not in {0, 1} for val in field):
+                raise ValueError("Drum track must only contain 0s and 1s.")
         return field
-
-    @validator("hi_hat", "kick", "snare", each_item=True)
-    def validate_item(cls, item: int) -> int:
-        if item not in (0, 1):
-            raise ValueError("Drum value must be 0 or 1.")
-        return item
 
 
 class Chord(BaseModel):
@@ -123,26 +137,32 @@ def expand_if_necessary(field: list[T], length: int) -> list[T]:
 
 
 class PadBar(BaseModel):
-    chord_sequence: list[Chord]
+    chord_sequence: Optional[list[Chord]]
 
     @validator("chord_sequence")
-    def validate_combinations(cls, field: list[str]) -> list[str]:
+    def validate_combinations(cls, field: list[str]) -> Optional[list[str]]:
         # Ensure that the initial length of `field` is a power of 2 and less than or equal to 16
-        if len(field) not in {1, 2, 4, 8, 16}:
-            raise ValueError(
-                "Initial length of field must be an exact power of two among {1, 2, 4, 8, 16}."
-            )
-        if len(field) != 16:
-            logger.info(
-                f"Did not receive 16 notes for Pad. Expanding {len(field)} notes to 16."
-            )
-        return expand_if_necessary(field, 16)
+        if field is not None:
+            if len(field) not in {1, 2, 4, 8, 16}:
+                raise ValueError(
+                    "Initial length of field must be an exact power of two among {1, 2, 4, 8, 16}."
+                )
+            if len(field) != 16:
+                logger.info(
+                    f"Did not receive 16 notes for Pad. Expanding {len(field)} notes to 16."
+                )
+            return expand_if_necessary(field, 16)
+        else:
+            return None
 
     def to_keypairs(self) -> dict[str, str]:
         """
         The format is as follows:
         pad [C3 E3 G3 B3] [] [] [] [A3 C4 E4 G4] [] [] [] [F3 A3 C4 E4] [] [] [] [G3 B3 D4 F4] [] [] []
         """
+        if self.chord_sequence is None:
+            return {}
+
         # Convert each Chord object's notes to a string representation
         chord_strings = [" ".join(chord.notes) for chord in self.chord_sequence]
 
@@ -154,6 +174,8 @@ class PadBar(BaseModel):
 
     @staticmethod
     def from_keypairs(data: dict[str, str]) -> "PadBar":
+        if "pad" not in data:
+            return PadBar(chord_sequence=None)
         text = data["pad"]
         # fmt: off
         assert not text.startswith("pad "), "Invalid structured text format. Only pass data."
@@ -187,54 +209,43 @@ class PadBar(BaseModel):
 
 
 class EffectsBar(BaseModel):
-    delay: list[Decimal] = Field(
-        description="Delay value at each 16th note. 0.0 = off, 1.0 = full."
+    delay: Optional[Decimal] = Field(
+        description="Delay value to use for bar. 0.0 = off, 1.0 = full."
     )
-    reverb: list[Decimal] = Field(
-        description="Reverb value at each 16th note. 0.0 = off, 1.0 = full."
+    reverb: Optional[Decimal] = Field(
+        description="Reverb value to use for bar. 0.0 = off, 1.0 = full."
     )
 
     def to_keypairs(self) -> dict[str, str]:
         # Yep this is a special case, returns a dict
-        return {
-            effect_type: " ".join([str(val) for val in sequence])
-            for effect_type, sequence in self.dict().items()
-        }
+        return {effect_type: val for effect_type, val in self.dict().items()}
 
     @staticmethod
     def from_keypairs(data: dict[str, str]) -> "EffectsBar":
         # fmt: off
-        assert not data["delay"].startswith("delay "), "Invalid structured text format. Only pass data."
-        assert not data["reverb"].startswith("reverb "), "Invalid structured text format. Only pass data."
-        # fmt: on
+        for key in ("delay", "reverb"):
+            if key in data:
+                assert not data[key].startswith(key), "Invalid structured text format. Only pass data."
         return EffectsBar(
             # Quantize to 2 decimal places
-            delay=[
-                Decimal(val).quantize(Decimal("1.00")) for val in data["delay"].split()
-            ],
-            reverb=[
-                Decimal(val).quantize(Decimal("1.00")) for val in data["reverb"].split()
-            ],
+            delay=Decimal(data["delay"]).quantize(Decimal("0.00")) if "delay" in data else None,
+            reverb=Decimal(data["reverb"]).quantize(Decimal("0.00")) if "reverb" in data else None,
         )
+        # fmt: on
 
     @validator("delay", "reverb")
-    def validate_drums(cls, field: list[int]) -> list[int]:
-        if len(field) != 16:
-            raise ValueError("Drum track must be 16 notes long.")
+    def validate_effects(cls, field: Optional[Decimal]) -> Optional[Decimal]:
+        if field is not None:
+            if not Decimal("0.0") <= field <= Decimal("1.0"):
+                raise ValueError("Drum value must be between 0 and 1.")
         return field
-
-    @validator("delay", "reverb", each_item=True)
-    def validate_item(cls, item: int) -> int:
-        if not Decimal("0.0") <= Decimal(item) <= Decimal("1.0"):
-            raise ValueError("Drum value must be between 0 and 1.")
-        return item
 
 
 class Bar(BaseModel):
+    # All of these categories are required. If they are inactive, their children fields might be absent.
     drums: DrumBar = Field(description="Drum track.")
     bass: BassBar = Field(description="Bass line.")
     pad: PadBar = Field(description="Pad track.")
-    effects: Optional[EffectsBar] = Field(description="Effects track.")
 
     def __getitem__(self, key: str):
         if key.upper() == "DRUMS":
@@ -243,8 +254,6 @@ class Bar(BaseModel):
             return self.bass
         elif key.upper() == "PAD":
             return self.pad
-        elif key.upper() == "EFFECTS":
-            return self.effects
         else:
             raise KeyError(f"Key '{key}' not found in Bar instance.")
 
@@ -279,16 +288,6 @@ class Bar(BaseModel):
                     Chord(notes=[]),
                     Chord(notes=[])
                 ]
-            ),
-            effects=EffectsBar(
-                delay=[
-                    # Generate a ramp of two digit decimals from 0.0 to 1.0 with 16 steps
-                    Decimal(val).quantize(Decimal("1.00")) for val in [i / 15 for i in range(16)]
-                ],
-                reverb=list(reversed([
-                    # Generate a ramp of two digit decimals from 0.0 to 1.0 with 16 steps
-                    Decimal(val).quantize(Decimal("1.00")) for val in [i / 15 for i in range(16)]
-                ])),
             )
             # fmt: on
         )
@@ -307,8 +306,8 @@ class Bar(BaseModel):
         snare 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0
         bass B2 0 0 0 Cb2 0 0 0 F#2 0 0 0 C2 0 0 0
         pad [C3 E3 G3 B3] [] [] [] [A3 C4 E4 G4] [] [] [] [F3 A3 C4 E4] [] [] [] [G3 B3 D4 F4] [] [] []
-        delay 0.00 0.07 0.13 0.20 0.27 0.33 0.40 0.47 0.53 0.60 0.67 0.73 0.80 0.87 0.93 1.00
-        reverb 1.00 0.93 0.87 0.80 0.73 0.67 0.60 0.53 0.47 0.40 0.33 0.27 0.20 0.13 0.07 0.00
+        delay 0.00
+        reverb 1.00
         }}}
 
         """
@@ -339,8 +338,8 @@ class Bar(BaseModel):
                     f"Invalid structured text format. {k} must must not be duplicated. Got {v}"
                 )
 
-        # We know there is one per key
-        data = {k: v[0] for k, v in data.items()}
+        # We know there is either zero or one value per key
+        data = {k: v[0] for k, v in data.items() if len(v) == 1}
 
         return Bar.from_keypairs(data)
 
@@ -372,35 +371,34 @@ class Bar(BaseModel):
         drums = self.drums.to_keypairs()
         bass = self.bass.to_keypairs()
         pad = self.pad.to_keypairs()
-        effects = self.effects.to_keypairs() if self.effects else {}
-        return {
-            "hi_hat": drums["hi_hat"],
-            "kick": drums["kick"],
-            "snare": drums["snare"],
-            "bass": bass["bass"],
-            "pad": pad["pad"],
-            "delay": effects["delay"],
-            "reverb": effects["reverb"],
-        }
+        effects = self.effects.to_keypairs()
+        res = {**drums, **bass, **pad, **effects}
+        assert all(v is not None for v in res.values()), f"Invalid keypairs: {res}"
+        return res
 
     def to_llm_format(self) -> str:
         """
         :return: A string representation of the bar in the format expected by the LLM.
         """
         structured_text = self.to_keypairs()
+        # return (
+        #     "{{{\n"
+        #     + "\n".join(
+        #         [
+        #             "hi_hat " + structured_text["hi_hat"],
+        #             "kick " + structured_text["kick"],
+        #             "snare " + structured_text["snare"],
+        #             "bass " + structured_text["bass"],
+        #             "pad " + structured_text["pad"],
+        #             "delay " + structured_text["delay"],
+        #             "reverb " + structured_text["reverb"],
+        #         ]
+        #     )
+        #     + "\n}}}"
+        # )
         return (
             "{{{\n"
-            + "\n".join(
-                [
-                    "hi_hat " + structured_text["hi_hat"],
-                    "kick " + structured_text["kick"],
-                    "snare " + structured_text["snare"],
-                    "bass " + structured_text["bass"],
-                    "pad " + structured_text["pad"],
-                    "delay " + structured_text["delay"],
-                    "reverb " + structured_text["reverb"],
-                ]
-            )
+            + "\n".join([f"{k} {v}" for k, v in structured_text.items()])
             + "\n}}}"
         )
 
@@ -503,7 +501,8 @@ class SongSection(BaseModel):
         snare 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0
         bass B2 0 0 0 Cb2 0 0 0 F#2 0 0 0 C2 0 0 0
         pad [C3 E3 G3 B3] [] [] [] [A3 C4 E4 G4] [] [] [] [F3 A3 C4 E4] [] [] [] [G3 B3 D4 F4] [] [] []
-        delay 0.00 0.07 0.13 0.20 0.27 0.33 0.40 0.47 0.53 0.60 0.67 0.73 0.80 0.87 0.93 1.00
+        delay 1.00
+        reverb 0.00
         }}},
         {{{
         hi_hat 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0
@@ -511,7 +510,8 @@ class SongSection(BaseModel):
         snare 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0
         bass B2 0 0 0 Cb2 0 0 0 F#2 0 0 0 C2 0 0 0
         pad [C3 E3 G3 B3] [] [] [] [A3 C4 E4 G4] [] [] [] [F3 A3 C4 E4] [] [] [] [G3 B3 D4 F4] [] [] []
-        delay 0.00 0.07 0.13 0.20 0.27 0.33 0.40 0.47 0.53 0.60 0.67 0.73 0.80 0.87 0.93 1.00
+        delay 0.70
+        reverb 0.50
         }}}
 
         """

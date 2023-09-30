@@ -11,23 +11,35 @@ export const Note = z.custom<string>(
 );
 
 export const BassBar = z.object({
-  pattern: z.array(Note).refine((data) => data.length === 16, {
-    message: "Bass line must be 16 notes long.",
-  }),
+  pattern: z
+    .array(Note)
+    .refine((data) => data.length === 16, {
+      message: "Bass line must be 16 notes long.",
+    })
+    .nullable(),
 });
 
 export const DrumValue = z.union([z.literal(0), z.literal(1)]);
 
 export const DrumBar = z.object({
-  hi_hat: z.array(DrumValue).refine((data) => data.length === 16, {
-    message: "Drum track must be 16 notes long.",
-  }),
-  kick: z.array(DrumValue).refine((data) => data.length === 16, {
-    message: "Drum track must be 16 notes long.",
-  }),
-  snare: z.array(DrumValue).refine((data) => data.length === 16, {
-    message: "Drum track must be 16 notes long.",
-  }),
+  hi_hat: z
+    .array(DrumValue)
+    .refine((data) => data.length === 16, {
+      message: "Drum track must be 16 notes long.",
+    })
+    .nullable(),
+  kick: z
+    .array(DrumValue)
+    .refine((data) => data.length === 16, {
+      message: "Drum track must be 16 notes long.",
+    })
+    .nullable(),
+  snare: z
+    .array(DrumValue)
+    .refine((data) => data.length === 16, {
+      message: "Drum track must be 16 notes long.",
+    })
+    .nullable(),
 });
 
 export const Chord = z.object({
@@ -35,15 +47,34 @@ export const Chord = z.object({
 });
 
 export const PadBar = z.object({
-  chord_sequence: z.array(Chord).refine((data) => data.length === 16, {
-    message: "Drum track must be 16 notes long.",
-  }),
+  chord_sequence: z
+    .array(Chord)
+    .refine((data) => data.length === 16, {
+      message: "Drum track must be 16 notes long.",
+    })
+    .nullable(),
 });
-
+export const EffectsBar = z.object({
+  // Require each to be 16 notes long and between 0 and 1
+  delay: z
+    .number()
+    .refine((data) => data >= 0 && data <= 1, {
+      message: "Effects track elements must be between 0 and 1.",
+    })
+    .nullable(),
+  reverb: z
+    .number()
+    .refine((data) => data >= 0 && data <= 1, {
+      message: "Effects track elements must be between 0 and 1.",
+    })
+    .nullable(),
+});
 export const Bar = z.object({
+  // Each of these will always be present. Their children might be empty (their fields are optional). Absence implies inactivity.
   drums: DrumBar,
   bass: BassBar,
   pad: PadBar,
+  effects: EffectsBar,
 });
 
 export const SongSection = z.object({

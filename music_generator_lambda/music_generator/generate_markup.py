@@ -43,11 +43,13 @@ A section should be formatted as follows:
 *Pad - detailed description of the synth pad will do in this section
 *Bass - detailed description of what the bass will do in this section
 *Drums - detailed description of what the drums will do in section. Reference only "snare", "kick", and "hi-hat"
-*Effects - detailed description of what the effects will do in this section. Reference only "reverb" and "delay"
+*Effects - detailed description of what the effects will do in this section. Reference only "reverb" and "delay". Effects are applied uniformly over the entire track, not to specific instruments or channels.
 
 If one section mentions another, then format that reference: %verse-1
 
 Do not mention any other instruments or any effects other than "reverb" and "delay".
+
+Focus on complete descriptions of rhythm, harmony, and melody. Do not focus on timbre or dynamics.
 
 Provide a detailed and complete description of how each instrument will evolve throughout the track.
 
