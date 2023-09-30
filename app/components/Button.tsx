@@ -50,7 +50,7 @@ export default function Button({
   const currentStep = useRef<number>(0); // what step of bar is currently being scheduled?
   const currentBar = useRef<number>(0); // current Bar
   const tempo = 140.0; // current tempo (bpm)
-  const lookahead = 25.0; // how frequent to call schedule function in ms
+  const lookahead = 15.0; // how frequent to call schedule function in ms
   const scheduleAheadTime = 0.1; // how far ahead to schedule audio in sec
   const nextNoteTime = useRef<number>(0.0); // when next note is due
   const timerID = useRef<number | undefined>(undefined); // setInterval identifier
@@ -109,16 +109,18 @@ export default function Button({
 
   function scheduleDrums(time: number) {
     if (drums.current != null) {
-      for (const drumType in playingData[currentBar.current].drums) {
-        // check for correct structure
-        const inlet = drumInlets[drumType as keyof typeof drumInlets];
-        const drumEventTrigger = new MessageEvent(time, `in${inlet}`, [
-          // @ts-expect-error this works completely fine
-          playingData[currentBar.current].drums[drumType as keyof drums][
-            currentStep.current
-          ],
-        ]);
-        drums.current.scheduleEvent(drumEventTrigger);
+      const drumData = playingData[currentBar.current].drums;
+      for (const drumType of Object.keys(drumData) as Array<
+        keyof typeof drumInlets
+      >) {
+        // Only process if the drumType value is an array
+        if (Array.isArray(drumData[drumType])) {
+          const inlet = drumInlets[drumType];
+          const drumEventTrigger = new MessageEvent(time, `in${inlet}`, [
+            drumData[drumType][currentStep.current],
+          ]);
+          drums.current.scheduleEvent(drumEventTrigger);
+        }
       }
     } else {
       console.log("DRUM ERROR");
@@ -127,13 +129,14 @@ export default function Button({
 
   function scheduleBass(time: number) {
     if (bass.current != null) {
-      const bassNote = noteToMidi(
-        playingData[currentBar.current].bass.pattern[currentStep.current],
-      );
+      const bassData = playingData[currentBar.current].bass;
+      if (Array.isArray(bassData.pattern)) {
+        const bassNote = noteToMidi(bassData.pattern[currentStep.current]);
 
-      if (!isNaN(bassNote)) {
-        const bassEventTrigger = new MessageEvent(TimeNow, `in0`, [bassNote]);
-        bass.current?.scheduleEvent(bassEventTrigger);
+        if (!isNaN(bassNote)) {
+          const bassEventTrigger = new MessageEvent(TimeNow, `in0`, [bassNote]);
+          bass.current?.scheduleEvent(bassEventTrigger);
+        }
       }
     }
   }
@@ -141,40 +144,45 @@ export default function Button({
   function schedulePad(time: number) {
     if (pad.current != null) {
       const padInstance = pad.current;
-      playingData[currentBar.current].pad.chord_sequence[
-        currentStep.current
-      ].notes.forEach((note) => {
-        const midiChannel = 0;
+      const padData = playingData[currentBar.current].pad;
+      if (Array.isArray(padData.chord_sequence)) {
+        padData.chord_sequence[currentStep.current].notes.forEach((note) => {
+          const midiChannel = 0;
 
-        const midiNote = noteToMidi(note) + 12;
+          const midiNote = noteToMidi(note) + 12;
 
-        // Format a MIDI message paylaod, this constructs a MIDI on event
-        const noteOnMessage: MIDIData = [
-          144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
-          midiNote, // MIDI Note
-          100, // MIDI Velocity
-        ];
+          // Format a MIDI message paylaod, this constructs a MIDI on event
+          const noteOnMessage: MIDIData = [
+            144 + midiChannel, // Code for a note on: 10010000 & midi channel (0-15)
+            midiNote, // MIDI Note
+            100, // MIDI Velocity
+          ];
 
-        const noteOffMessage: MIDIData = [
-          128 + midiChannel, // Code for a note off: 10000000 & midi channel (0-15)
-          midiNote, // MIDI Note
-          0, // MIDI Velocity
-        ];
+          const noteOffMessage: MIDIData = [
+            128 + midiChannel, // Code for a note off: 10000000 & midi channel (0-15)
+            midiNote, // MIDI Note
+            0, // MIDI Velocity
+          ];
 
-        const midiPort = 0;
-        const noteDurationMs = 250; // TODO: BETTER
+          const midiPort = 0;
+          const noteDurationMs = 250; // TODO: BETTER
 
-        // When scheduling an event to occur in the future, use the current audio context time
-        // multiplied by 1000 (converting seconds to milliseconds) for now.
-        const noteOnEvent = new MIDIEvent(time * 1000, midiPort, noteOnMessage);
-        const noteOffEvent = new MIDIEvent(
-          time * 1000 + noteDurationMs,
-          midiPort,
-          noteOffMessage,
-        );
-        padInstance.scheduleEvent(noteOnEvent);
-        padInstance.scheduleEvent(noteOffEvent);
-      });
+          // When scheduling an event to occur in the future, use the current audio context time
+          // multiplied by 1000 (converting seconds to milliseconds) for now.
+          const noteOnEvent = new MIDIEvent(
+            time * 1000,
+            midiPort,
+            noteOnMessage,
+          );
+          const noteOffEvent = new MIDIEvent(
+            time * 1000 + noteDurationMs,
+            midiPort,
+            noteOffMessage,
+          );
+          padInstance.scheduleEvent(noteOnEvent);
+          padInstance.scheduleEvent(noteOffEvent);
+        });
+      }
     }
   }
 
@@ -200,6 +208,11 @@ export default function Button({
         nextNoteTime.current <
         audioContext.current.currentTime + scheduleAheadTime
       ) {
+        if (currentBar.current >= playingData.length) {
+          // Check if we've reached the end of the song
+          // stopSong(); // Call the function to stop the song
+          return; // Exit the scheduler function
+        }
         scheduleEvents(nextNoteTime.current); // schedule note to play
         nextNote(); // push to next 16th
       }
