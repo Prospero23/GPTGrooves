@@ -41,7 +41,9 @@ class BassBar(BaseModel):
     def validate_note_count(cls, field: list[str]) -> Optional[list[str]]:
         if field is not None:
             if len(field) != 16:
-                raise ValueError("Bass line must be 16 notes long.")
+                raise ValueError(
+                    f"Bass line must be 16 notes long. Got: {len(field)} {field}"
+                )
             for note in field:
                 try:
                     validate_note(note)
@@ -101,9 +103,11 @@ class DrumBar(BaseModel):
     def validate_drums(cls, field: Optional[list[int]]) -> Optional[list[int]]:
         if field is not None:
             if len(field) != 16:
-                raise ValueError("Drum track must be 16 notes long.")
+                raise ValueError(
+                    f"Drum track must be 16 notes long. Got: {len(field)} {field}"
+                )
             if any(val not in {0, 1} for val in field):
-                raise ValueError("Drum track must only contain 0s and 1s.")
+                raise ValueError(f"Drum track must only contain 0s and 1s. Got {field}")
         return field
 
 
@@ -145,7 +149,7 @@ class PadBar(BaseModel):
         if field is not None:
             if len(field) not in {1, 2, 4, 8, 16}:
                 raise ValueError(
-                    "Initial length of field must be an exact power of two among {1, 2, 4, 8, 16}."
+                    f"Initial length of field must be an exact power of two among {1, 2, 4, 8, 16}. Got {len(field)}"
                 )
             if len(field) != 16:
                 logger.info(
@@ -237,7 +241,7 @@ class EffectsBar(BaseModel):
     def validate_effects(cls, field: Optional[Decimal]) -> Optional[Decimal]:
         if field is not None:
             if not Decimal("0.0") <= field <= Decimal("1.0"):
-                raise ValueError("Drum value must be between 0 and 1.")
+                raise ValueError(f"Effect value must be between 0 and 1. Got {field}")
         return field
 
 
@@ -258,7 +262,7 @@ class Bar(BaseModel):
             raise KeyError(f"Key '{key}' not found in Bar instance.")
 
     @staticmethod
-    def example() -> "Bar":
+    def example_1() -> "Bar":
         return Bar(
             # fmt: off
             drums=DrumBar(
@@ -284,6 +288,41 @@ class Bar(BaseModel):
                     Chord(notes=[]),
                     Chord(notes=[]),
                     Chord(notes=['G3', 'B3', 'D4', 'F4']),
+                    Chord(notes=[]),
+                    Chord(notes=[]),
+                    Chord(notes=[])
+                ]
+            )
+            # fmt: on
+        )
+
+    @staticmethod
+    def example_2() -> "Bar":
+        return Bar(
+            # fmt: off
+            drums=DrumBar(
+                hi_hat=[1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+                kick=[1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+                snare=[0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0]
+            ),
+            bass=BassBar(
+                pattern=['D2', '0', '0', '0', 'B2', '0', '0', '0', 'A3', '0', '0', '0', 'C2', '0', '0', '0']
+            ),
+            pad=PadBar(
+                chord_sequence=[
+                    Chord(notes=['D3', 'F4', 'A4', 'C4']),
+                    Chord(notes=[]),
+                    Chord(notes=[]),
+                    Chord(notes=[]),
+                    Chord(notes=['G3', 'B3', 'D3', 'F3']),
+                    Chord(notes=[]),
+                    Chord(notes=[]),
+                    Chord(notes=[]),
+                    Chord(notes=['B3', 'D3', 'F4', 'A4']),
+                    Chord(notes=[]),
+                    Chord(notes=[]),
+                    Chord(notes=[]),
+                    Chord(notes=['A3', 'C3', 'E4', 'G4']),
                     Chord(notes=[]),
                     Chord(notes=[]),
                     Chord(notes=[])
@@ -360,7 +399,6 @@ class Bar(BaseModel):
             drums=DrumBar.from_keypairs({k: v for k, v in data.items() if k in ("hi_hat", "kick", "snare")}),
             bass=BassBar.from_keypairs({k: v for k, v in data.items() if k in ("bass",)}),
             pad=PadBar.from_keypairs({k: v for k, v in data.items() if k in ("pad",)}),
-            effects=EffectsBar.from_keypairs({k: v for k, v in data.items() if k in ("delay", "reverb")})
             # fmt: on
         )
 
@@ -371,8 +409,7 @@ class Bar(BaseModel):
         drums = self.drums.to_keypairs()
         bass = self.bass.to_keypairs()
         pad = self.pad.to_keypairs()
-        effects = self.effects.to_keypairs()
-        res = {**drums, **bass, **pad, **effects}
+        res = {**drums, **bass, **pad}
         assert all(v is not None for v in res.values()), f"Invalid keypairs: {res}"
         return res
 
@@ -427,7 +464,6 @@ class MusicalMarkup(BaseModel):
         *Pad: asdfadsfadfafd
         *Bass: asdfasdfasdf %outro
         *Drums: asdhadfiodf
-        *Effects: asdfasdfasdf
 
         """
         sections_list = outline.split("##")[1:]

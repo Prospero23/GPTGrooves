@@ -89,9 +89,9 @@ def generate_section(
 - Bass: Bass is a list of notes.
 - Drums: Drums are either 0s or 1s. 0s are silence, 1s are a hit.
 
-An example of a properly formatted bar is as follows: ```
-{Bar.example().to_llm_format()}
-```
+An example of a properly formatted section of just two bars is as follows:
+{Bar.example_1().to_llm_format()}
+{Bar.example_2().to_llm_format()}
 
 The text you produce will be programatically parsed using regular expressions to be played by software. Please follow the format instructions carefully.
 """.strip()
