@@ -46,24 +46,23 @@ export default function Button({
   const padGain = useRef<GainNode | undefined>(undefined);
 
   // sequence stuff
-  const startTime = useRef<number | undefined>(undefined); // start time of sequence
+  // const startTime = useRef<number | undefined>(undefined); // start time of sequence
   const currentStep = useRef<number>(0); // what step of bar is currently being scheduled?
   const currentBar = useRef<number>(0); // current Bar
   const tempo = 140.0; // current tempo (bpm)
   const lookahead = 25.0; // how frequent to call schedule function in ms
   const scheduleAheadTime = 0.1; // how far ahead to schedule audio in sec
   const nextNoteTime = useRef<number>(0.0); // when next note is due
-  const noteResolution = 0; // 0 is 16th, 1 - 8th, 2 - quarter
   const timerID = useRef<number | undefined>(undefined); // setInterval identifier
 
-  const notesInQueue = []; // FOR FUTURE VISUALS (see playBUTTON link)
+  // const notesInQueue = []; // FOR FUTURE VISUALS (see playBUTTON link)
 
   // setup function. RUNS ONCE
   useEffect(() => {
     // This code runs after the component has been rendered
     async function init() {
       const result = await setup(); // TODO: CHECK THE GAIN NODE
-      if (result) {
+      if (result != null) {
         // get the initialized devices
         drums.current = result.device;
         bass.current = result.deviceBass;
@@ -87,10 +86,10 @@ export default function Button({
         console.log("initializing audio failed. Reload the page.");
       }
     }
-    init();
+    void init();
     // Optional: Return a function to run on component unmount / before re-running the effect
     return () => {
-      audioContext.current?.close();
+      void audioContext.current?.close();
     };
   }, []);
 
@@ -101,7 +100,7 @@ export default function Button({
     nextNoteTime.current += 0.25 * secondsPerBeat;
 
     currentStep.current++;
-    if (currentStep.current == 16) {
+    if (currentStep.current === 16) {
       // wrap 16 to 0
       currentStep.current = 0;
       currentBar.current++;
@@ -109,26 +108,25 @@ export default function Button({
   }
 
   function scheduleDrums(time: number) {
-    if (drums.current) {
+    if (drums.current != null) {
       for (const drumType in playingData[currentBar.current].drums) {
         // check for correct structure
-        if (playingData[currentBar.current].drums.hasOwnProperty(drumType)) {
-          const inlet = drumInlets[drumType as keyof typeof drumInlets];
-          const drumEventTrigger = new MessageEvent(time, `in${inlet}`, [
-            // @ts-expect-error
-            playingData[currentBar.current].drums[drumType][
-              currentStep.current
-            ],
-          ]);
-          drums.current.scheduleEvent(drumEventTrigger);
-        }
+        const inlet = drumInlets[drumType as keyof typeof drumInlets];
+        const drumEventTrigger = new MessageEvent(time, `in${inlet}`, [
+          // @ts-expect-error this works completely fine
+          playingData[currentBar.current].drums[drumType as keyof drums][
+            currentStep.current
+          ],
+        ]);
+        drums.current.scheduleEvent(drumEventTrigger);
       }
     } else {
+      console.log("DRUM ERROR");
     }
   }
 
   function scheduleBass(time: number) {
-    if (bass.current) {
+    if (bass.current != null) {
       const bassNote = noteToMidi(
         playingData[currentBar.current].bass.pattern[currentStep.current],
       );
@@ -141,7 +139,7 @@ export default function Button({
   }
 
   function schedulePad(time: number) {
-    if (pad.current) {
+    if (pad.current != null) {
       const padInstance = pad.current;
       playingData[currentBar.current].pad.chord_sequence[
         currentStep.current
@@ -184,15 +182,8 @@ export default function Button({
     // push the note on the queue, even if we're not playing.
     // notesInQueue.push( { note: beatNumber, time: time } ); ADD BACK LATER
 
-    if (noteResolution == 1 && currentStep.current % 2)
-      // only runs when res is set to 1
-      return; // we're not playing non-8th 16th notes
-    if (noteResolution == 2 && currentStep.current % 4)
-      // only runs when res is set to 2
-      return; // we're not playing non-quarter 8th notes
-
     // logic for scheduling
-    if (audioContext.current) {
+    if (audioContext.current != null) {
       scheduleDrums(time);
       scheduleBass(time);
       schedulePad(time);
@@ -204,7 +195,7 @@ export default function Button({
   function scheduler() {
     // while there are notes that will need to play before the next interval,
     // schedule them and advance the pointer.
-    if (audioContext.current) {
+    if (audioContext.current != null) {
       while (
         nextNoteTime.current <
         audioContext.current.currentTime + scheduleAheadTime
@@ -220,24 +211,24 @@ export default function Button({
     event.stopPropagation(); // stop event from firing twice
     // animation
     const anim = actions[names[0]];
-    if (anim) {
+    if (anim != null) {
       anim.reset();
       anim.repetitions = 1;
       anim.setDuration(0.2);
       anim.play();
     }
     // logic
-    setIsPlaying(!isPlaying);
-    if (audioContext.current?.state == "suspended") {
-      audioContext.current?.resume();
+    setIsPlaying(!(isPlaying ?? false));
+    if (audioContext.current?.state === "suspended") {
+      void audioContext.current?.resume();
     }
-    if (!isPlaying && audioContext.current) {
+    if (!(isPlaying ?? false) && audioContext.current != null) {
       // start playing
       currentStep.current = 0;
       currentBar.current = 0;
       nextNoteTime.current = audioContext.current.currentTime;
       scheduler(); // kick off scheduling
-    } else if (isPlaying) {
+    } else if (isPlaying ?? false) {
       window.clearTimeout(timerID.current);
       // console.log("this is the timer ID:", timerID.current)
     }
@@ -245,6 +236,7 @@ export default function Button({
 
   return (
     <>
+      {/* eslint-disable-next-line react/no-unknown-property */}
       <primitive object={scene} onClick={handleClick} position={position} />
     </>
   );
