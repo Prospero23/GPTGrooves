@@ -15,8 +15,8 @@ import { type Vector3 } from "three";
 
 interface ButtonProps {
   position: Vector3;
-  isPlaying: boolean | undefined;
-  setIsPlaying: React.Dispatch<React.SetStateAction<boolean | undefined>>;
+  isPlaying: boolean;
+  setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
   // give data
   playingData: BarType[];
 }
