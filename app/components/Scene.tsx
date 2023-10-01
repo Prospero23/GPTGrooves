@@ -41,7 +41,7 @@ export default function Scene({
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentSong, setCurrentSong] = useState<number>(0);
   // TODO improve this, we're only getting 1
-  const bars = songs[0].sections.flatMap((section) => section.bars);
+  const bars = songs[currentSong].sections.flatMap((section) => section.bars);
 
   // audio devices and context
   const audioContext = useRef<AudioContext | undefined>(undefined);
