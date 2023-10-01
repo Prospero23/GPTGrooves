@@ -15,6 +15,8 @@ class Config(BaseModel):
     db_name: str
     # If None, don't cache
     llm_cache_filename: Optional[str]
+    langchain_api_key: Optional[str]
+    langchain_project: Optional[str]
 
 
 def validate_note(note: str) -> str:
@@ -55,41 +57,49 @@ class BassBar(BaseModel):
 
 
 class DrumBar(BaseModel):
-    hi_hat: list[int] = Field(description="Hi-hat track, 16ths. 1 = hit, 0 = rest.")
-    kick: list[int] = Field(description="Kick track, 16ths. 1 = hit, 0 = rest.")
-    snare: list[int] = Field(description="Snare track, 16ths. 1 = hit, 0 = rest.")
+    hi_hat: Optional[list[int]] = Field(
+        description="Hi-hat track, 16ths. 1 = hit, 0 = rest."
+    )
+    kick: Optional[list[int]] = Field(
+        description="Kick track, 16ths. 1 = hit, 0 = rest."
+    )
+    snare: Optional[list[int]] = Field(
+        description="Snare track, 16ths. 1 = hit, 0 = rest."
+    )
 
     def to_keypairs(self) -> dict[str, str]:
         # Yep this is a special case, returns a dict
         return {
             drum_type: " ".join([str(val) for val in sequence])
             for drum_type, sequence in self.dict().items()
+            if sequence is not None
         }
 
     @staticmethod
     def from_keypairs(data: dict[str, str]) -> "DrumBar":
         # fmt: off
-        assert not data["hi_hat"].startswith("hi_hat "), "Invalid structured text format. Only pass data."
-        assert not data["kick"].startswith("kick "), "Invalid structured text format. Only pass data."
-        assert not data["snare"].startswith("snare "), "Invalid structured text format. Only pass data."
-        # fmt: on
+        for drum_type in ("hi_hat", "kick", "snare"):
+            if drum_type in data:
+                assert not data[drum_type].startswith(drum_type), "Invalid structured text format. Only pass data."
         return DrumBar(
-            hi_hat=[int(val) for val in data["hi_hat"].split()],
-            kick=[int(val) for val in data["kick"].split()],
-            snare=[int(val) for val in data["snare"].split()],
+            hi_hat=[int(val) for val in data["hi_hat"].split()] if "hi_hat" in data else None,
+            kick=[int(val) for val in data["kick"].split()] if "kick" in data else None,
+            snare=[int(val) for val in data["snare"].split()] if "snare" in data else None,
         )
+        # fmt: on
 
     @validator("hi_hat", "kick", "snare")
     def validate_drums(cls, field: list[int]) -> list[int]:
-        if len(field) != 16:
-            raise ValueError("Drum track must be 16 notes long.")
-        return field
+        if field is not None:
+            if len(field) != 16:
+                raise ValueError(
+                    f"Drum track must be 16 notes long. Got {len(field)}: {field}"
+                )
+            for item in field:
+                if item not in (0, 1):
+                    raise ValueError(f"Drum values must be 0 or 1. Got {field}")
 
-    @validator("hi_hat", "kick", "snare", each_item=True)
-    def validate_item(cls, item: int) -> int:
-        if item not in (0, 1):
-            raise ValueError("Drum value must be 0 or 1.")
-        return item
+        return field
 
 
 class Chord(BaseModel):
@@ -122,20 +132,22 @@ def expand_if_necessary(field: list[T], length: int) -> list[T]:
 
 
 class PadBar(BaseModel):
-    chord_sequence: list[Chord]
+    chord_sequence: Optional[list[Chord]]
 
     @validator("chord_sequence")
     def validate_combinations(cls, field: list[str]) -> list[str]:
         # Ensure that the initial length of `field` is a power of 2 and less than or equal to 16
-        if len(field) not in {1, 2, 4, 8, 16}:
-            raise ValueError(
-                "Initial length of field must be an exact power of two among {1, 2, 4, 8, 16}."
-            )
-        if len(field) != 16:
-            logger.info(
-                f"Did not receive 16 notes for Pad. Expanding {len(field)} notes to 16."
-            )
-        return expand_if_necessary(field, 16)
+        if field is not None:
+            if len(field) not in {1, 2, 4, 8, 16}:
+                raise ValueError(
+                    "Initial length of field must be an exact power of two among {1, 2, 4, 8, 16}."
+                )
+            if len(field) != 16:
+                logger.info(
+                    f"Did not receive 16 notes for Pad. Expanding {len(field)} notes to 16."
+                )
+            return expand_if_necessary(field, 16)
+        return field
 
     def to_keypairs(self) -> dict[str, str]:
         """

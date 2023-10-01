@@ -57,6 +57,9 @@ module "music_generator_lambda" {
   atlas_cluster_uri             = var.atlas_cluster_uri
   image_uri                     = var.music_generator_image_uri
   db_name                       = local.db_name
+
+  langchain_api_key = var.langchain_api_key
+  langchain_project = var.langchain_project
 }
 
 

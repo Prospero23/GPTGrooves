@@ -48,6 +48,8 @@ resource "aws_secretsmanager_secret_version" "secrets" {
     anyscale_api_token = var.anyscale_api_token
     atlas_cluster_uri  = var.atlas_cluster_uri
     db_name            = var.db_name
+    langchain_api_key  = var.langchain_api_key
+    langchain_project  = var.langchain_project
   })
 }
 

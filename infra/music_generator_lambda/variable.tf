@@ -57,3 +57,13 @@ variable "image_uri" {
   type        = string
   description = "The URI of the image to use for the lambda function"
 }
+
+variable "langchain_api_key" {
+  type        = string
+  description = "The API key for the langchain service"
+}
+
+variable "langchain_project" {
+  type        = string
+  description = "The project for the langchain service"
+}

@@ -4,6 +4,9 @@ import os
 from boto3.session import Session
 from botocore.exceptions import ClientError
 from mypy_boto3_secretsmanager.client import SecretsManagerClient
+from music_generator.utilities.set_langchain_environment import (
+    set_langchain_environment,
+)
 from music_generator.workflows.daily_generate_song import (
     daily_generate_song_and_persist,
 )
@@ -42,6 +45,8 @@ def configure_lambda() -> Config:
     session = Session()
     secrets = get_secret(session=session, secret_id=secret_id, region_name=region)
     config = Config(**secrets)
+    set_langchain_environment(config=config)
+
     return config
 
 
@@ -50,6 +55,7 @@ def configure_local() -> Config:
 
     logger.info("Generating configuration using `.env`...")
     config = Config(**dotenv_values())  # type: ignore
+    set_langchain_environment(config=config)
     return config
 
 
