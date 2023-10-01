@@ -7,10 +7,12 @@ export default function Prev({
   setCurrentSong,
   currentSong,
   numberDates,
+  setIsPlaying,
 }: {
   setCurrentSong: Dispatch<SetStateAction<number>>;
   currentSong: number;
   numberDates: number;
+  setIsPlaying: Dispatch<SetStateAction<boolean>>;
 }) {
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const textColor = isHovered ? "red" : "white";
@@ -27,6 +29,7 @@ export default function Prev({
     // make sure does not click past last song
     if (currentSong < numberDates - 1) {
       setCurrentSong(currentSong + 1);
+      setIsPlaying(false);
     }
   }
 

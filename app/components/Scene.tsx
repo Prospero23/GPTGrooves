@@ -62,6 +62,9 @@ export default function Scene({
   const nextNoteTime = useRef<number>(0.0); // when next note is due
   const timerID = useRef<number | undefined>(undefined); // setInterval identifier
 
+  const delay = useRef<DelayNode | undefined>(undefined);
+  const reverb = useRef<ConvolverNode | undefined>(undefined);
+
   // const notesInQueue = []; // FOR FUTURE VISUALS (see playBUTTON link)
 
   // setup function. RUNS ONCE
@@ -83,6 +86,10 @@ export default function Scene({
         bassGain.current.connect(audioContext.current.destination);
         padGain.current = audioContext.current.createGain();
         padGain.current.connect(audioContext.current.destination);
+
+        // make delay and reverb
+        delay.current = audioContext.current.createDelay();
+        reverb.current = audioContext.current.createConvolver();
 
         // connect devices to their gain nodes
         drums.current?.node.connect(drumsGain.current);
@@ -284,11 +291,16 @@ export default function Scene({
       <Date month={dates[currentSong].month} day={dates[currentSong].day} />
       <Author />
       <Album year={dates[currentSong].year} />
-      <Next setCurrentSong={setCurrentSong} currentSong={currentSong} />
+      <Next
+        setCurrentSong={setCurrentSong}
+        currentSong={currentSong}
+        setIsPlaying={setIsPlaying}
+      />
       <Prev
         setCurrentSong={setCurrentSong}
         currentSong={currentSong}
         numberDates={numberDates}
+        setIsPlaying={setIsPlaying}
       />
       <PlayState isPlaying={isPlaying} />
     </Canvas>

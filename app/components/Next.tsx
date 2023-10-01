@@ -6,9 +6,11 @@ import { Text3D } from "@react-three/drei";
 export default function Next({
   setCurrentSong,
   currentSong,
+  setIsPlaying,
 }: {
   setCurrentSong: Dispatch<SetStateAction<number>>;
   currentSong: number;
+  setIsPlaying: Dispatch<SetStateAction<boolean>>;
 }) {
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const textColor = isHovered ? "red" : "white";
@@ -24,6 +26,7 @@ export default function Next({
   function handleClick() {
     if (currentSong > 0) {
       setCurrentSong(currentSong - 1);
+      setIsPlaying(false);
     }
   }
   // change cursor whenever hovered
