@@ -31,5 +31,9 @@ module.exports = {
         patterns: ["@mui/*/*/*"],
       },
     ],
+    "react/no-unknown-property": [
+      "error",
+      { ignore: ["args", "object", "position", "emissive"] },
+    ],
   },
 };

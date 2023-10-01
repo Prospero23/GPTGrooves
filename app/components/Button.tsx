@@ -1,6 +1,9 @@
+/* eslint-disable react/no-unknown-property */
 "use client";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import { type Vector3 } from "three";
+import { useRef } from "react";
+import { type ThreeEvent } from "@react-three/fiber";
 
 interface ButtonProps {
   position: Vector3;
@@ -13,10 +16,13 @@ export default function Button({
   isPlaying,
   setIsPlaying,
 }: ButtonProps) {
-  const { scene, animations } = useGLTF("/assets/butttton.glb");
-  const { actions, names } = useAnimations(animations, scene);
+  const group = useRef<THREE.Group | null>(null);
 
-  function handleClick(event: React.MouseEvent<HTMLButtonElement>) {
+  // @ts-expect-error nodes are present on GLTF
+  const { nodes, materials, animations } = useGLTF("/assets/butttton.glb");
+  const { actions, names } = useAnimations(animations, group);
+
+  function handleClick(event: ThreeEvent<MouseEvent>) {
     event.stopPropagation(); // stop event from firing twice
     // animation
     const anim = actions[names[0]];
@@ -32,18 +38,38 @@ export default function Button({
 
   return (
     <>
-      {/* eslint-disable-next-line react/no-unknown-property */}
-      <primitive object={scene} onClick={handleClick} position={position} />
+      <group
+        ref={group}
+        dispose={null}
+        position={position}
+        onClick={handleClick}
+      >
+        <group name="Scene">
+          <mesh
+            name="Cylinder"
+            castShadow
+            receiveShadow
+            geometry={nodes.Cylinder.geometry}
+            material={materials["Material.001"]}
+            position={[0.197, 0.055, 0.005]}
+            scale={[1, 0.056, 1]}
+          />
+          <mesh
+            name="Cylinder001"
+            castShadow
+            receiveShadow
+            geometry={nodes.Cylinder001.geometry}
+            position={[0.197, 0.147, 0.019]}
+            rotation={[-Math.PI, 0, -Math.PI]}
+            scale={[-0.887, -0.122, -0.887]}
+          >
+            <meshBasicMaterial color={"red"} />
+          </mesh>
+        </group>
+      </group>
     </>
   );
 }
 
 // randomly set button color for each day?
-
-// better trash disposal needed
-// BETTER ERROR HANDLING
-// maybe better scoping of variables?
-
-// <primitive object={scene} onClick={handleClick} position={position} /> change this to new button?
-
-// option shift o
+// switch material to look more glass like
