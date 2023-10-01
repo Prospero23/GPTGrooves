@@ -5,12 +5,14 @@
 import setup from "@/public/sound.js";
 import { useEffect, useState, useRef } from "react";
 import { Device, MessageEvent, TimeNow, MIDIEvent, MIDIData } from "@rnbo/js";
+import { addIssueToContext } from "zod";
 
 export default function PlayButton() {
   //instruments
   const osc = useRef<OscillatorNode | undefined>(undefined); //test oscillator
   const drums = useRef<Device | undefined>(undefined); //test oscillator
   const bass = useRef<Device | undefined>(undefined); //test oscillator
+  const bassGain = useRef<GainNode | undefined>(undefined); //test oscillator
   const pad = useRef<Device | undefined>(undefined); //test oscillator
   const [isPlaying, setIsPlaying] = useState<Boolean | undefined>(false); //is sequence playing?
   const audioContext = useRef<AudioContext | undefined>(
@@ -66,6 +68,15 @@ export default function PlayButton() {
         drums.current = result.device;
         bass.current = result.deviceBass;
         pad.current = result.deviceSynth;
+
+        drums.current?.node.connect(audioContext.current.destination)
+
+        const gainNode = audioContext.current.createGain();
+        gainNode.connect(audioContext.current.destination);
+        bassGain.current = gainNode;
+        bass.current?.node.connect(bassGain.current)
+
+
       } else {
         // Handle the undefined case, maybe log an error or throw an exception
         console.log("error in initializing audio");
@@ -160,7 +171,9 @@ function handleClickBass(event: React.MouseEvent<HTMLButtonElement>) {
   const eventTrigger = new MessageEvent(TimeNow, `in0`, [
     Math.random() * 10 + 30,
   ]);
-  if (bass.current) {
+  if (bass.current && bassGain.current) {
+    bassGain.current.gain.value = Math.random()
+    console.log(bassGain.current.gain.value )
     bass.current.scheduleEvent(eventTrigger);
   }
 }

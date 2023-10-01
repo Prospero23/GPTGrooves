@@ -7,10 +7,6 @@ export default async function setup() {
     const WAContext = window.AudioContext || window.webkitAudioContext;
     const context = new WAContext();
 
-    // Create gain node and connect it to audio output
-    const outputNode = context.createGain();
-    outputNode.connect(context.destination);
-
     // Fetch the exported patcher
     let response, patcher, responseBass, patcherBass, responseSynth, patcherSynth;
     try {
@@ -66,9 +62,6 @@ export default async function setup() {
         deviceBass = await RNBO.createDevice({ context, patcher:patcherBass });
         deviceSynth = await RNBO.createDevice({ context, patcher:patcherSynth });
 
-        device.node.connect(outputNode)
-        deviceBass.node.connect(outputNode)
-        deviceSynth.node.connect(outputNode)
     } catch (err) {
         if (typeof guardrails === "function") {
             guardrails({ error: err });
@@ -116,7 +109,7 @@ export default async function setup() {
         document.body.append(el);
     });
   }
-  //console.log('all good')
+  console.log('all good')
   return {context, device, deviceBass, deviceSynth}
 }
 
