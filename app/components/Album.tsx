@@ -2,7 +2,7 @@
 "use client";
 import { Text3D } from "@react-three/drei";
 
-export default function Album() {
+export default function Album({ year }: { year: number }) {
   return (
     <Text3D
       font={"/fonts/ChicagoFLF_Regular.json"}
@@ -11,7 +11,7 @@ export default function Album() {
       castShadow
     >
       <meshLambertMaterial color="white" emissive="grey" />
-      SONG A DAY
+      Album: {year}
     </Text3D>
   );
 }

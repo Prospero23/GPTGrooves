@@ -1,9 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
 import { Text3D } from "@react-three/drei";
 
-export default function Prev() {
+export default function Next({
+  setCurrentSong,
+  currentSong,
+}: {
+  setCurrentSong: Dispatch<SetStateAction<number>>;
+  currentSong: number;
+}) {
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const textColor = isHovered ? "red" : "white";
   const textEmmisive = isHovered ? "red" : "grey";
@@ -14,6 +20,11 @@ export default function Prev() {
 
   function handleLeave() {
     setIsHovered(false);
+  }
+  function handleClick() {
+    if (currentSong > 0) {
+      setCurrentSong(currentSong - 1);
+    }
   }
   // change cursor whenever hovered
   useEffect(() => {
@@ -38,9 +49,7 @@ export default function Prev() {
       castShadow
       onPointerEnter={handleEnter}
       onPointerLeave={handleLeave}
-      onClick={() => {
-        console.log("katie");
-      }}
+      onClick={handleClick}
     >
       <meshLambertMaterial color={textColor} emissive={textEmmisive} />
       {">"}

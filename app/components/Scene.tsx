@@ -19,14 +19,27 @@ import noteToMidi from "@/library/noteToMidi";
 import setup from "@/public/sound";
 import { MIDIEvent, MessageEvent, type Device, type MIDIData } from "@rnbo/js";
 
+interface GenDate {
+  day: number;
+  month: string;
+  year: number;
+}
+
 const drumInlets = {
   hi_hat: 1,
   kick: 2,
   snare: 3,
 };
 
-export default function Scene({ songs }: { songs: SongType[] }) {
+export default function Scene({
+  songs,
+  dates,
+}: {
+  songs: SongType[];
+  dates: GenDate[];
+}) {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [currentSong, setCurrentSong] = useState<number>(0);
   // TODO improve this, we're only getting 1
   const bars = songs[0].sections.flatMap((section) => section.bars);
 
@@ -243,6 +256,8 @@ export default function Scene({ songs }: { songs: SongType[] }) {
     }
   }, [isPlaying, scheduler]);
 
+  const numberDates = dates.length; // number of dates
+
   return (
     <Canvas camera={{ position: [0, 11, 13.6], fov: 75 }} linear flat shadows>
       {/* <CameraLogger /> */}
@@ -266,11 +281,15 @@ export default function Scene({ songs }: { songs: SongType[] }) {
         isPlaying={isPlaying}
         setIsPlaying={setIsPlaying}
       />
-      <Date />
+      <Date month={dates[currentSong].month} day={dates[currentSong].day} />
       <Author />
-      <Album />
-      <Next />
-      <Prev />
+      <Album year={dates[currentSong].year} />
+      <Next setCurrentSong={setCurrentSong} currentSong={currentSong} />
+      <Prev
+        setCurrentSong={setCurrentSong}
+        currentSong={currentSong}
+        numberDates={numberDates}
+      />
       <PlayState isPlaying={isPlaying} />
     </Canvas>
   );
