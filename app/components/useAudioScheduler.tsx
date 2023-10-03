@@ -11,6 +11,23 @@ const drumInlets = {
   snare: 3,
 };
 
+// function scaleValue(x: number, a: number, b: number, c: number, d: number) {
+//   return c + ((x - a) * (d - c)) / (b - a);
+// }
+
+function scaleExponential(
+  input: number,
+  inMin: number,
+  inMax: number,
+  outMin: number,
+  outMax: number,
+  exponent: number,
+) {
+  const normalizedValue = (input - inMin) / (inMax - inMin);
+  const scaledExponentialValue = Math.pow(normalizedValue, exponent);
+  return outMin + scaledExponentialValue * (outMax - outMin);
+}
+
 export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentSong, setCurrentSong] = useState<number>(0);
@@ -40,6 +57,8 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
   const delay = useRef<DelayNode | undefined>(undefined);
   const reverb = useRef<ConvolverNode | undefined>(undefined);
+  const filter = useRef<BiquadFilterNode | undefined>(undefined);
+  const filterFreqRef = useRef<number>(40000);
 
   // const notesInQueue = []; // FOR FUTURE VISUALS (see playBUTTON link)
 
@@ -57,19 +76,25 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
         // make the three gains
         drumsGain.current = audioContext.current.createGain();
-        drumsGain.current.connect(audioContext.current.destination);
+        // drumsGain.current.connect(audioContext.current.destination);
         bassGain.current = audioContext.current.createGain();
-        bassGain.current.connect(audioContext.current.destination);
+        // bassGain.current.connect(audioContext.current.destination);
         padGain.current = audioContext.current.createGain();
-        padGain.current.connect(audioContext.current.destination);
+        // padGain.current.connect(audioContext.current.destination);
 
         // make delay and reverb
         delay.current = audioContext.current.createDelay();
         reverb.current = audioContext.current.createConvolver();
-
-        // connect devices to their gain nodes
+        filter.current = audioContext.current.createBiquadFilter();
+        filter.current.type = "lowpass";
+        filter.current.frequency.value = filterFreqRef.current;
+        // connection hub
+        filter.current.connect(audioContext.current.destination);
+        drumsGain.current.connect(filter.current);
         drums.current?.node.connect(drumsGain.current);
+        bassGain.current.connect(filter.current);
         bass.current?.node.connect(bassGain.current);
+        padGain.current.connect(filter.current);
         pad.current?.node.connect(padGain.current);
       } else {
         // Handle the undefined case, maybe log an error or throw an exception
@@ -223,14 +248,13 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
     }
   }, [bars.length, scheduleEvents]);
 
-  // AUDIO BOOM BOOM
+  // AUDIO scheduling in action
   useEffect(() => {
     if (audioContext.current?.state === "suspended") {
       void audioContext.current?.resume();
     }
     if (isPlaying && audioContext.current != null) {
       // start playing
-      console.log("BOOM");
       currentStep.current = 0;
       currentBar.current = 0;
       nextNoteTime.current = audioContext.current.currentTime;
@@ -240,12 +264,24 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
       // console.log("this is the timer ID:", timerID.current)
     }
   }, [isPlaying, scheduler]);
+  // update filter freq
+  function setFilterFrequency(value: number) {
+    const scaledValue = scaleExponential(value, 0, 100, 60, 15000, 4);
+    if (filter.current != null) {
+      filter.current.frequency.value = scaledValue;
+    }
+  }
   return {
     isPlaying,
     currentSong,
+    setFilterFrequency,
     setIsPlaying,
     setCurrentSong, // exposed variables and functions
   };
 }
 
 // expose: start, stop, currentSong
+
+// effects: reverb, delay, compression (sidechain?), whatever else
+// probably want to improve the instrument sound at some point as well
+// use setvalue at time to initialize effects with gpt stuff

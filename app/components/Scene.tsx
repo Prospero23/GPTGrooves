@@ -35,8 +35,13 @@ export default function Scene({
   const [isUserEffects, setIsUserEffects] = useState<boolean>(true);
   const [orbitEndabled, setOrbitEnabled] = useState<boolean>(true);
 
-  const { isPlaying, setIsPlaying, currentSong, setCurrentSong } =
-    useAudioScheduler({ songs });
+  const {
+    isPlaying,
+    setIsPlaying,
+    currentSong,
+    setCurrentSong,
+    setFilterFrequency,
+  } = useAudioScheduler({ songs });
 
   const numberDates = dates.length; // number of dates
 
@@ -86,6 +91,7 @@ export default function Scene({
         count={4}
         visible={isUserEffects}
         setOrbitEndabled={setOrbitEnabled}
+        setFilterFreq={setFilterFrequency}
       />
     </Canvas>
   );
