@@ -129,3 +129,4 @@ export default function EffectSliders({
     </>
   );
 }
+// these pointer events are messing up the audio for whatever reason
