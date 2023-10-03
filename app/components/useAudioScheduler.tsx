@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 
 import { type SongType } from "@/library/musicData";
 import noteToMidi from "@/library/noteToMidi";
@@ -15,7 +15,9 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentSong, setCurrentSong] = useState<number>(0);
 
-  const bars = songs[currentSong].sections.flatMap((section) => section.bars);
+  const bars = useMemo(() => {
+    return songs[currentSong].sections.flatMap((section) => section.bars);
+  }, [songs, currentSong]);
 
   // audio devices and context
   const audioContext = useRef<AudioContext | undefined>(undefined);
@@ -81,6 +83,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
     };
   }, []);
 
+  // advance to the next note in the sequence
   function nextNote() {
     // advance time to next 16th note //ADD BARS?
     const secondsPerBeat = 60.0 / tempo;
