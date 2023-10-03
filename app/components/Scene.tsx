@@ -13,6 +13,8 @@ import Date from "@/app/components/Date";
 import Author from "@/app/components/Author";
 import Album from "@/app/components/Album";
 import PlayState from "@/app/components/PlayState";
+import UserToggle from "./UserToggle";
+import EffectSliders from "./EffectSliders";
 
 import { type SongType } from "@/library/musicData";
 import noteToMidi from "@/library/noteToMidi";
@@ -39,7 +41,9 @@ export default function Scene({
   dates: GenDate[];
 }) {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [isUserEffects, setIsUserEffects] = useState<boolean>(true);
   const [currentSong, setCurrentSong] = useState<number>(0);
+  const [orbitEndabled, setOrbitEnabled] = useState<boolean>(true);
   // TODO improve this, we're only getting 1
   const bars = songs[currentSong].sections.flatMap((section) => section.bars);
 
@@ -282,7 +286,7 @@ export default function Scene({
         castShadow
         color={"white"}
       />
-      <OrbitControls makeDefault />
+      <OrbitControls makeDefault enabled={orbitEndabled} />
       <Button
         position={new Vector3(0, 0, 0)}
         isPlaying={isPlaying}
@@ -303,6 +307,15 @@ export default function Scene({
         setIsPlaying={setIsPlaying}
       />
       <PlayState isPlaying={isPlaying} />
+      <UserToggle
+        userActions={isUserEffects}
+        setUserActions={setIsUserEffects}
+      />
+      <EffectSliders
+        count={4}
+        visible={isUserEffects}
+        setOrbitEndabled={setOrbitEnabled}
+      />
     </Canvas>
   );
 }
@@ -323,3 +336,6 @@ export default function Scene({
 //   });
 //   return <></>;
 // }
+// REFACTOR: split off functions and group components more
+// add loader and error boundaries that are better
+// on drag stop the camera movement
