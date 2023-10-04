@@ -41,6 +41,8 @@ export default function Scene({
     currentSong,
     setCurrentSong,
     setFilterFrequency,
+    setDelayFeedback,
+    setDelayTime,
   } = useAudioScheduler({ songs });
 
   const numberDates = dates.length; // number of dates
@@ -92,6 +94,8 @@ export default function Scene({
         visible={isUserEffects}
         setOrbitEndabled={setOrbitEnabled}
         setFilterFreq={setFilterFrequency}
+        setDelayFeedback={setDelayFeedback}
+        setDelayTime={setDelayTime}
       />
     </Canvas>
   );

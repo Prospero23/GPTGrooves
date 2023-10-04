@@ -13,6 +13,8 @@ interface SliderProps {
   visible: boolean;
   setOrbitEndabled: Dispatch<SetStateAction<boolean>>;
   setFilterFreq: (value: number) => void;
+  setDelayFeedback: (value: number) => void;
+  setDelayTime: (value: number) => void;
 }
 
 export default function EffectSliders({
@@ -20,9 +22,11 @@ export default function EffectSliders({
   visible,
   setOrbitEndabled,
   setFilterFreq,
+  setDelayFeedback,
+  setDelayTime,
 }: SliderProps) {
   // Initialize an array of size 'count' with all zeros
-  const [values, setValues] = useState<number[]>(Array(count).fill(0));
+  const [values, setValues] = useState<number[]>(Array(count).fill(100));
 
   function handleChange(e: ChangeEvent<HTMLInputElement>, index: number) {
     const updatedValues = [...values];
@@ -32,6 +36,12 @@ export default function EffectSliders({
     e.stopPropagation();
     if (index === 0) {
       setFilterFreq(Number(e.target.value));
+    }
+    if (index === 1) {
+      setDelayFeedback(Number(e.target.value));
+    }
+    if (index === 2) {
+      setDelayTime(Number(e.target.value));
     }
   }
 
@@ -76,3 +86,4 @@ export default function EffectSliders({
     </>
   );
 }
+// filter, delay
