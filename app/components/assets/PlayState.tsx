@@ -1,5 +1,3 @@
-"use client";
-
 import { Text3D } from "@react-three/drei";
 
 export default function PlayState({ isPlaying }: { isPlaying: boolean }) {

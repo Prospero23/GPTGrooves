@@ -6,15 +6,15 @@ import { Vector3 } from "three";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Plane } from "@react-three/drei";
 
-import Button from "./Button";
-import Next from "@/app/components/Next";
-import Prev from "@/app/components/Prev";
-import Date from "@/app/components/Date";
-import Author from "@/app/components/Author";
-import Album from "@/app/components/Album";
-import PlayState from "@/app/components/PlayState";
-import UserToggle from "./UserToggle";
-import EffectSliders from "./EffectSliders";
+import Button from "./assets/Button";
+import Next from "@/app/components/assets/Next";
+import Prev from "@/app/components/assets/Prev";
+import Date from "@/app/components/assets/Date";
+import Author from "@/app/components/assets/Author";
+import Album from "@/app/components/assets/Album";
+import PlayState from "@/app/components/assets/PlayState";
+import UserToggle from "./assets/UserToggle";
+import EffectSliders from "./assets/EffectSliders";
 import useAudioScheduler from "./useAudioScheduler";
 
 import { type SongType } from "@/library/musicData";
@@ -43,7 +43,8 @@ export default function Scene({
     setFilterFrequency,
     setDelayFeedback,
     setDelayTime,
-  } = useAudioScheduler({ songs });
+    setReverbLevel,
+  } = useAudioScheduler({ songs }); // TODO: just move all of these functions to the child components
 
   const numberDates = dates.length; // number of dates
 
@@ -96,6 +97,7 @@ export default function Scene({
         setFilterFreq={setFilterFrequency}
         setDelayFeedback={setDelayFeedback}
         setDelayTime={setDelayTime}
+        setReverbLevel={setReverbLevel}
       />
     </Canvas>
   );

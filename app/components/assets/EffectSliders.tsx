@@ -1,12 +1,11 @@
-"use client";
-
-import { Html } from "@react-three/drei";
 import {
   type ChangeEvent,
   useState,
   type Dispatch,
   type SetStateAction,
 } from "react";
+
+import { Html } from "@react-three/drei";
 
 interface SliderProps {
   count: number;
@@ -15,6 +14,7 @@ interface SliderProps {
   setFilterFreq: (value: number) => void;
   setDelayFeedback: (value: number) => void;
   setDelayTime: (value: number) => void;
+  setReverbLevel: (value: number) => void;
 }
 
 export default function EffectSliders({
@@ -24,6 +24,7 @@ export default function EffectSliders({
   setFilterFreq,
   setDelayFeedback,
   setDelayTime,
+  setReverbLevel,
 }: SliderProps) {
   // Initialize an array of size 'count' with all zeros
   const [values, setValues] = useState<number[]>(Array(count).fill(100));
@@ -42,6 +43,9 @@ export default function EffectSliders({
     }
     if (index === 2) {
       setDelayTime(Number(e.target.value));
+    }
+    if (index === 3) {
+      setReverbLevel(Number(e.target.value));
     }
   }
 

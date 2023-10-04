@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { MIDIEvent, MessageEvent, type Device, type MIDIData } from "@rnbo/js";
 
 import { type SongType } from "@/library/musicData";
-import noteToMidi from "@/library/noteToMidi";
+import noteToMidi from "@/library/music_helpers/noteToMidi";
 import setup from "@/public/sound";
-import { MIDIEvent, MessageEvent, type Device, type MIDIData } from "@rnbo/js";
 
 const drumInlets = {
   hi_hat: 1,
@@ -38,10 +38,13 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
   // audio devices and context
   const audioContext = useRef<AudioContext | undefined>(undefined);
+
   const drums = useRef<Device | undefined>(undefined);
   const drumsGain = useRef<GainNode | undefined>(undefined);
+
   const bass = useRef<Device | undefined>(undefined);
   const bassGain = useRef<GainNode | undefined>(undefined);
+
   const pad = useRef<Device | undefined>(undefined);
   const padGain = useRef<GainNode | undefined>(undefined);
 
@@ -50,17 +53,22 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   const currentStep = useRef<number>(0); // what step of bar is currently being scheduled?
   const currentBar = useRef<number>(0); // current Bar
   const tempo = 140.0; // current tempo (bpm)
+
   const lookahead = 15.0; // how frequent to call schedule function in ms
   const scheduleAheadTime = 0.1; // how far ahead to schedule audio in sec
-  const nextNoteTime = useRef<number>(0.0); // when next note is due
   const timerID = useRef<number | undefined>(undefined); // setInterval identifier
+
+  const nextNoteTime = useRef<number>(0.0); // when next note is due
 
   const delay = useRef<DelayNode | undefined>(undefined);
   const delayGain = useRef<GainNode | undefined>(undefined);
   const delayFeedback = useRef<GainNode | undefined>(undefined);
+  const delayFilter = useRef<BiquadFilterNode | undefined>(undefined);
+
   const reverb = useRef<ConvolverNode | undefined>(undefined);
+  const reverbGain = useRef<GainNode | undefined>(undefined);
+
   const filter = useRef<BiquadFilterNode | undefined>(undefined);
-  const filterFreqRef = useRef<number>(22050);
 
   // const notesInQueue = []; // FOR FUTURE VISUALS (see playBUTTON link)
 
@@ -78,11 +86,8 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
         // make the three gains
         drumsGain.current = audioContext.current.createGain();
-        // drumsGain.current.connect(audioContext.current.destination);
         bassGain.current = audioContext.current.createGain();
-        // bassGain.current.connect(audioContext.current.destination);
         padGain.current = audioContext.current.createGain();
-        // padGain.current.connect(audioContext.current.destination);
 
         // make delay w feedback
         delayGain.current = audioContext.current.createGain();
@@ -90,25 +95,39 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
         delay.current = audioContext.current.createDelay(4);
         delay.current.delayTime.value = 60 / tempo / 4; // beats per second / number per sec
         delayFeedback.current = audioContext.current.createGain();
-        delayFeedback.current.gain.value = 0.5; // initialize gain valie
+        delayFeedback.current.gain.value = 0.5;
+        delayFilter.current = audioContext.current.createBiquadFilter();
+        delayFilter.current.type = "lowpass";
+        delayFilter.current.frequency.value = 8000; // TODO: improve this value
         delayGain.current.connect(delay.current);
         delay.current.connect(delayFeedback.current);
         delayFeedback.current.connect(delay.current); // create feedback for delay
-        delay.current.connect(audioContext.current.destination);
+        delay.current.connect(delayFilter.current);
+        delayFilter.current.connect(audioContext.current.destination);
 
-        // reverb + filter
-        // reverb.current = audioContext.current.createConvolver();
-        // reverb.current.buffer = result.impulseResponse;
+        // reverb
+        reverb.current = audioContext.current.createConvolver();
+        reverb.current.buffer = result.impulseResponse;
+        reverbGain.current = audioContext.current.createGain();
+        reverbGain.current.gain.value = 0;
+        reverbGain.current.connect(reverb.current);
+        reverb.current.connect(audioContext.current.destination);
+
+        // filter
         filter.current = audioContext.current.createBiquadFilter();
         filter.current.type = "lowpass";
-        filter.current.frequency.value = filterFreqRef.current;
+        filter.current.frequency.value = 22050; // set to not be able to hear
+
         // connection hub
         filter.current.connect(delayGain.current);
         filter.current.connect(audioContext.current.destination);
+
         drumsGain.current.connect(filter.current);
         drums.current?.node.connect(drumsGain.current);
+
         bassGain.current.connect(filter.current);
         bass.current?.node.connect(bassGain.current);
+
         padGain.current.connect(filter.current);
         pad.current?.node.connect(padGain.current);
       } else {
@@ -300,10 +319,15 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
       if (scaledValue !== 0) {
         const delayTime = tempo / 60 / divisions[scaledValue]; // NOTES PER SEC / # DIVISIONS
         delay.current.delayTime.value = delayTime;
-        console.log(delay.current.delayTime.value);
       } else {
         delay.current.delayTime.value = 0;
       }
+    }
+  }
+  function setReverbLevel(value: number) {
+    const scaledValue = value / 100;
+    if (reverbGain.current != null) {
+      reverbGain.current.gain.value = scaledValue;
     }
   }
   return {
@@ -311,13 +335,12 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
     currentSong,
     setFilterFrequency,
     setDelayFeedback,
+    setReverbLevel,
     setDelayTime,
     setIsPlaying,
     setCurrentSong, // exposed variables and functions
   };
 }
-
-// expose: start, stop, currentSong
 
 // effects: reverb, delay, compression (sidechain?), whatever else
 // probably want to improve the instrument sound at some point as well

@@ -1,8 +1,8 @@
 /* eslint-disable react/no-unknown-property */
-"use client";
 import { useRef } from "react";
-import { useGLTF, useAnimations } from "@react-three/drei";
+
 import * as THREE from "three";
+import { useGLTF, useAnimations } from "@react-three/drei";
 
 export default function RandomButton() {
   const group = useRef<THREE.Group | null>(null);

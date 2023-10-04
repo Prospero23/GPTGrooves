@@ -1,22 +1,21 @@
-"use client";
-
-import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
+import { type Dispatch, type SetStateAction, useState, useEffect } from "react";
 import { Text3D } from "@react-three/drei";
 
-export default function Prev({
-  setCurrentSong,
-  currentSong,
-  numberDates,
-  setIsPlaying,
+export default function UserToggle({
+  userActions,
+  setUserActions,
 }: {
-  setCurrentSong: Dispatch<SetStateAction<number>>;
-  currentSong: number;
-  numberDates: number;
-  setIsPlaying: Dispatch<SetStateAction<boolean>>;
+  setUserActions: Dispatch<SetStateAction<boolean>>;
+  userActions: boolean;
 }) {
-  const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const text = userActions ? "User Effects" : "No User Effects";
   const textColor = isHovered ? "red" : "white";
   const textEmmisive = isHovered ? "red" : "grey";
+
+  function handleClick() {
+    setUserActions(!userActions);
+  }
 
   function handleEnter() {
     setIsHovered(true);
@@ -25,15 +24,7 @@ export default function Prev({
   function handleLeave() {
     setIsHovered(false);
   }
-  function handleClick() {
-    // make sure does not click past last song
-    if (currentSong < numberDates - 1) {
-      setCurrentSong(currentSong + 1);
-      setIsPlaying(false);
-    }
-  }
 
-  // change cursor whenever hovered
   useEffect(() => {
     if (isHovered) {
       document.body.style.cursor = "pointer";
@@ -50,16 +41,16 @@ export default function Prev({
   return (
     <Text3D
       font={"/fonts/ChicagoFLF_Regular.json"}
-      scale={1}
-      position={[-3, 0, 0.5]}
+      scale={0.3}
+      position={[9, 0, -4]}
       rotation={[(Math.PI * 3) / 2, 0, 0]}
       castShadow
+      onClick={handleClick}
       onPointerEnter={handleEnter}
       onPointerLeave={handleLeave}
-      onClick={handleClick}
     >
       <meshLambertMaterial color={textColor} emissive={textEmmisive} />
-      {"<"}
+      {text}
     </Text3D>
   );
 }

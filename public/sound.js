@@ -9,7 +9,7 @@ export default async function setup() {
   const patchExportURL = "export/drums/drums.export.json";
   const patchExportURL_bass = "export/bass/bass.export.json";
   const patchExportURL_synth = "export/synth/synth.export.json";
-  const impulseResponseURL = "/reverb/convolution.wav";
+  const impulseResponseURL = "export/reverb/convolution.wav";
   // Create AudioContext
   // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   const WAContext = window.AudioContext || window.webkitAudioContext;
@@ -33,7 +33,7 @@ export default async function setup() {
     responseSynth = await fetch(patchExportURL_synth);
     patcherSynth = await responseSynth.json();
 
-    // impulseResponse = loadImpulseResponse(impulseResponseURL, context);
+    impulseResponse = await loadImpulseResponse(impulseResponseURL, context);
 
     if (!window.RNBO) {
       // Load RNBO script dynamically
@@ -132,7 +132,8 @@ export default async function setup() {
     });
   }
   console.log("all good");
-  return { context, device, deviceBass, deviceSynth };
+  return { context, device, deviceBass, deviceSynth, impulseResponse };
 }
 
 // setup();
+// TODO: move this from public and switch to using npm version of blah

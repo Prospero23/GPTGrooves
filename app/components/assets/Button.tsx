@@ -1,9 +1,9 @@
 /* eslint-disable react/no-unknown-property */
-"use client";
-import { useAnimations, useGLTF } from "@react-three/drei";
-import { type Vector3 } from "three";
 import { useRef } from "react";
+
+import { type Vector3 } from "three";
 import { type ThreeEvent } from "@react-three/fiber";
+import { useAnimations, useGLTF } from "@react-three/drei";
 
 interface ButtonProps {
   position: Vector3;
