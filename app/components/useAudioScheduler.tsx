@@ -67,6 +67,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
   const reverb = useRef<ConvolverNode | undefined>(undefined);
   const reverbGain = useRef<GainNode | undefined>(undefined);
+  const dryGain = useRef<GainNode | undefined>(undefined);
 
   const filter = useRef<BiquadFilterNode | undefined>(undefined);
 
@@ -91,9 +92,9 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
         // make delay w feedback
         delayGain.current = audioContext.current.createGain();
-        delayGain.current.gain.value = 0.7;
+        delayGain.current.gain.value = 0.2;
         delay.current = audioContext.current.createDelay(4);
-        delay.current.delayTime.value = 60 / tempo / 4; // beats per second / number per sec
+        delay.current.delayTime.value = 0; // beats per second / number per sec
         delayFeedback.current = audioContext.current.createGain();
         delayFeedback.current.gain.value = 0.5;
         delayFilter.current = audioContext.current.createBiquadFilter();
@@ -109,8 +110,11 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
         reverb.current = audioContext.current.createConvolver();
         reverb.current.buffer = result.impulseResponse;
         reverbGain.current = audioContext.current.createGain();
+        dryGain.current = audioContext.current.createGain();
         reverbGain.current.gain.value = 0;
+        dryGain.current.gain.value = 1;
         reverbGain.current.connect(reverb.current);
+        dryGain.current.connect(audioContext.current.destination);
         reverb.current.connect(audioContext.current.destination);
 
         // filter
@@ -120,7 +124,8 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
         // connection hub
         filter.current.connect(delayGain.current);
-        filter.current.connect(audioContext.current.destination);
+        filter.current.connect(dryGain.current);
+        filter.current.connect(reverbGain.current);
 
         drumsGain.current.connect(filter.current);
         drums.current?.node.connect(drumsGain.current);
@@ -326,8 +331,9 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   }
   function setReverbLevel(value: number) {
     const scaledValue = value / 100;
-    if (reverbGain.current != null) {
+    if (reverbGain.current != null && dryGain.current != null) {
       reverbGain.current.gain.value = scaledValue;
+      dryGain.current.gain.value = 1 - scaledValue;
     }
   }
   return {

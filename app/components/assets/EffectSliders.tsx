@@ -18,7 +18,6 @@ interface SliderProps {
 }
 
 export default function EffectSliders({
-  count,
   visible,
   setOrbitEndabled,
   setFilterFreq,
@@ -27,7 +26,8 @@ export default function EffectSliders({
   setReverbLevel,
 }: SliderProps) {
   // Initialize an array of size 'count' with all zeros
-  const [values, setValues] = useState<number[]>(Array(count).fill(100));
+  const [values, setValues] = useState<number[]>([100, 0, 0, 0]);
+  const names = ["filter", "delay", "feedback", "reverb"];
 
   function handleChange(e: ChangeEvent<HTMLInputElement>, index: number) {
     const updatedValues = [...values];
@@ -39,10 +39,10 @@ export default function EffectSliders({
       setFilterFreq(Number(e.target.value));
     }
     if (index === 1) {
-      setDelayFeedback(Number(e.target.value));
+      setDelayTime(Number(e.target.value));
     }
     if (index === 2) {
-      setDelayTime(Number(e.target.value));
+      setDelayFeedback(Number(e.target.value));
     }
     if (index === 3) {
       setReverbLevel(Number(e.target.value));
@@ -68,8 +68,8 @@ export default function EffectSliders({
           visible={false}
         >
           <div className={`text-black flex-center ${show}`}>
-            <label htmlFor={`effect-${index}`} className="">
-              {`Effect ${index + 1}`}
+            <label htmlFor={`effect-${index}`} className="block">
+              {` ${names[index]}`}
             </label>
             <input
               className="cursor-pointer"
@@ -83,7 +83,7 @@ export default function EffectSliders({
               onPointerDown={handleDown}
               onPointerUp={handleUp}
             />
-            <p>{value}</p>
+            {/* <p>{value}</p> */}
           </div>
         </Html>
       ))}
