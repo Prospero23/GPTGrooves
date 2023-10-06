@@ -356,6 +356,10 @@ class MarkupInstrument(BaseModel):
     dependencies: List[str]
 
 
+class MarkupEffect(BaseModel):
+    description: str
+
+
 class MarkupSection(BaseModel):
     number_bars: int = Field("Number of bars in a section")
     instruments: Dict[str, MarkupInstrument] = Field("Instruments in a section")
@@ -375,6 +379,7 @@ class MusicalMarkup(BaseModel):
         *Pad: asdfadsfadfafd
         *Bass: asdfasdfasdf %outro
         *Drums: asdhadfiodf
+        *Effects
 
         """
         sections_list = outline.split("##")[1:]
@@ -417,10 +422,10 @@ class MusicalMarkup(BaseModel):
                     if not instrument_name:
                         raise ValueError(f"Invalid instrument name in line: {line}")
 
-                    instruments[instrument_name] = MarkupInstrument(
-                        description=description.strip(), dependencies=references
-                    )
-
+                    else:
+                        instruments[instrument_name] = MarkupInstrument(
+                            description=description.strip(), dependencies=references
+                        )
             sections_dict[section_name] = MarkupSection(
                 number_bars=bars, instruments=instruments, name=section_name
             )

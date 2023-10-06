@@ -137,95 +137,114 @@ if __name__ == "__main__":
     )
 
     sections = {
-        "Intro": MarkupSection(
+        "intro": MarkupSection(
             number_bars=8,
-            name="Intro",
             instruments={
                 "Pad": MarkupInstrument(
-                    description="The pad will begin the track, holding a sustained chord to build into the rest of the track.",
+                    description="The song begins with a warm, lush synth pad playing a simple two-chord progression (Cmin7 - Fmin7) with a slow attack and release, creating a dreamy, ethereal atmosphere.",
                     dependencies=[],
                 ),
                 "Bass": MarkupInstrument(
-                    description="The bass will be silent in this section.",
-                    dependencies=[],
+                    description="The bass is silent in this section.", dependencies=[]
                 ),
                 "Drums": MarkupInstrument(
-                    description="Only the hi-hat will play in this section, following a steady rhythm with a few quick flourishes in each bar to keep the beat engaging.",
+                    description="The drums are also silent in this section.",
+                    dependencies=[],
+                ),
+                "Effects": MarkupInstrument(
+                    description="A low-pass filter is gradually opened on the pad throughout this section, slowly revealing the higher frequencies and creating a sense of anticipation.",
                     dependencies=[],
                 ),
             },
+            name="intro",
         ),
         "verse-1": MarkupSection(
-            number_bars=1,
-            name="verse-1",
-            instruments={
-                "Pad": MarkupInstrument(
-                    description="The pad will continue from the intro, playing sustained chord progressions that provide the track's harmonic backbone. Some chords will be held for longer periods to add tension.",
-                    dependencies=["intro"],
-                ),
-                "Bass": MarkupInstrument(
-                    description="The bass will join, playing a deep groove that complements the chord progressions of the pad.",
-                    dependencies=[],
-                ),
-                "Drums": MarkupInstrument(
-                    description="The full drum kit is introduced now with a steady kick-snare pattern.",
-                    dependencies=[],
-                ),
-            },
-        ),
-        "Chorus": MarkupSection(
             number_bars=16,
-            name="Chorus",
             instruments={
                 "Pad": MarkupInstrument(
-                    description="Modulates to uplifting chord sequences to differentiate this section from %verse-1.",
-                    dependencies=["verse-1"],
+                    description="The pad continues the same two-chord progression from the intro, but now with a faster attack and release, giving it a more rhythmic feel.",
+                    dependencies=[],
                 ),
                 "Bass": MarkupInstrument(
-                    description="Maintains a steady rhythm but switches to a higher octave to add energy and accompany the uplifting chords from the pad.",
+                    description="The bass enters here, playing a syncopated rhythm that emphasizes the off-beats, adding a sense of groove. The notes are primarily root notes of the chords, with occasional octave jumps for variation.",
                     dependencies=[],
                 ),
                 "Drums": MarkupInstrument(
-                    description="The kick and snare pattern becomes more complex to provide extra energy.",
+                    description="The drums kick in with a classic house beat: a kick on every beat, a snare on the 2nd and 4th, and a hi-hat playing eighth notes. This drives the rhythm forward and establishes the danceable feel of the track.",
+                    dependencies=[],
+                ),
+                "Effects": MarkupInstrument(
+                    description="A high-pass filter is applied to the bass, gradually removing the lower frequencies over the course of this section. This creates a sense of tension and anticipation for the chorus.",
                     dependencies=[],
                 ),
             },
+            name="verse-1",
+        ),
+        "chorus": MarkupSection(
+            number_bars=16,
+            instruments={
+                "Pad": MarkupInstrument(
+                    description="The pad switches to a four-chord progression (Cmin7 - Fmin7 - Abmaj7 - Ebmaj7), adding more harmonic complexity and interest.",
+                    dependencies=[],
+                ),
+                "Bass": MarkupInstrument(
+                    description="The bass follows the chord progression, playing a more complex rhythm that includes sixteenth-note runs and syncopated accents.",
+                    dependencies=[],
+                ),
+                "Drums": MarkupInstrument(
+                    description="The drums continue the house beat from the verse, but with added snare rolls and open hi-hat hits for extra energy.",
+                    dependencies=[],
+                ),
+                "Effects": MarkupInstrument(
+                    description="The high-pass filter on the bass is removed, bringing back the full frequency range and creating a powerful, full-bodied sound. A low-pass filter is applied to the pad, gradually reducing the higher frequencies over the course of this section to create a sense of closure.",
+                    dependencies=[],
+                ),
+            },
+            name="chorus",
         ),
         "verse-2": MarkupSection(
-            number_bars=2,
+            number_bars=16,
+            instruments={
+                "Pad": MarkupInstrument(
+                    description="The pad returns to the two-chord progression from %verse-1, but with a different voicing to keep things fresh.",
+                    dependencies=["verse-1"],
+                ),
+                "Bass": MarkupInstrument(
+                    description="The bass also returns to the simpler rhythm from %verse-1, but with occasional variations to keep the listener engaged.",
+                    dependencies=["verse-1"],
+                ),
+                "Drums": MarkupInstrument(
+                    description="The drums continue the house beat, but with less intensity than in the chorus to create a sense of contrast.",
+                    dependencies=[],
+                ),
+                "Effects": MarkupInstrument(
+                    description="A band-pass filter is applied to the pad, gradually sweeping up and down the frequency spectrum to create a sense of movement and interest.",
+                    dependencies=[],
+                ),
+            },
             name="verse-2",
-            instruments={
-                "Pad": MarkupInstrument(
-                    description="The pad reverts to the chord progressions from %verse-1 but with a single additional high melody line for variation.",
-                    dependencies=["verse-1"],
-                ),
-                "Bass": MarkupInstrument(
-                    description="Returns to the original deep groove from %verse-1, but with slight rhythmic variations to keep it fresh.",
-                    dependencies=["verse-1"],
-                ),
-                "Drums": MarkupInstrument(
-                    description="The kick and snare continue their complex pattern from the chorus, but the hi-hat switches to a more intricate rhythm.",
-                    dependencies=[],
-                ),
-            },
         ),
-        "Outro": MarkupSection(
+        "outro": MarkupSection(
             number_bars=8,
-            name="Outro",
             instruments={
                 "Pad": MarkupInstrument(
-                    description="Begins to slowly fade out while maintaining the %verse-2 melody.",
-                    dependencies=["verse-2"],
+                    description="The pad fades out slowly, leaving just the echo of the last chord hanging in the air.",
+                    dependencies=[],
                 ),
                 "Bass": MarkupInstrument(
-                    description="The bass also starts to fade but plays simplified versions of its rhythm from %verse-2.",
-                    dependencies=["verse-2"],
+                    description="The bass also fades out, playing a simple, slow rhythm that echoes the pad.",
+                    dependencies=[],
                 ),
                 "Drums": MarkupInstrument(
-                    description="Only the kick remains, slowing its beat until eventually stopping in sync with the fading pad and bass.",
+                    description="The drums gradually simplify, eventually leaving just the kick drum playing on every beat.",
+                    dependencies=[],
+                ),
+                "Effects": MarkupInstrument(
+                    description="A low-pass filter is applied to all instruments, gradually reducing the higher frequencies until only the low rumble of the kick drum remains. This creates a sense of finality and closure.",
                     dependencies=[],
                 ),
             },
+            name="outro",
         ),
     }
     result = Song()

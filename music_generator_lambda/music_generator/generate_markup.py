@@ -43,12 +43,15 @@ A section should be formatted as follows:
 *Pad - detailed description of the synth pad will do in this section
 *Bass - detailed description of what the bass will do in this section
 *Drums - detailed description of what the drums will do in section. Reference only "snare", "kick", and "hi-hat"
+*Effects - detailed description of what filter will do in section.
 
 If one section mentions another, then format that reference: %verse-1
 
 Provide a detailed and complete description of how each instrument will evolve throughout the track.
 
-Avoid mentioning any effects or filters and focus on complete descriptions of rhythm, harmony, and melody.
+focus on complete descriptions of rhythm, harmony, melody.
+
+Only mention effects in the *effects description and only use filtering.
 
 Whenever referring to previous material, refer to sections.
 """
@@ -87,7 +90,6 @@ Whenever referring to previous material, refer to sections.
     logger.debug(f"Output:\n{result}")
 
     return MusicalMarkup.from_outline(result)
-    # return result
 
 
 if __name__ == "__main__":
@@ -101,5 +103,7 @@ if __name__ == "__main__":
         streaming=True,
         callbacks=[StreamingStdOutCallbackHandler()],
     )
-    markup = generate_markup(llm=llm)
+
+    text = "generate a house song using a pad, bass and drums (hi-hat, snare, kick). Each instrument can have a filter applied to it."
+    markup = generate_markup(llm=llm, song_description=text)
     logger.info(f"RESULT: {markup}")
