@@ -17,7 +17,8 @@ from tenacity import (
     stop_after_attempt,
 )
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-from music_generator.music_generator_types import Config, MusicalMarkup
+from music_generator.music_generator_types.base_song_types import Config
+from music_generator.music_generator_types.markup_types import MusicalMarkup
 from music_generator.utilities.logs import get_logger
 
 logger = get_logger(__name__)

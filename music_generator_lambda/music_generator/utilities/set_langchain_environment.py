@@ -1,7 +1,7 @@
 import logging
 import os
 
-from music_generator.music_generator_types import Config
+from music_generator.music_generator_types.base_song_types import Config
 
 logger = logging.getLogger(__name__)
 

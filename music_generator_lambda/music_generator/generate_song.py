@@ -4,10 +4,10 @@ from langchain.chat_models.base import BaseChatModel
 from langchain.llms.base import BaseLLM
 
 from music_generator.generate_section import generate_section
-from music_generator.music_generator_types import (
+from music_generator.music_generator_types.markup_types import (
     MusicalMarkup,
-    Song,
 )
+from music_generator.music_generator_types.base_song_types import Song
 
 
 def generate_song(

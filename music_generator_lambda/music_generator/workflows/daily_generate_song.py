@@ -8,7 +8,7 @@ from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from music_generator.db import insert_song
 from music_generator.generate_markup import generate_markup
 from music_generator.generate_song import generate_song
-from music_generator.music_generator_types import Config, SongRecord
+from music_generator.music_generator_types.base_song_types import Config, SongRecord
 from music_generator.utilities.logs import get_logger
 from music_generator.utilities.set_langchain_environment import (
     set_langchain_environment,

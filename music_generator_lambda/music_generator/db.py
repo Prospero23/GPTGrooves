@@ -1,4 +1,4 @@
-from music_generator.music_generator_types import Config, SongRecord
+from music_generator.music_generator_types.base_song_types import Config, SongRecord
 
 
 from bson.raw_bson import RawBSONDocument

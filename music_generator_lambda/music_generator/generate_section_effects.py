@@ -19,19 +19,23 @@ from tenacity import (
     stop_after_attempt,
 )
 
-from music_generator.music_generator_types import (
+from music_generator.music_generator_types.base_song_types import (
     Bar,
     Config,
-    MarkupInstrument,
-    MarkupSection,
     SongSection,
     DrumBar,
     BassBar,
     PadBar,
     Chord,
+    Song,
+)
+from music_generator.music_generator_types.markup_types import (
+    MarkupInstrument,
+    MarkupSection,
+)
+from music_generator.music_generator_types.effect_types import (
     SectionEffects,
     SongEffects,
-    Song,
 )
 from music_generator.utilities.logs import get_logger
 
