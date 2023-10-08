@@ -29,6 +29,7 @@ from music_generator.music_generator_types import (
     BassBar,
     PadBar,
     Chord,
+    SectionEffects,
 )
 from music_generator.utilities.logs import get_logger
 
@@ -45,10 +46,11 @@ logger = get_logger(__name__)
 )
 def generate_section_effects(
     markup_section: MarkupSection,
+    number_bars: int,
     llm: Union[BaseChatModel, BaseLLM],
-) -> SongSection:
+) -> SectionEffects:
     """
-    Generate the effects of a section from markup (MarkupSection).
+    Generate the effects of a section from markup (MarkupSection). For the moment -> returns string
     """
     if isinstance(llm, BaseLLM):
         raise NotImplementedError("This only works with chat models")
@@ -60,14 +62,15 @@ def generate_section_effects(
                     content="""Your job is to take a text description of the effects of a section of a song and express it in a machine readable tabular format.
 
 # Formatting:
-- Provide starting and ending number and type for the filter in a section. This value should be normalized between 0 and 1 and the type should have.
-- If you do not want an effect to be present, give it a value of 1.
+- Provide floating point numbers between 0 and 1.
 -Give numbers for drums, synth, and pad. Preface each of these with a #.
+- a 0 lets no sound through filter. A 1 lets all sound through.
+- do not include an instrument if no effects are used on it
 
 example:
-#pad - type: lowpass start: 1.0, end: 1.0
-#synth- type: hipass start: 1.0 end: 0.3
-#drums- type: bandpass start: 0.7 end: 0.2
+#pad lowpass 1.0 1.0 1.0 1.0
+#synth hipass 1.0 0.3 0.2 0.8
+#drums bandpass 0.7 0.2 0.3 0.6
 
 The text you produce will be programatically parsed into a song. Please follow the format instructions carefully.
 """.strip()
@@ -76,7 +79,7 @@ The text you produce will be programatically parsed into a song. Please follow t
             ]
         )
         _input = chat_prompt_template.format_messages(
-            prompt=f"""Realize the following description into the required format: {markup_section.instruments["Effects"]}""".strip(),
+            prompt=f"""Realize the following description into the required format: {markup_section.instruments["Effects"]} with {number_bars} numbers per instrument""".strip(),
         )
 
         logger.debug(
@@ -97,7 +100,7 @@ The text you produce will be programatically parsed into a song. Please follow t
     # return SongSection.from_llm_format(
     #     text=result, name=markup_section.name, length=markup_section.number_bars
     # )
-    return result
+    return SectionEffects.from_llm_text(result)
 
 
 if __name__ == "__main__":
@@ -1096,11 +1099,15 @@ if __name__ == "__main__":
             name="outro",
         ),
     }
+    i = -1  # jank for the moment bc fuck it
     for section in sections:
+        i += 1
         generated_section = generate_section_effects(
-            markup_section=sections[section], llm=llm
+            markup_section=sections[section],
+            llm=llm,
+            number_bars=len(gen_song[i].bars),
         )
-        print("description: ", sections[section].instruments["Effects"])
+        # print("description: ", sections[section].instruments["Effects"])
         print("section: ", generated_section)
 
     # logger.info(f"Generated song:\n{result}")

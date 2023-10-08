@@ -487,6 +487,46 @@ class SongSection(BaseModel):
         return self.bars[index]
 
 
+class SectionFilterEffect(BaseModel):
+
+    """{'instrument': 'bass', 'filter_type': 'hipass', 'filter_values': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]}"""
+
+    instrument: str  # pad, bass, drums
+    filter_type: str  # lowpass, highpass, bandpass
+    filter_value: List[float]  # normalized between 0 and 1
+
+
+class SectionEffects(BaseModel):
+    bars: List[SectionFilterEffect]
+
+    @staticmethod
+    def parse_filter_string(s: str):
+        # Splitting the string by spaces
+        parts = s.split()
+
+        # The first part is the instrument, excluding '#'
+        instrument = parts[0].replace("#", "")
+
+        # The second part is the filter type
+        filter_type = parts[1]
+
+        # The remaining parts are the filter values
+        filter_values = list(map(float, parts[2:]))
+
+        return SectionFilterEffect(
+            instrument=instrument, filter_type=filter_type, filter_value=filter_values
+        )
+
+    @staticmethod
+    def from_llm_text(input_string: str):
+        lines = input_string.strip().split("\n")
+        results = []
+        for line in lines:
+            parsed_data = SectionEffects.parse_filter_string(line)
+            results.append(parsed_data)
+        return SectionEffects(bars=results)
+
+
 class Song(BaseModel):
     sections: List[SongSection] = []
 
