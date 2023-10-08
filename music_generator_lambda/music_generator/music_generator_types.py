@@ -1,4 +1,4 @@
-from typing import Optional, TypeVar, List, Dict
+from typing import Optional, TypeVar, List, Dict, Tuple
 from pydantic import BaseModel, Field, validator
 import re
 
@@ -19,6 +19,36 @@ class Config(BaseModel):
     langchain_project: Optional[str]
 
 
+class FilterInformation(BaseModel):
+    filter_type: str
+    filter_value: List[float]  # filter values in a bar
+
+
+class EffectInformation(BaseModel):
+    filter: FilterInformation
+
+
+class EffectBar(BaseModel):
+    drums_effects: EffectInformation = Field(
+        description="Drum filter info",
+        default=EffectInformation(
+            filter=FilterInformation(filter_type="", filter_value=[])
+        ),
+    )
+    bass_effects: EffectInformation = Field(
+        description="Bass filter info",
+        default=EffectInformation(
+            filter=FilterInformation(filter_type="", filter_value=[])
+        ),
+    )
+    pad_effects: EffectInformation = Field(
+        description="Pad filter info",
+        default=EffectInformation(
+            filter=FilterInformation(filter_type="", filter_value=[])
+        ),
+    )
+
+
 def validate_note(note: str) -> str:
     pattern = re.compile(r"^[A-G][#b]?[0-8]$")
     if not pattern.match(note):
@@ -33,6 +63,7 @@ class BassBar(BaseModel):
     pattern: list[str] = Field(
         description="Bass-line of a house song. Sixteenth notes. '0' = rest, 'Cb3' = C-flat 3 note, 'E2' = E2 note, 'G#4' = G-sharp 4 note, etc."
     )
+    effects: Optional[EffectInformation] = Field(default=None)
 
     @validator("pattern")
     def validate_note_count(cls, field: list[str]) -> list[str]:
@@ -55,6 +86,9 @@ class BassBar(BaseModel):
         # fmt: on
         return BassBar(pattern=text.split())
 
+    def apply_effects(self, effect_info: EffectInformation):
+        self.effects = effect_info
+
 
 class DrumBar(BaseModel):
     hi_hat: Optional[list[int]] = Field(
@@ -66,6 +100,7 @@ class DrumBar(BaseModel):
     snare: Optional[list[int]] = Field(
         description="Snare track, 16ths. 1 = hit, 0 = rest."
     )
+    effects: Optional[EffectInformation] = Field(default=None)
 
     def to_keypairs(self) -> dict[str, str]:
         # Yep this is a special case, returns a dict
@@ -101,6 +136,9 @@ class DrumBar(BaseModel):
 
         return field
 
+    def apply_effects(self, effect_info: EffectInformation):
+        self.effects = effect_info
+
 
 class Chord(BaseModel):
     notes: list[str] = Field(
@@ -133,6 +171,7 @@ def expand_if_necessary(field: list[T], length: int) -> list[T]:
 
 class PadBar(BaseModel):
     chord_sequence: Optional[list[Chord]]
+    effects: Optional[EffectInformation] = Field(default=None)
 
     @validator("chord_sequence")
     def validate_combinations(cls, field: list[str]) -> list[str]:
@@ -155,8 +194,10 @@ class PadBar(BaseModel):
         pad [C3 E3 G3 B3] [] [] [] [A3 C4 E4 G4] [] [] [] [F3 A3 C4 E4] [] [] [] [G3 B3 D4 F4] [] [] []
         """
         # Convert each Chord object's notes to a string representation
-        chord_strings = [" ".join(chord.notes) for chord in self.chord_sequence]
-
+        if self.chord_sequence:
+            chord_strings = [" ".join(chord.notes) for chord in self.chord_sequence]
+        else:
+            chord_strings = []
         # Wrap each string representation in brackets
         bracketed_chords = [f"[{chord}]" if chord else "[]" for chord in chord_strings]
 
@@ -195,6 +236,9 @@ class PadBar(BaseModel):
         ]
 
         return PadBar(chord_sequence=chord_sequences)
+
+    def apply_effects(self, effect_info: EffectInformation):
+        self.effects = effect_info
 
 
 class Bar(BaseModel):
@@ -350,6 +394,14 @@ class Bar(BaseModel):
             + "\n}}}"
         )
 
+    def apply_effects(self, effects: EffectBar):
+        for instrument in ["drums", "bass", "pad"]:
+            effect_info = getattr(effects, f"{instrument}_effects")
+            track = getattr(self, instrument)
+
+            if effect_info and track:  # Make sure they exist before applying
+                track.apply_effects(effect_info.filter)
+
 
 class MarkupInstrument(BaseModel):
     description: str
@@ -433,6 +485,95 @@ class MusicalMarkup(BaseModel):
         return MusicalMarkup(sections=sections_dict)
 
 
+def chunk_list(input_list: List[float], chunk_size: int) -> List[List[float]]:
+    """
+    Splits a list into chunks of a specified size.
+    """
+    return [
+        input_list[i : i + chunk_size] for i in range(0, len(input_list), chunk_size)
+    ]
+
+
+class SectionEffects(BaseModel):
+    bars: List[EffectBar]
+    name: str
+
+    @staticmethod
+    def parse_filter_string(
+        s: str, sample_number: int
+    ) -> Tuple[str, List[FilterInformation]]:
+        """
+        Parse a filter string and return the instrument name and filter info.
+
+        :param s: Input filter string
+        :param sample_number: Number of filter values per bar
+        :return: A tuple containing instrument name and list of filter information
+        """
+        parts = s.split()
+
+        instrument = parts[0].replace("#", "")
+        if instrument not in ["drums", "bass", "pad"]:
+            raise ValueError(f"Invalid instrument name: {instrument}")
+
+        filter_type = parts[1]
+
+        filter_values_groups = [
+            parts[i : i + sample_number] for i in range(2, len(parts), sample_number)
+        ]
+        filter_infos = [
+            FilterInformation(
+                filter_type=filter_type, filter_value=list(map(float, group))
+            )
+            for group in filter_values_groups
+        ]
+
+        return instrument, filter_infos
+
+    @staticmethod
+    def from_llm_text(input_string: str, name: str, sample_number: int):
+        """
+        Parses a string in the LLM format and returns an instance of SectionEffects.
+
+        :param input_string: A string containing the effect details in the LLM format.
+        :param name: Name of the section.
+        :param sample_number: Number of filter values per bar
+        :return: An instance of SectionEffects.
+        """
+        lines = input_string.strip().split("\n")
+        instrument_effects = {}
+
+        for line in lines:
+            try:
+                instrument, effects = SectionEffects.parse_filter_string(
+                    line, sample_number
+                )
+                instrument_effects[instrument] = effects
+            except ValueError as ve:
+                print(f"Error processing line '{line}': {ve}")
+
+        # Ensure all instruments are present
+        for instrument in ["drums", "bass", "pad"]:
+            if instrument not in instrument_effects:
+                instrument_effects[instrument] = [
+                    FilterInformation(filter_type="", filter_value=[])
+                    for _ in range(
+                        len(instrument_effects[next(iter(instrument_effects))])
+                    )
+                ]
+
+        num_bars = len(instrument_effects["drums"])
+        bars = []
+        for i in range(num_bars):
+            bar = EffectBar(
+                drums_effects=EffectInformation(filter=instrument_effects["drums"][i]),
+                bass_effects=EffectInformation(filter=instrument_effects["bass"][i]),
+                pad_effects=EffectInformation(filter=instrument_effects["pad"][i]),
+            )
+            bars.append(bar)
+
+        return SectionEffects(bars=bars, name=name)
+
+
 class SongSection(BaseModel):
     bars: List[Bar] = Field(description="The list of actualized bars")
     name: str
@@ -442,7 +583,7 @@ class SongSection(BaseModel):
         """
         :param text: A string representation of the section in the format expected by the LLM.
         :param name: A string representation of the section name.
-        :param name: An int representing number of bars that should be made.
+        :param length: An int representing number of bars that should be made.
         :return: A SongSection object.
 
         The format is as follows:
@@ -486,45 +627,27 @@ class SongSection(BaseModel):
     def __getitem__(self, index: int) -> Bar:
         return self.bars[index]
 
+    def apply_effects(self, effects: SectionEffects):
+        """
+        add effects (SectionEffects) to the bars of a section
 
-class SectionFilterEffect(BaseModel):
-
-    """{'instrument': 'bass', 'filter_type': 'hipass', 'filter_values': [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]}"""
-
-    instrument: str  # pad, bass, drums
-    filter_type: str  # lowpass, highpass, bandpass
-    filter_value: List[float]  # normalized between 0 and 1
+        :param effects: A SectionEffects object
+        """
+        for index, bar in enumerate(self.bars):
+            bar.apply_effects(effects=effects.bars[index])
 
 
-class SectionEffects(BaseModel):
-    bars: List[SectionFilterEffect]
+class SongEffects(BaseModel):
+    sections: Dict[str, SectionEffects]  # section name: section effect
 
-    @staticmethod
-    def parse_filter_string(s: str):
-        # Splitting the string by spaces
-        parts = s.split()
-
-        # The first part is the instrument, excluding '#'
-        instrument = parts[0].replace("#", "")
-
-        # The second part is the filter type
-        filter_type = parts[1]
-
-        # The remaining parts are the filter values
-        filter_values = list(map(float, parts[2:]))
-
-        return SectionFilterEffect(
-            instrument=instrument, filter_type=filter_type, filter_value=filter_values
-        )
-
-    @staticmethod
-    def from_llm_text(input_string: str):
-        lines = input_string.strip().split("\n")
-        results = []
-        for line in lines:
-            parsed_data = SectionEffects.parse_filter_string(line)
-            results.append(parsed_data)
-        return SectionEffects(bars=results)
+    def add_section(self, section: SectionEffects) -> None:
+        """
+        Adds a SectionEffects object to the sections dictionary.
+        :param section: The SectionEffects object to add.
+        """
+        if section.name in self.sections:
+            raise ValueError(f"Section named {section.name} already exists!")
+        self.sections[section.name] = section
 
 
 class Song(BaseModel):
@@ -538,6 +661,10 @@ class Song(BaseModel):
 
     def append_section(self, item: SongSection) -> None:
         self.sections.append(item)
+
+    def add_effects(self, song_effects: SongEffects):
+        for section in self.sections:
+            section.apply_effects(effects=song_effects.sections[section.name])
 
 
 class SongRecord(BaseModel):

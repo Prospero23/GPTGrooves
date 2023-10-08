@@ -30,6 +30,8 @@ from music_generator.music_generator_types import (
     PadBar,
     Chord,
     SectionEffects,
+    SongEffects,
+    Song,
 )
 from music_generator.utilities.logs import get_logger
 
@@ -66,10 +68,11 @@ def generate_section_effects(
 -Give numbers for drums, synth, and pad. Preface each of these with a #.
 - a 0 lets no sound through filter. A 1 lets all sound through.
 - do not include an instrument if no effects are used on it
+- only use the instruments pad, bass, drums
 
 example:
 #pad lowpass 1.0 1.0 1.0 1.0
-#synth hipass 1.0 0.3 0.2 0.8
+#bass hipass 1.0 0.3 0.2 0.8
 #drums bandpass 0.7 0.2 0.3 0.6
 
 The text you produce will be programatically parsed into a song. Please follow the format instructions carefully.
@@ -94,21 +97,18 @@ The text you produce will be programatically parsed into a song. Please follow t
             f"Used {cb.total_tokens} tokens ({cb.prompt_tokens} prompt, {cb.completion_tokens} completion) @ ${(cb.total_cost):.3f}"
         )
         result = output.content
-
     logger.debug(f"Output:\n{result}")
 
     # return SongSection.from_llm_format(
     #     text=result, name=markup_section.name, length=markup_section.number_bars
     # )
-    return SectionEffects.from_llm_text(result)
+    return SectionEffects.from_llm_text(
+        input_string=result, name=markup_section.name, sample_number=1
+    )
 
 
 if __name__ == "__main__":
     from dotenv import dotenv_values
-
-    assert Bar.example() == Bar.example()
-    assert Bar.from_keypairs(Bar.example().to_keypairs()) == Bar.example()
-    assert Bar.from_llm_format(Bar.example().to_llm_format()) == Bar.example()
 
     config = Config(**dotenv_values())  # type: ignore
     llm = ChatOpenAI(
@@ -1100,6 +1100,7 @@ if __name__ == "__main__":
         ),
     }
     i = -1  # jank for the moment bc fuck it
+    test = SongEffects(sections={})
     for section in sections:
         i += 1
         generated_section = generate_section_effects(
@@ -1108,8 +1109,12 @@ if __name__ == "__main__":
             number_bars=len(gen_song[i].bars),
         )
         # print("description: ", sections[section].instruments["Effects"])
-        print("section: ", generated_section)
+        # print("section: ", generated_section)
+        test.add_section(generated_section)
 
+    full_song = Song(sections=gen_song)
+    full_song.add_effects(test)
+    print(full_song)
     # logger.info(f"Generated song:\n{result}")
 
 # store previouss sections stuff -> keep running total of previous sections that can be referenced
