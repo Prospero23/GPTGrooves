@@ -297,11 +297,14 @@ class Bar(BaseModel):
         lines = text.split("\n")
 
         # Filter out instrument names
+        default_value = "0 " * 15 + "0"
         data = {
             k: [
                 line[len(k) + 1 :]
                 for line in filter(lambda line: line.startswith(k), lines)
             ]
+            if any(line.startswith(k) for line in lines)
+            else [default_value]
             for k in ("hi_hat", "kick", "snare", "bass", "pad")
         }
 

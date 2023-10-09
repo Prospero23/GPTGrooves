@@ -72,7 +72,7 @@ def generate_section_effects(
 -Give numbers for drums, synth, and pad. Preface each of these with a #.
 - a 0 lets no sound through filter. A 1 lets all sound through.
 - do not include an instrument if no effects are used on it
-- only use the instruments pad, bass, drums
+- only use the instruments pad, bass, drums. Do not mention synth.
 
 example:
 #pad lowpass 1.0 1.0 1.0 1.0
@@ -86,7 +86,7 @@ The text you produce will be programatically parsed into a song. Please follow t
             ]
         )
         _input = chat_prompt_template.format_messages(
-            prompt=f"""Realize the following description into the required format: {markup_section.instruments["Effects"]} with {number_bars} numbers per instrument""".strip(),
+            prompt=f"""Realize the following description into the required format: {markup_section.instruments["Effects"]} with {number_bars} numbers per instrument (bass, drums, pad)""".strip(),
         )
 
         logger.debug(
