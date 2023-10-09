@@ -62,6 +62,20 @@
             }
         },
         {
+            "name": "Python: Generate Section Effects",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/music_generator_lambda",
+            "module": "music_generator.generate_section_effects",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "NOCACHE": "1",
+                "PYTHON_LOG_LEVEL": "DEBUG",
+                // "PYTHONPATH": "${workspaceFolder}/music_generator_lambda"
+            }
+        },
+        {
             "name": "Python: Daily Generate Song",
             "type": "python",
             "request": "launch",

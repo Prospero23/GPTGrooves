@@ -31,7 +31,7 @@ class MusicalMarkup(BaseModel):
         *Pad: asdfadsfadfafd
         *Bass: asdfasdfasdf %outro
         *Drums: asdhadfiodf
-        *Effects
+        *Effects: asdfasdf
 
         """
         sections_list = outline.split("##")[1:]
