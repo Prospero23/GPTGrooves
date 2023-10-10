@@ -10,10 +10,46 @@ export const Note = z.custom<string>(
   { message: "Invalid note format." },
 );
 
+export const FilterInformation = z.object({
+  filter_type: z.string(),
+  filter_value: z.array(z.number()),
+});
+
+export const EffectInformation = z.object({
+  filter: FilterInformation,
+});
+
+export const EffectBar = z.object({
+  drums_effects: EffectInformation.default({
+    filter: {
+      filter_type: "",
+      filter_value: [],
+    },
+  }),
+  bass_effects: EffectInformation.default({
+    filter: {
+      filter_type: "",
+      filter_value: [],
+    },
+  }),
+  pad_effects: EffectInformation.default({
+    filter: {
+      filter_type: "",
+      filter_value: [],
+    },
+  }),
+});
+
+export const SectionEffects = z.object({
+  bars: z.array(EffectBar),
+  name: z.string(),
+});
+
 export const BassBar = z.object({
   pattern: z.array(Note).refine((data) => data.length === 16, {
     message: "Bass line must be 16 notes long.",
   }),
+  effects: EffectInformation,
 });
 
 export const DrumValue = z.union([z.literal(0), z.literal(1)]);
@@ -28,6 +64,7 @@ export const DrumBar = z.object({
   snare: z.array(DrumValue).refine((data) => data.length === 16, {
     message: "Drum track must be 16 notes long.",
   }),
+  effects: EffectInformation,
 });
 
 export const Chord = z.object({
@@ -38,6 +75,7 @@ export const PadBar = z.object({
   chord_sequence: z.array(Chord).refine((data) => data.length === 16, {
     message: "Drum track must be 16 notes long.",
   }),
+  effects: EffectInformation,
 });
 
 export const Bar = z.object({
@@ -63,3 +101,7 @@ export type BarType = z.infer<typeof Bar>;
 export type SongSectionType = z.infer<typeof SongSection>;
 export type SongType = z.infer<typeof Song>;
 export type SongRecordType = z.infer<typeof SongRecord>;
+export type FilterInformationType = z.infer<typeof FilterInformation>;
+export type EffectInformationType = z.infer<typeof EffectInformation>;
+export type EffectBarType = z.infer<typeof EffectBar>;
+export type SectionEffectsType = z.infer<typeof SectionEffects>;
