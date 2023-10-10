@@ -11,7 +11,12 @@ module.exports = {
     "standard-with-typescript",
     "plugin:prettier/recommended",
   ],
-  ignorePatterns: ["lib/link.tsx", "lib/create-emotion-cache.tsx"],
+  ignorePatterns: [
+    "lib/link.tsx",
+    "lib/create-emotion-cache.ts",
+    "next.config.js",
+    "postcss.config.js",
+  ],
   overrides: [],
   parserOptions: {
     ecmaVersion: "latest",
