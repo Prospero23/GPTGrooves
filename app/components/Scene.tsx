@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unknown-property */
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Vector3 } from "three";
 import { Canvas } from "@react-three/fiber";
@@ -44,9 +44,13 @@ export default function Scene({
     setDelayFeedback,
     setDelayTime,
     setReverbLevel,
+    switchEffectsGen,
   } = useAudioScheduler({ songs }); // TODO: just move all of these functions to the child components
 
   const numberDates = dates.length; // number of dates
+  useEffect(() => {
+    switchEffectsGen(isUserEffects);
+  }, [isUserEffects, switchEffectsGen]);
 
   return (
     <Canvas camera={{ position: [0, 11, 13.6], fov: 75 }} linear flat shadows>

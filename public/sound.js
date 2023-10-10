@@ -35,7 +35,7 @@ export default async function setup() {
 
     impulseResponse = await loadImpulseResponse(impulseResponseURL, context);
 
-    if (window.RNBO === false) {
+    if (window.RNBO == null) {
       // Load RNBO script dynamically
       // Note that you can skip this by knowing the RNBO version of your patch
       // beforehand and just include it using a <script> tag
@@ -47,19 +47,18 @@ export default async function setup() {
     };
     if (response != null && (response.status >= 300 || response.status < 200)) {
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-      (errorContext.header = `Couldn't load patcher export bundle`)(
+      (errorContext.header = `Couldn't load patcher export bundle`),
         (errorContext.description =
           `Check app.js to see what file it's trying to load. Currently it's` +
           ` trying to load "${patchExportURL}". If that doesn't` +
           ` match the name of the file you exported from RNBO, modify` +
-          ` patchExportURL in app.js.`),
-      );
+          ` patchExportURL in app.js.`);
     }
-    if (typeof guardrails === "function") {
-      guardrails(errorContext);
-    } else {
-      throw err;
-    }
+    // if (typeof guardrails === "function") {
+    //     guardrails(errorContext);
+    // } else {
+    //     throw err;
+    // }
     return;
   }
 
