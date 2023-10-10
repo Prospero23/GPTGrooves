@@ -84,11 +84,11 @@ def generate_section(
 - Each bar is enclosed by triple braces on each side: {{{{{{ content }}}}}}.
 - Always use 16 notes per bar (Each is a 16th note)
 - Always specify the activity of *all* instruments in every bar.
-- Don't use shorthand such as "repeats 4 times" or "bars 1-4 are ...". Even if your bar repeats, write them out in full.
+- Do not use shorthand such as "repeats 4 times" or "bars 1-4 are ..." "repeat these two bars x times" "Bar 6, 7, 8 are the same as Bar 1.". Even if your bar repeats, write them out in full. Always write all bars.
 - An example of a properly formatted bar is as follows:
 {Bar.example().to_llm_format()}
 
-The text you produce will be programatically parsed into a song. Please follow the format instructions carefully.
+The text you produce will be programatically parsed into a song. Please follow the format instructions carefully. To reiterate, under no condition should you give anything but all measures fully without any shorthand.
 """.strip()
                 ),
                 HumanMessagePromptTemplate.from_template("{prompt}"),
@@ -99,7 +99,8 @@ The text you produce will be programatically parsed into a song. Please follow t
 
 Bass: {generate_instrument_description('Bass', prev_gens)}
 Pad: {generate_instrument_description('Pad', prev_gens)}
-Drums: {generate_instrument_description('Drums', prev_gens)}""".strip(),
+Drums: {generate_instrument_description('Drums', prev_gens)}
+write out all bars no matter what.""".strip(),
         )
         # prompt=f"""generate {markup_section.number_bars} bars of a house song using the following descriptions:
         #    bass : {markup_section.instruments['Bass'].description}
@@ -128,6 +129,7 @@ Drums: {generate_instrument_description('Drums', prev_gens)}""".strip(),
 
 if __name__ == "__main__":
     from dotenv import dotenv_values
+    from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
     assert Bar.example() == Bar.example()
     assert Bar.from_keypairs(Bar.example().to_keypairs()) == Bar.example()
@@ -135,7 +137,10 @@ if __name__ == "__main__":
 
     config = Config(**dotenv_values())  # type: ignore
     llm = ChatOpenAI(
-        openai_api_key=config.openai_api_key, model="gpt-4", temperature=0.1
+        openai_api_key=config.openai_api_key,
+        model="gpt-4",
+        temperature=0.1,
+        callbacks=[StreamingStdOutCallbackHandler()],
     )
 
     sections = {

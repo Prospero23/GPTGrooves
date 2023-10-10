@@ -59,7 +59,7 @@ if __name__ == "__main__":
         llm=ChatOpenAI(
             openai_api_key=config.openai_api_key,
             model="gpt-4",
-            temperature=0.0,
+            temperature=0.1,
             streaming=True,
             callbacks=[StreamingStdOutCallbackHandler()],
         ),
