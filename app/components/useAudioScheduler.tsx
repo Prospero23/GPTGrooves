@@ -60,8 +60,8 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   const currentBar = useRef<number>(0); // current Bar
   const tempo = 140.0; // current tempo (bpm)
 
-  const lookahead = 15.0; // how frequent to call schedule function in ms
-  const scheduleAheadTime = 0.1; // how far ahead to schedule audio in sec
+  const lookahead = 25.0; // how frequent to call schedule function in ms
+  const scheduleAheadTime = 2.0; // how far ahead to schedule audio in sec
   const timerID = useRef<number | undefined>(undefined); // setInterval identifier
 
   const nextNoteTime = useRef<number>(0.0); // when next note is due
@@ -184,20 +184,20 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
     // advance time to next 16th note //ADD BARS?
     const secondsPerBeat = 60.0 / tempo;
 
-    nextNoteTime.current += 0.25 * secondsPerBeat;
+    nextNoteTime.current += 0.25 * secondsPerBeat; // progress current time by a 16th note
 
     currentStep.current++;
     if (currentStep.current === 16) {
-      // wrap 16 to 0
+      // wrap 16 to 0 and progresses to next bar
       currentStep.current = 0;
       currentBar.current++;
     }
   }
 
   const scheduleDrums = useCallback(
-    (time: number) => {
+    (time: number, bar: number, step: number) => {
       if (drums.current != null) {
-        const drumData = bars[currentBar.current].drums;
+        const drumData = bars[bar].drums;
         for (const drumType of Object.keys(drumData) as Array<
           keyof typeof drumInlets
         >) {
@@ -205,7 +205,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
           if (Array.isArray(drumData[drumType])) {
             const inlet = drumInlets[drumType];
             const drumEventTrigger = new MessageEvent(time, `in${inlet}`, [
-              drumData[drumType][currentStep.current],
+              drumData[drumType][step],
             ]);
             drums.current.scheduleEvent(drumEventTrigger);
           }
@@ -218,11 +218,11 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   );
 
   const scheduleBass = useCallback(
-    (time: number) => {
+    (time: number, bar: number, step: number) => {
       if (bass.current != null) {
-        const bassData = bars[currentBar.current].bass;
+        const bassData = bars[bar].bass;
         if (Array.isArray(bassData.pattern)) {
-          const bassNote = noteToMidi(bassData.pattern[currentStep.current]);
+          const bassNote = noteToMidi(bassData.pattern[step]);
 
           if (!isNaN(bassNote)) {
             const bassEventTrigger = new MessageEvent(time, `in0`, [bassNote]);
@@ -235,12 +235,12 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   );
 
   const schedulePad = useCallback(
-    (time: number) => {
+    (time: number, bar: number, step: number) => {
       if (pad.current != null) {
         const padInstance = pad.current;
-        const padData = bars[currentBar.current].pad;
+        const padData = bars[bar].pad;
         if (Array.isArray(padData.chord_sequence)) {
-          padData.chord_sequence[currentStep.current].notes.forEach((note) => {
+          padData.chord_sequence[step].notes.forEach((note) => {
             const midiChannel = 0;
 
             const midiNote = noteToMidi(note) + 12;
@@ -259,7 +259,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
             ];
 
             const midiPort = 0;
-            const noteDurationMs = 250; // TODO: BETTER
+            const noteDurationMs = 200; // TODO: BETTER
 
             // When scheduling an event to occur in the future, use the current audio context time
             // multiplied by 1000 (converting seconds to milliseconds) for now.
@@ -289,9 +289,10 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
       // logic for scheduling
       if (audioContext.current != null) {
-        scheduleDrums(time);
-        scheduleBass(time);
-        schedulePad(time);
+        console.log("time: ", time);
+        scheduleDrums(time, currentBar.current, currentStep.current);
+        scheduleBass(time, currentBar.current, currentStep.current);
+        schedulePad(time, currentBar.current, currentStep.current);
       } else {
         console.log("AudioContext is undefined");
       }
@@ -309,8 +310,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
       ) {
         if (currentBar.current >= bars.length) {
           // Check if we've reached the end of the song
-          // stopSong(); // Call the function to stop the song
-          return; // Exit the scheduler function
+          return;
         }
         scheduleEvents(nextNoteTime.current); // schedule note to play
         nextNote(); // push to next 16th
@@ -381,12 +381,12 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
         bassGPTGain.current.gain.value = 0;
         drumsGPTGain.current.gain.value = 0;
         bassGPTGain.current.gain.value = 0;
-        bassUserGain.current.gain.value = 1;
+        bassUserGain.current.gain.value = 0.8;
         drumsUserGain.current.gain.value = 1;
         padUserGain.current.gain.value = 1;
       } else {
         drumsGPTGain.current.gain.value = 1;
-        bassGPTGain.current.gain.value = 1;
+        bassGPTGain.current.gain.value = 0.8;
         padGPTGain.current.gain.value = 1;
         bassUserGain.current.gain.value = 0;
         drumsUserGain.current.gain.value = 0;
