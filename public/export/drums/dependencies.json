@@ -1,14 +1,14 @@
 [
   {
-    "id": "hat",
-    "file": "media/hi-hat.wav"
+    "id": "snare",
+    "file": "export/drums/media/snare.wav"
   },
   {
     "id": "kick",
-    "file": "media/kick.wav"
+    "file": "export/drums/media/kick.wav"
   },
   {
-    "id": "snare",
-    "file": "media/snare.wav"
+    "id": "hat",
+    "file": "export/drums/media/hi-hat.wav"
   }
 ]
