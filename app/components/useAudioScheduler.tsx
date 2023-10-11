@@ -6,7 +6,6 @@ import {
   type MIDIData,
   createDevice,
   type IPatcher,
-  type ExternalDataInfo,
 } from "@rnbo/js";
 
 import { type SongType } from "@/library/musicData";
@@ -67,9 +66,10 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   const currentBar = useRef<number>(0); // current Bar
   const tempo = 140.0; // current tempo (bpm)
 
-  const lookahead = 25.0; // how frequent to call schedule function in ms
-  const scheduleAheadTime = 0.1; // how far ahead to schedule audio in sec
+  const lookahead = 14.0; // how frequent to call schedule function in ms
+  const scheduleAheadTime = 0.08; // how far ahead to schedule audio in sec
   const timerID = useRef<number | undefined>(undefined); // setInterval identifier
+  const timerWorker = useRef<Worker | undefined>(undefined);
 
   const nextNoteTime = useRef<number>(0.0); // when next note is due
 
@@ -106,6 +106,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
     async function init() {
       // set audio context
       audioContext.current = new WAContext();
+      timerWorker.current = new Worker("/audioWorker.js");
 
       if (audioContext.current != null) {
         // setup drum
@@ -122,9 +123,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
           // @ts-expect-error this is taken straight from the docs
           await drums.current.loadDataBufferDependencies(drumDependencies);
         results.forEach((result) => {
-          if (result.type === "success") {
-            console.log(`Successfully loaded buffer with id ${result.id}`);
-          } else {
+          if (result.type !== "success") {
             console.log(
               // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
               `Failed to load buffer with id ${result.id}, ${result.error}`,
@@ -150,13 +149,19 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
         // make the three user gains
         drumsUserGain.current = audioContext.current.createGain();
+        drumsUserGain.current.gain.value = 0;
         bassUserGain.current = audioContext.current.createGain();
+        bassUserGain.current.gain.value = 0;
         padUserGain.current = audioContext.current.createGain();
+        padUserGain.current.gain.value = 0;
 
         // // make the three gpt gains
         drumsGPTGain.current = audioContext.current.createGain();
+        drumsGPTGain.current.gain.value = 0;
         bassGPTGain.current = audioContext.current.createGain();
+        bassGPTGain.current.gain.value = 0;
         padGPTGain.current = audioContext.current.createGain();
+        padGPTGain.current.gain.value = 0;
 
         // make delay w feedback
         delayGain.current = audioContext.current.createGain();
@@ -449,10 +454,11 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
       padUserGain.current !== undefined &&
       drumsUserGain.current !== undefined
     ) {
+      console.log("RUNNING, ", isUserEffects);
       if (isUserEffects) {
         bassGPTGain.current.gain.value = 0;
         drumsGPTGain.current.gain.value = 0;
-        bassGPTGain.current.gain.value = 0;
+        padGPTGain.current.gain.value = 0;
         bassUserGain.current.gain.value = 1;
         drumsUserGain.current.gain.value = 1;
         padUserGain.current.gain.value = 1;
@@ -464,6 +470,8 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
         drumsUserGain.current.gain.value = 0;
         padUserGain.current.gain.value = 0;
       }
+      console.log(drumsGPTGain.current.gain.value);
+      console.log(drumsUserGain.current.gain.value);
     }
   }
   return {
@@ -484,3 +492,4 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 // use setvalue at time to initialize effects with gpt stuff
 // delay: use RNBO bs
 // for user: filterFreq, delay time + feedback, reverb: time + wet/dry
+// refactor this soon into helper functions

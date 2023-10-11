@@ -32,7 +32,7 @@ export default function Scene({
   songs: SongType[];
   dates: GenDate[];
 }) {
-  const [isUserEffects, setIsUserEffects] = useState<boolean>(true);
+  const [isUserEffects, setIsUserEffects] = useState<boolean>(false);
   const [orbitEndabled, setOrbitEnabled] = useState<boolean>(true);
 
   const {
@@ -54,7 +54,6 @@ export default function Scene({
 
   return (
     <Canvas camera={{ position: [0, 11, 13.6], fov: 75 }} linear flat shadows>
-      {/* <CameraLogger /> */}
       <Plane
         rotation={[(Math.PI * 3) / 2, 0, 0]}
         scale={40}
@@ -106,23 +105,3 @@ export default function Scene({
     </Canvas>
   );
 }
-// potentially make plane its own component
-//     {isPlaying ?? false ? "playing" : "paused"}
-//   </p>
-// function CameraLogger() {
-//   // helper function
-//   const { camera } = useThree();
-
-//   useFrame(() => {
-//     console.log(
-//       "Camera Position: ",
-//       camera.position.x,
-//       camera.position.y,
-//       camera.position.z,
-//     );
-//   });
-//   return <></>;
-// }
-// REFACTOR: split off functions and group components more
-// add loader and error boundaries that are better
-// on drag stop the camera movement
