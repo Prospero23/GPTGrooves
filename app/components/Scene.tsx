@@ -18,6 +18,7 @@ import EffectSliders from "./assets/EffectSliders";
 import useAudioScheduler from "./useAudioScheduler";
 
 import { type SongType } from "@/library/musicData";
+import InitAudio from "./assets/InitAudio";
 
 interface GenDate {
   day: number;
@@ -34,6 +35,7 @@ export default function Scene({
 }) {
   const [isUserEffects, setIsUserEffects] = useState<boolean>(false);
   const [orbitEndabled, setOrbitEnabled] = useState<boolean>(true);
+  const [audioInitialized, setAudioInitialized] = useState<boolean>(false);
 
   const {
     isPlaying,
@@ -54,29 +56,27 @@ export default function Scene({
   }, [isUserEffects, switchEffectsGen]);
 
   return (
-    <>
-      <button
-        onClick={async () => {
-          await init();
-        }}
+    <Canvas camera={{ position: [0, 11, 13.6], fov: 75 }} linear flat shadows>
+      <InitAudio
+        isInitialized={audioInitialized}
+        set={setAudioInitialized}
+        initializeAudio={init}
+      />
+      <Plane
+        rotation={[(Math.PI * 3) / 2, 0, 0]}
+        scale={40}
+        position={[0, -0.1, -10]}
+        receiveShadow
       >
-        SUP
-      </button>
-      <Canvas camera={{ position: [0, 11, 13.6], fov: 75 }} linear flat shadows>
-        <Plane
-          rotation={[(Math.PI * 3) / 2, 0, 0]}
-          scale={40}
-          position={[0, -0.1, -10]}
-          receiveShadow
-        >
-          <meshLambertMaterial color={"white"} emissive={"white"} />
-        </Plane>
-        <directionalLight
-          position={[0, 20, 10]}
-          intensity={1.0}
-          castShadow
-          color={"white"}
-        />
+        <meshLambertMaterial color={"white"} emissive={"white"} />
+      </Plane>
+      <directionalLight
+        position={[0, 20, 10]}
+        intensity={1.0}
+        castShadow
+        color={"white"}
+      />
+      <group visible={audioInitialized}>
         <OrbitControls makeDefault enabled={orbitEndabled} />
         <Button
           position={new Vector3(0, 0, 0)}
@@ -111,7 +111,7 @@ export default function Scene({
           setDelayTime={setDelayTime}
           setReverbLevel={setReverbLevel}
         />
-      </Canvas>
-    </>
+      </group>
+    </Canvas>
   );
 }
