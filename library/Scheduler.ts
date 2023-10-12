@@ -1,11 +1,16 @@
-import { type Device, type MIDIData, MIDIEvent, MessageEvent } from "@rnbo/js";
+import {
+  type Device,
+  type MIDIData,
+  MIDIEvent,
+  MessageEvent as RNBOMesageEvent,
+} from "@rnbo/js";
 import { type BarType } from "./musicData";
 import noteToMidi from "./music_helpers/noteToMidi";
 
 export default class AudioScheduler {
   // Declare the properties of the class
   private readonly audioContext: AudioContext;
-  private readonly bars: BarType[]; // TODO: fix
+  private bars: BarType[]; // TODO: fix
   private readonly drums: Device;
   private readonly bass: Device;
   private readonly pad: Device;
@@ -16,7 +21,8 @@ export default class AudioScheduler {
   private isPlaying: boolean;
   private readonly lookahead: number;
   private readonly scheduleAheadTime: number;
-  private timerID: number | null = null;
+  private readonly timerID: number | null = null;
+  private readonly timerWorker: Worker | null = null;
 
   constructor(
     tempo: number,
@@ -40,7 +46,14 @@ export default class AudioScheduler {
 
     this.isPlaying = false;
     this.lookahead = 25.0; // how frequent to call schedule function in ms
-    this.scheduleAheadTime = 0.08; // how far ahead to schedule audio in sec
+    this.scheduleAheadTime = 0.05; // how far ahead to schedule audio in sec
+
+    this.timerWorker = new Worker("/audioSchedulerWorker.js");
+    this.timerWorker.onmessage = this.handleWorkerMessage;
+    this.timerWorker.onerror = this.handleWorkerError;
+
+    // Set the initial interval for the worker
+    this.timerWorker.postMessage({ interval: this.lookahead });
   }
 
   // advance to the next note in the sequence
@@ -82,13 +95,12 @@ export default class AudioScheduler {
     // Check if there are any drum values to process
     if (drumValuesForCurrentStep.length > 0) {
       // Create a single event with all drum values for the current step
-      const drumEventTrigger = new MessageEvent(
+      const drumEventTrigger = new RNBOMesageEvent(
         audioContextTime,
         `in1`,
         drumValuesForCurrentStep,
       );
       this.drums.scheduleEvent(drumEventTrigger);
-      console.log(drumEventTrigger);
     } else {
       console.log("DRUM ERROR");
     }
@@ -100,7 +112,7 @@ export default class AudioScheduler {
       const bassNote = noteToMidi(bassData.pattern[this.currentStep]);
 
       if (!isNaN(bassNote)) {
-        const bassEventTrigger = new MessageEvent(audioContextTime, `in0`, [
+        const bassEventTrigger = new RNBOMesageEvent(audioContextTime, `in0`, [
           bassNote,
         ]);
         this.bass.scheduleEvent(bassEventTrigger);
@@ -165,43 +177,49 @@ export default class AudioScheduler {
       this.audioContext.currentTime + this.scheduleAheadTime
     ) {
       if (this.currentBar >= this.bars.length) {
-        // Check if we've reached the end of the song
         // this.stop(); // Assume you have a method to stop the song or handle it accordingly
         return; // Exit the scheduler function
       }
       this.scheduleEvents(this.nextNoteTime); // schedule note to play
       this.nextNote(); // push to next 16th
     }
-    // Set up the next call to scheduler
-    this.timerID = window.setTimeout(() => {
-      this.scheduler();
-    }, this.lookahead);
   }
+
+  private readonly handleWorkerMessage = (e: MessageEvent) => {
+    if (e.data === "tick") {
+      this.scheduler(); // Call your existing scheduler method
+    } else if (e.data === "ready") {
+      console.log("Worker is ready");
+    }
+  };
+
+  private readonly handleWorkerError = (e: ErrorEvent) => {
+    console.error(`Worker error: ${e.message}`);
+  };
 
   play() {
     if (!this.isPlaying) {
-      // Only start if not currently playing
-      this.isPlaying = true; // Set flag to indicate playback has started
+      this.isPlaying = true;
       this.currentStep = 0;
       this.currentBar = 0;
       this.nextNoteTime = this.audioContext.currentTime;
-      this.scheduler(); // kick off scheduling
+      this.timerWorker?.postMessage("start"); // Start the worker
     } else {
-      console.log("Already playing"); // Optionally handle attempts to play when already playing
+      console.log("Already playing");
     }
   }
 
-  // Method to stop playback
   stop() {
-    if (this.isPlaying && this.timerID != null) {
-      // Only stop if currently playing
-      this.isPlaying = false; // Set flag to indicate playback has stopped
-      window.clearTimeout(this.timerID);
-      this.timerID = null;
-
-      // ... [rest of your stopping logic, e.g., clearing timers, resetting variables]
+    if (this.isPlaying) {
+      this.isPlaying = false;
+      this.timerWorker?.postMessage("stop"); // Stop the worker
+      // ... [rest of your stopping logic]
     } else {
-      console.log("Already stopped"); // Optionally handle attempts to stop when already stopped
+      console.log("Already stopped");
     }
+  }
+
+  setBars(bars: BarType[]) {
+    this.bars = bars;
   }
 }

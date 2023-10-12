@@ -15,7 +15,7 @@ import Album from "@/app/components/assets/Album";
 import PlayState from "@/app/components/assets/PlayState";
 import UserToggle from "./assets/UserToggle";
 import EffectSliders from "./assets/EffectSliders";
-import useAudioScheduler from "./useAudioScheduler2";
+import useAudioScheduler from "./useAudioScheduler";
 
 import { type SongType } from "@/library/musicData";
 import InitAudio from "./assets/InitAudio";
