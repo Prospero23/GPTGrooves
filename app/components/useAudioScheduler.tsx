@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import {
-  MIDIEvent,
-  MessageEvent,
-  type Device,
-  type MIDIData,
-  createDevice,
-  type IPatcher,
-} from "@rnbo/js";
+import { MIDIEvent, MessageEvent, type Device, type MIDIData } from "@rnbo/js";
 
 import { type SongType } from "@/library/musicData";
 import noteToMidi from "@/library/music_helpers/noteToMidi";
+import {
+  setupDevice,
+  setupDrum,
+  setupGain,
+  setupDelay,
+  setupReverb,
+  setupFilter,
+  safelyConnect,
+} from "@/library/music_helpers/helpers";
 
 const drumInlets = {
   hi_hat: 1,
@@ -86,162 +88,95 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
   // const notesInQueue = []; // FOR FUTURE VISUALS (see playBUTTON link)
 
-  // setup function. RUNS ONCE
-  useEffect(() => {
-    // This code runs after the component has been rendered
+  async function init() {
     // @ts-expect-error this is for compat
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     const WAContext = window.AudioContext || window.webkitAudioContext;
 
-    async function loadImpulseResponse(
-      url: string,
-      audioContext: AudioContext,
-    ) {
-      const response = await fetch(url);
-      const arrayBuffer = await response.arrayBuffer();
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-      return audioBuffer;
+    // set audio context
+    audioContext.current = new WAContext();
+    await audioContext.current.resume();
+    timerWorker.current = new Worker("/audioWorker.js");
+
+    if (audioContext.current != null) {
+      drums.current = await setupDrum(audioContext.current);
+      bass.current = await setupDevice(
+        audioContext.current,
+        "/export/bass/bass.export.json",
+      );
+      pad.current = await setupDevice(
+        audioContext.current,
+        "/export/pad/pad.export.json",
+      );
+
+      drumsUserGain.current = setupGain(audioContext.current, 0);
+      bassUserGain.current = setupGain(audioContext.current, 0);
+      padUserGain.current = setupGain(audioContext.current, 0);
+
+      drumsGPTGain.current = setupGain(audioContext.current, 0);
+      bassGPTGain.current = setupGain(audioContext.current, 0);
+      padGPTGain.current = setupGain(audioContext.current, 0);
+
+      // make delay w feedback
+      const delaySetup = setupDelay(audioContext.current, 0.2, 0.5, 8000);
+      delayGain.current = delaySetup.delayGain;
+      delay.current = delaySetup.delay;
+      delayFeedback.current = delaySetup.delayFeedback;
+      delayFilter.current = delaySetup.delayFilter;
+
+      // reverb
+      const reverbSetup = await setupReverb(
+        audioContext.current,
+        "export/reverb/convolution.wav",
+      );
+      reverb.current = reverbSetup.reverb;
+      reverbGain.current = reverbSetup.reverbGain;
+      dryGain.current = setupGain(audioContext.current, 1);
+
+      reverbGain.current.gain.value = 0;
+      dryGain.current.connect(audioContext.current.destination);
+
+      // user filter
+      userFilter.current = setupFilter(audioContext.current);
+
+      // gpt filters
+      drumFilter.current = setupFilter(audioContext.current);
+      bassFilter.current = setupFilter(audioContext.current);
+      padFilter.current = setupFilter(audioContext.current);
+
+      connectAudioNodes();
     }
+  }
 
-    async function init() {
-      // set audio context
-      audioContext.current = new WAContext();
-      timerWorker.current = new Worker("/audioWorker.js");
+  function connectAudioNodes() {
+    // connection hub
+    if (audioContext.current != null) {
+      safelyConnect(userFilter.current, delayGain.current);
+      safelyConnect(userFilter.current, dryGain.current);
+      safelyConnect(userFilter.current, reverbGain.current);
 
-      if (audioContext.current != null) {
-        // setup drum
-        const rawDrumPatcher = await fetch("/export/drums/drums.export.json");
-        let drumDependencies = await fetch("/export/drums/dependencies.json");
-        drumDependencies = await drumDependencies.json();
-        const drumPatcher: IPatcher = await rawDrumPatcher.json();
-        drums.current = await createDevice({
-          context: audioContext.current,
-          patcher: drumPatcher,
-        });
-        // Load the dependencies into the device
-        const results =
-          // @ts-expect-error this is taken straight from the docs
-          await drums.current.loadDataBufferDependencies(drumDependencies);
-        results.forEach((result) => {
-          if (result.type !== "success") {
-            console.log(
-              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-              `Failed to load buffer with id ${result.id}, ${result.error}`,
-            );
-          }
-        });
+      safelyConnect(drumFilter.current, audioContext.current.destination);
+      safelyConnect(bassFilter.current, audioContext.current.destination);
+      safelyConnect(padFilter.current, audioContext.current.destination);
 
-        // setup bass
-        const rawBassPatcher = await fetch("/export/bass/bass.export.json");
-        const bassPatcher: IPatcher = await rawBassPatcher.json();
-        bass.current = await createDevice({
-          context: audioContext.current,
-          patcher: bassPatcher,
-        });
+      safelyConnect(drumsUserGain.current, userFilter.current);
+      safelyConnect(drumsGPTGain.current, drumFilter.current);
+      safelyConnect(drums.current?.node, drumsUserGain.current);
+      safelyConnect(drums.current?.node, drumsGPTGain.current);
 
-        // setup pad
-        const rawPadPatcher = await fetch("/export/pad/pad.export.json");
-        const padPatcher: IPatcher = await rawPadPatcher.json();
-        pad.current = await createDevice({
-          context: audioContext.current,
-          patcher: padPatcher,
-        });
+      safelyConnect(bassUserGain.current, userFilter.current);
+      safelyConnect(bassGPTGain.current, bassFilter.current);
+      safelyConnect(bass.current?.node, bassUserGain.current);
+      safelyConnect(bass.current?.node, bassGPTGain.current);
 
-        // make the three user gains
-        drumsUserGain.current = audioContext.current.createGain();
-        drumsUserGain.current.gain.value = 0;
-        bassUserGain.current = audioContext.current.createGain();
-        bassUserGain.current.gain.value = 0;
-        padUserGain.current = audioContext.current.createGain();
-        padUserGain.current.gain.value = 0;
-
-        // // make the three gpt gains
-        drumsGPTGain.current = audioContext.current.createGain();
-        drumsGPTGain.current.gain.value = 0;
-        bassGPTGain.current = audioContext.current.createGain();
-        bassGPTGain.current.gain.value = 0;
-        padGPTGain.current = audioContext.current.createGain();
-        padGPTGain.current.gain.value = 0;
-
-        // make delay w feedback
-        delayGain.current = audioContext.current.createGain();
-        delayGain.current.gain.value = 0.2;
-        delay.current = audioContext.current.createDelay(4);
-        delay.current.delayTime.value = 0; // beats per second / number per sec
-        delayFeedback.current = audioContext.current.createGain();
-        delayFeedback.current.gain.value = 0.5;
-        delayFilter.current = audioContext.current.createBiquadFilter();
-        delayFilter.current.type = "lowpass";
-        delayFilter.current.frequency.value = 8000; // TODO: improve this value
-        delayGain.current.connect(delay.current);
-        delay.current.connect(delayFeedback.current);
-        delayFeedback.current.connect(delay.current); // create feedback for delay
-        delay.current.connect(delayFilter.current);
-        delayFilter.current.connect(audioContext.current.destination);
-
-        // reverb
-        const impulseResponse = await loadImpulseResponse(
-          "export/reverb/convolution.wav",
-          audioContext.current,
-        );
-
-        reverb.current = audioContext.current.createConvolver();
-        reverb.current.buffer = impulseResponse;
-        reverbGain.current = audioContext.current.createGain();
-        dryGain.current = audioContext.current.createGain();
-        reverbGain.current.gain.value = 0;
-        dryGain.current.gain.value = 1;
-        reverbGain.current.connect(reverb.current);
-        dryGain.current.connect(audioContext.current.destination);
-        reverb.current.connect(audioContext.current.destination);
-
-        // user filter
-        userFilter.current = audioContext.current.createBiquadFilter();
-        userFilter.current.type = "lowpass";
-        userFilter.current.frequency.value = 22050; // set to not be able to hear
-
-        // gpt filters
-        drumFilter.current = audioContext.current.createBiquadFilter();
-        drumFilter.current.type = "lowpass";
-        drumFilter.current.frequency.value = 22050; // set to not be able to hear
-        bassFilter.current = audioContext.current.createBiquadFilter();
-        bassFilter.current.type = "lowpass";
-        bassFilter.current.frequency.value = 22050; // set to not be able to hear
-        padFilter.current = audioContext.current.createBiquadFilter();
-        padFilter.current.type = "lowpass";
-        padFilter.current.frequency.value = 22050; // set to not be able to hear
-
-        // connection hub
-        userFilter.current.connect(delayGain.current);
-        userFilter.current.connect(dryGain.current);
-        userFilter.current.connect(reverbGain.current);
-
-        drumFilter.current.connect(audioContext.current.destination);
-        bassFilter.current.connect(audioContext.current.destination);
-        padFilter.current.connect(audioContext.current.destination);
-
-        drumsUserGain.current.connect(userFilter.current);
-        drumsGPTGain.current.connect(drumFilter.current);
-        drums.current?.node.connect(drumsUserGain.current);
-        drums.current?.node.connect(drumsGPTGain.current);
-
-        bassUserGain.current.connect(userFilter.current);
-        bassGPTGain.current.connect(bassFilter.current);
-        bass.current?.node.connect(bassUserGain.current);
-        bass.current?.node.connect(bassGPTGain.current);
-
-        padUserGain.current.connect(userFilter.current);
-        padGPTGain.current.connect(padFilter.current);
-        pad.current?.node.connect(padUserGain.current);
-        pad.current?.node.connect(padGPTGain.current);
-      }
+      safelyConnect(padUserGain.current, userFilter.current);
+      safelyConnect(padGPTGain.current, padFilter.current);
+      safelyConnect(pad.current?.node, padUserGain.current);
+      safelyConnect(pad.current?.node, padGPTGain.current);
+    } else {
+      console.error("error in connections");
     }
-    void init();
-    // Optional: Return a function to run on component unmount / before re-running the effect
-    return () => {
-      void audioContext.current?.close();
-    };
-  }, []);
+  }
 
   // advance to the next note in the sequence
   function nextNote() {
@@ -484,6 +419,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
     setIsPlaying,
     setCurrentSong, // exposed variables and functions
     switchEffectsGen,
+    init,
   };
 }
 

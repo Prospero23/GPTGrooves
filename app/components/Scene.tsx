@@ -45,6 +45,7 @@ export default function Scene({
     setDelayTime,
     setReverbLevel,
     switchEffectsGen,
+    init,
   } = useAudioScheduler({ songs }); // TODO: just move all of these functions to the child components
 
   const numberDates = dates.length; // number of dates
@@ -53,55 +54,64 @@ export default function Scene({
   }, [isUserEffects, switchEffectsGen]);
 
   return (
-    <Canvas camera={{ position: [0, 11, 13.6], fov: 75 }} linear flat shadows>
-      <Plane
-        rotation={[(Math.PI * 3) / 2, 0, 0]}
-        scale={40}
-        position={[0, -0.1, -10]}
-        receiveShadow
+    <>
+      <button
+        onClick={async () => {
+          await init();
+        }}
       >
-        <meshLambertMaterial color={"white"} emissive={"white"} />
-      </Plane>
-      <directionalLight
-        position={[0, 20, 10]}
-        intensity={1.0}
-        castShadow
-        color={"white"}
-      />
-      <OrbitControls makeDefault enabled={orbitEndabled} />
-      <Button
-        position={new Vector3(0, 0, 0)}
-        isPlaying={isPlaying}
-        setIsPlaying={setIsPlaying}
-      />
-      <Date month={dates[currentSong].month} day={dates[currentSong].day} />
-      <Author />
-      <Album year={dates[currentSong].year} />
-      <Next
-        setCurrentSong={setCurrentSong}
-        currentSong={currentSong}
-        setIsPlaying={setIsPlaying}
-      />
-      <Prev
-        setCurrentSong={setCurrentSong}
-        currentSong={currentSong}
-        numberDates={numberDates}
-        setIsPlaying={setIsPlaying}
-      />
-      <PlayState isPlaying={isPlaying} />
-      <UserToggle
-        userActions={isUserEffects}
-        setUserActions={setIsUserEffects}
-      />
-      <EffectSliders
-        count={4}
-        visible={isUserEffects}
-        setOrbitEndabled={setOrbitEnabled}
-        setFilterFreq={setFilterFrequency}
-        setDelayFeedback={setDelayFeedback}
-        setDelayTime={setDelayTime}
-        setReverbLevel={setReverbLevel}
-      />
-    </Canvas>
+        SUP
+      </button>
+      <Canvas camera={{ position: [0, 11, 13.6], fov: 75 }} linear flat shadows>
+        <Plane
+          rotation={[(Math.PI * 3) / 2, 0, 0]}
+          scale={40}
+          position={[0, -0.1, -10]}
+          receiveShadow
+        >
+          <meshLambertMaterial color={"white"} emissive={"white"} />
+        </Plane>
+        <directionalLight
+          position={[0, 20, 10]}
+          intensity={1.0}
+          castShadow
+          color={"white"}
+        />
+        <OrbitControls makeDefault enabled={orbitEndabled} />
+        <Button
+          position={new Vector3(0, 0, 0)}
+          isPlaying={isPlaying}
+          setIsPlaying={setIsPlaying}
+        />
+        <Date month={dates[currentSong].month} day={dates[currentSong].day} />
+        <Author />
+        <Album year={dates[currentSong].year} />
+        <Next
+          setCurrentSong={setCurrentSong}
+          currentSong={currentSong}
+          setIsPlaying={setIsPlaying}
+        />
+        <Prev
+          setCurrentSong={setCurrentSong}
+          currentSong={currentSong}
+          numberDates={numberDates}
+          setIsPlaying={setIsPlaying}
+        />
+        <PlayState isPlaying={isPlaying} />
+        <UserToggle
+          userActions={isUserEffects}
+          setUserActions={setIsUserEffects}
+        />
+        <EffectSliders
+          count={4}
+          visible={isUserEffects}
+          setOrbitEndabled={setOrbitEnabled}
+          setFilterFreq={setFilterFrequency}
+          setDelayFeedback={setDelayFeedback}
+          setDelayTime={setDelayTime}
+          setReverbLevel={setReverbLevel}
+        />
+      </Canvas>
+    </>
   );
 }
