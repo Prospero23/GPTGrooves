@@ -1,21 +1,17 @@
 export default class Bass {
   audioContext: AudioContext;
-  gainNode: GainNode;
-  oscillator: OscillatorNode | null;
   attackTime: number;
   decayTime: number;
   sustainLevel: number;
   releaseTime: number;
   private readonly destinations: AudioNode[];
+  private readonly activeNotes: Map<
+    number,
+    { oscillator: OscillatorNode; gainNode: GainNode }
+  >;
 
   constructor(audioContext: AudioContext) {
     this.audioContext = audioContext;
-
-    // Create a GainNode which we'll use for the ADSR envelope
-    this.gainNode = this.audioContext.createGain();
-
-    // Initial oscillator is null
-    this.oscillator = null;
 
     // ADSR settings
     this.attackTime = 0.1; // in seconds
@@ -24,48 +20,56 @@ export default class Bass {
     this.releaseTime = 0.5; // in seconds
 
     this.destinations = [];
+    this.activeNotes = new Map();
   }
 
   playNote(midi: number, time: number) {
-    // Convert MIDI note to frequency
+    // Stop the note if it's already playing
+    if (this.activeNotes.has(midi)) {
+      this.noteOff(midi, time);
+    }
+
     const frequency = 440 * Math.pow(2, (midi - 69) / 12);
+    const oscillator = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
 
-    // Create and configure a new oscillator
-    this.oscillator = this.audioContext.createOscillator();
-    this.oscillator.type = "sawtooth";
-    this.oscillator.frequency.setValueAtTime(frequency, time);
+    oscillator.type = "sawtooth";
+    oscillator.frequency.value = frequency;
 
-    // Configure the ADSR envelope
-    this.gainNode.gain.cancelScheduledValues(time);
-    this.gainNode.gain.setValueAtTime(0, time); // Initial volume: 0
-    this.gainNode.gain.linearRampToValueAtTime(1, time + this.attackTime); // Attack
-    this.gainNode.gain.linearRampToValueAtTime(
+    gainNode.gain.setValueAtTime(0, time);
+    gainNode.gain.linearRampToValueAtTime(1, time + this.attackTime);
+    gainNode.gain.linearRampToValueAtTime(
       this.sustainLevel,
       time + this.attackTime + this.decayTime,
-    ); // Decay
+    );
 
-    // Connect the oscillator to the gainNode and start it
-    this.oscillator.connect(this.gainNode);
+    oscillator.connect(gainNode);
     for (const destination of this.destinations) {
-      this.gainNode.connect(destination);
+      gainNode.connect(destination);
     }
-    this.oscillator.start();
+
+    oscillator.start(time);
+
+    this.activeNotes.set(midi, { oscillator, gainNode });
   }
 
-  noteOff(time: number) {
-    if (this.oscillator == null) return;
+  noteOff(midi: number, time: number) {
+    const note = this.activeNotes.get(midi);
+    if (note == null) return;
 
-    // Release phase
-    this.gainNode.gain.cancelScheduledValues(time);
-    this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, time); // Hold current volume until release
-    this.gainNode.gain.linearRampToValueAtTime(0, time + this.releaseTime); // Release
+    const { oscillator, gainNode } = note;
 
-    this.oscillator.stop(time + this.releaseTime);
-    this.oscillator = null; // Clear the oscillator
+    gainNode.gain.cancelScheduledValues(time);
+    gainNode.gain.setValueAtTime(gainNode.gain.value, time);
+    gainNode.gain.linearRampToValueAtTime(0, time + this.releaseTime);
+
+    oscillator.stop(time + this.releaseTime);
+
+    // Remove the note from the active notes
+    this.activeNotes.delete(midi);
   }
 
   connect(destination: AudioNode) {
-    // Add a new destination only if it's not the default destination
     if (destination !== this.audioContext.destination) {
       this.destinations.push(destination);
     }

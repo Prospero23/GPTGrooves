@@ -91,10 +91,9 @@ export default class AudioScheduler {
     const bassData = this.bars[this.currentBar].bass;
     if (Array.isArray(bassData.pattern)) {
       const bassNote = noteToMidi(bassData.pattern[this.currentStep]);
-
       if (!isNaN(bassNote)) {
         this.bass.playNote(bassNote, audioContextTime);
-        this.bass.noteOff(audioContextTime + 100);
+        this.bass.noteOff(bassNote, audioContextTime + 0.1); // FIX NOTE OFF
       }
     }
   }
@@ -143,8 +142,8 @@ export default class AudioScheduler {
   }
 
   private scheduleEvents(audioContextTime: number) {
-    this.scheduleDrums(audioContextTime);
-    // this.scheduleBass(audioContextTime);
+    // this.scheduleDrums(audioContextTime);
+    this.scheduleBass(audioContextTime);
     // this.schedulePad(audioContextTime);
   }
 
