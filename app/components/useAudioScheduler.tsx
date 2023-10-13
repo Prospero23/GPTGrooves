@@ -14,6 +14,7 @@ import {
 } from "@/library/music_helpers/helpers";
 import AudioScheduler from "@/library/Scheduler";
 import Drums from "@/library/Drums";
+import Bass from "@/library/Bass";
 
 // debounce the scene resize
 
@@ -35,7 +36,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   const drumsGPTGain = useRef<GainNode | undefined>(undefined);
   const drumFilter = useRef<BiquadFilterNode | undefined>(undefined);
 
-  const bass = useRef<Device | undefined>(undefined);
+  const bass = useRef<Bass | undefined>(undefined);
   const bassUserGain = useRef<GainNode | undefined>(undefined);
   const bassGPTGain = useRef<GainNode | undefined>(undefined);
   const bassFilter = useRef<BiquadFilterNode | undefined>(undefined);
@@ -67,10 +68,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
     if (audioContext.current != null) {
       drums.current = await Drums.create(audioContext.current);
-      bass.current = await setupDevice(
-        audioContext.current,
-        "/export/bass/bass.export.json",
-      );
+      bass.current = new Bass(audioContext.current);
       pad.current = await setupDevice(
         audioContext.current,
         "/export/pad/pad.export.json",
@@ -84,7 +82,6 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
         bass.current,
         pad.current,
       );
-
       drumsUserGain.current = setupGain(audioContext.current, 0);
       bassUserGain.current = setupGain(audioContext.current, 0);
       padUserGain.current = setupGain(audioContext.current, 0);
@@ -121,6 +118,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
       padFilter.current = setupFilter(audioContext.current);
 
       connectAudioNodes();
+      // drums.current?.connect(drumsGPTGain.current);]
     }
   }
 
@@ -142,8 +140,8 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
       safelyConnect(bassUserGain.current, userFilter.current);
       safelyConnect(bassGPTGain.current, bassFilter.current);
-      safelyConnect(bass.current?.node, bassUserGain.current);
-      safelyConnect(bass.current?.node, bassGPTGain.current);
+      bass.current?.connect(bassUserGain.current);
+      bass.current?.connect(bassGPTGain.current);
 
       safelyConnect(padUserGain.current, userFilter.current);
       safelyConnect(padGPTGain.current, padFilter.current);

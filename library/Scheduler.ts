@@ -1,21 +1,15 @@
-import {
-  type Device,
-  type MIDIData,
-  MIDIEvent,
-  MessageEvent as RNBOMesageEvent,
-} from "@rnbo/js";
+import { type Device, type MIDIData, MIDIEvent } from "@rnbo/js";
 import { type BarType } from "./musicData";
 import noteToMidi from "./music_helpers/noteToMidi";
 import type Drums from "./Drums";
-
-type DrumType = "hi_hat" | "kick" | "snare";
+import type Bass from "./Bass";
 
 export default class AudioScheduler {
   // Declare the properties of the class
   private readonly audioContext: AudioContext;
   private bars: BarType[]; // TODO: fix
   private readonly drums: Drums;
-  private readonly bass: Device;
+  private readonly bass: Bass;
   private readonly pad: Device;
   private readonly tempo: number;
   private currentStep: number;
@@ -32,7 +26,7 @@ export default class AudioScheduler {
     bars: BarType[],
     audioContext: AudioContext,
     drums: Drums,
-    bass: Device,
+    bass: Bass,
     pad: Device,
   ) {
     this.audioContext = audioContext;
@@ -48,7 +42,7 @@ export default class AudioScheduler {
     this.nextNoteTime = 0;
 
     this.isPlaying = false;
-    this.lookahead = 30.0; // how frequent to call schedule function in ms
+    this.lookahead = 20.0; // how frequent to call schedule function in ms
     this.scheduleAheadTime = 0.2; // how far ahead to schedule audio in sec
 
     this.timerWorker = new Worker("/audioSchedulerWorker.js");
@@ -66,51 +60,27 @@ export default class AudioScheduler {
     this.nextNoteTime += 0.25 * secondsPerBeat;
 
     this.currentStep++;
+    // console.log("next note time", this.nextNoteTime, this.currentStep);
+
     if (this.currentStep === 16) {
       // wrap 16 to 0
       this.currentStep = 0;
       this.currentBar++;
-    }
-  }
-
-  private playDrum(drumType: DrumType, time: number): void {
-    switch (drumType) {
-      case "hi_hat":
-        this.drums.playHat(time);
-        break;
-      case "kick":
-        this.drums.playKick(time);
-        break;
-      case "snare":
-        this.drums.playSnare(time);
-        break;
-      default:
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        throw new Error(`Unknown drum type: ${drumType}`);
+      // console.log(this.bars[this.currentBar]);
     }
   }
 
   private scheduleDrums(audioContextTime: number) {
-    // better handle edge cases
-    // Deconstruct your drumData for easier access
-    const { hi_hat, kick, snare } = this.bars[this.currentBar].drums;
+    const drums = this.bars[this.currentBar].drums;
 
-    // Map the sequence data to the respective drum methods
-    const sequences = {
-      hi_hat,
-      kick,
-      snare,
-    };
-
-    // Iterate over each drum type and check if it should be played at the current step
-    for (const [drumType, sequence] of Object.entries(sequences) as Array<
-      [DrumType, Array<0 | 1>]
-    >) {
-      const shouldPlayDrum = sequence[this.currentStep];
-
-      if (shouldPlayDrum === 1) {
-        this.playDrum(drumType, audioContextTime);
-      }
+    if (drums.hi_hat[this.currentStep] === 1) {
+      this.drums.playHat(audioContextTime);
+    }
+    if (drums.kick[this.currentStep] === 1) {
+      this.drums.playKick(audioContextTime);
+    }
+    if (drums.snare[this.currentStep] === 1) {
+      this.drums.playSnare(audioContextTime);
     }
   }
 
@@ -120,10 +90,8 @@ export default class AudioScheduler {
       const bassNote = noteToMidi(bassData.pattern[this.currentStep]);
 
       if (!isNaN(bassNote)) {
-        const bassEventTrigger = new RNBOMesageEvent(audioContextTime, `in0`, [
-          bassNote,
-        ]);
-        this.bass.scheduleEvent(bassEventTrigger);
+        this.bass.playNote(bassNote, audioContextTime);
+        this.bass.noteOff(audioContextTime + 100);
       }
     }
   }
@@ -173,7 +141,7 @@ export default class AudioScheduler {
 
   private scheduleEvents(audioContextTime: number) {
     this.scheduleDrums(audioContextTime);
-    this.scheduleBass(audioContextTime);
+    // this.scheduleBass(audioContextTime);
     // this.schedulePad(audioContextTime);
   }
 
@@ -228,6 +196,23 @@ export default class AudioScheduler {
   }
 
   setBars(bars: BarType[]) {
+    // if (
+    //   !Array.isArray(bars) ||
+    //   bars.some((bar) => this.isValidBar(bar) === false)
+    // ) {
+    //   console.error("Invalid bars data:", bars);
+    //   return;
+    // }
+
+    if (this.isPlaying) {
+      this.stop(); // stop the scheduler if it's running
+    }
+
+    this.currentStep = 0;
+    this.currentBar = 0;
     this.bars = bars;
+
+    // If needed, restart any processes stopped earlier
+    // this.play();
   }
 }
