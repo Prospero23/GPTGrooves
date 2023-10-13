@@ -73,13 +73,16 @@ export default class AudioScheduler {
   private scheduleDrums(audioContextTime: number) {
     const drums = this.bars[this.currentBar].drums;
 
-    if (drums.hi_hat[this.currentStep] === 1) {
+    // Check if 'hi_hat' is an array and if the current step is a trigger for playing the sound
+    if (Array.isArray(drums.hi_hat) && drums.hi_hat[this.currentStep] === 1) {
       this.drums.playHat(audioContextTime);
     }
-    if (drums.kick[this.currentStep] === 1) {
+
+    if (Array.isArray(drums.kick) && drums.kick[this.currentStep] === 1) {
       this.drums.playKick(audioContextTime);
     }
-    if (drums.snare[this.currentStep] === 1) {
+
+    if (Array.isArray(drums.snare) && drums.snare[this.currentStep] === 1) {
       this.drums.playSnare(audioContextTime);
     }
   }
