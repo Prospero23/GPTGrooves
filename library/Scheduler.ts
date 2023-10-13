@@ -6,12 +6,15 @@ import {
 } from "@rnbo/js";
 import { type BarType } from "./musicData";
 import noteToMidi from "./music_helpers/noteToMidi";
+import type Drums from "./Drums";
+
+type DrumType = "hi_hat" | "kick" | "snare";
 
 export default class AudioScheduler {
   // Declare the properties of the class
   private readonly audioContext: AudioContext;
   private bars: BarType[]; // TODO: fix
-  private readonly drums: Device;
+  private readonly drums: Drums;
   private readonly bass: Device;
   private readonly pad: Device;
   private readonly tempo: number;
@@ -28,7 +31,7 @@ export default class AudioScheduler {
     tempo: number,
     bars: BarType[],
     audioContext: AudioContext,
-    drums: Device,
+    drums: Drums,
     bass: Device,
     pad: Device,
   ) {
@@ -45,8 +48,8 @@ export default class AudioScheduler {
     this.nextNoteTime = 0;
 
     this.isPlaying = false;
-    this.lookahead = 25.0; // how frequent to call schedule function in ms
-    this.scheduleAheadTime = 0.05; // how far ahead to schedule audio in sec
+    this.lookahead = 30.0; // how frequent to call schedule function in ms
+    this.scheduleAheadTime = 0.2; // how far ahead to schedule audio in sec
 
     this.timerWorker = new Worker("/audioSchedulerWorker.js");
     this.timerWorker.onmessage = this.handleWorkerMessage;
@@ -70,39 +73,44 @@ export default class AudioScheduler {
     }
   }
 
+  private playDrum(drumType: DrumType, time: number): void {
+    switch (drumType) {
+      case "hi_hat":
+        this.drums.playHat(time);
+        break;
+      case "kick":
+        this.drums.playKick(time);
+        break;
+      case "snare":
+        this.drums.playSnare(time);
+        break;
+      default:
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        throw new Error(`Unknown drum type: ${drumType}`);
+    }
+  }
+
   private scheduleDrums(audioContextTime: number) {
-    const drumInlets = {
-      hi_hat: 1,
-      kick: 2,
-      snare: 3,
+    // better handle edge cases
+    // Deconstruct your drumData for easier access
+    const { hi_hat, kick, snare } = this.bars[this.currentBar].drums;
+
+    // Map the sequence data to the respective drum methods
+    const sequences = {
+      hi_hat,
+      kick,
+      snare,
     };
 
-    const drumData = this.bars[this.currentBar].drums;
-
-    // Create an array to hold the current values for all drum types
-    const drumValuesForCurrentStep = [];
-
-    // Iterate over each drum type and collect the current step value
-    for (const drumType of Object.keys(drumData) as Array<
-      keyof typeof drumInlets
+    // Iterate over each drum type and check if it should be played at the current step
+    for (const [drumType, sequence] of Object.entries(sequences) as Array<
+      [DrumType, Array<0 | 1>]
     >) {
-      // Assuming each drumData[drumType] is an array of steps
-      if (Array.isArray(drumData[drumType])) {
-        drumValuesForCurrentStep.push(drumData[drumType][this.currentStep]);
-      }
-    }
+      const shouldPlayDrum = sequence[this.currentStep];
 
-    // Check if there are any drum values to process
-    if (drumValuesForCurrentStep.length > 0) {
-      // Create a single event with all drum values for the current step
-      const drumEventTrigger = new RNBOMesageEvent(
-        audioContextTime,
-        `in1`,
-        drumValuesForCurrentStep,
-      );
-      this.drums.scheduleEvent(drumEventTrigger);
-    } else {
-      console.log("DRUM ERROR");
+      if (shouldPlayDrum === 1) {
+        this.playDrum(drumType, audioContextTime);
+      }
     }
   }
 
@@ -143,7 +151,7 @@ export default class AudioScheduler {
         ];
 
         const midiPort = 0;
-        const noteDurationMs = 250; // TODO: BETTER
+        const noteDurationMs = 100; // TODO: BETTER
 
         // When scheduling an event to occur in the future, use the current audio context time
         // multiplied by 1000 (converting seconds to milliseconds) for now.
@@ -166,7 +174,7 @@ export default class AudioScheduler {
   private scheduleEvents(audioContextTime: number) {
     this.scheduleDrums(audioContextTime);
     this.scheduleBass(audioContextTime);
-    this.schedulePad(audioContextTime);
+    // this.schedulePad(audioContextTime);
   }
 
   private scheduler() {

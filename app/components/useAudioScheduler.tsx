@@ -4,7 +4,6 @@ import { type Device } from "@rnbo/js";
 import { type SongType } from "@/library/musicData";
 import {
   setupDevice,
-  setupDrum,
   setupGain,
   setupDelay,
   setupReverb,
@@ -14,6 +13,7 @@ import {
   scaleExponential,
 } from "@/library/music_helpers/helpers";
 import AudioScheduler from "@/library/Scheduler";
+import Drums from "@/library/Drums";
 
 // debounce the scene resize
 
@@ -28,9 +28,9 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   // audio devices and context
   const audioContext = useRef<AudioContext | undefined>(undefined);
   const audioScheduling = useRef<AudioScheduler | undefined>(undefined);
-  const tempo = 140;
+  const tempo = 130;
 
-  const drums = useRef<Device | undefined>(undefined);
+  const drums = useRef<Drums | undefined>(undefined);
   const drumsUserGain = useRef<GainNode | undefined>(undefined);
   const drumsGPTGain = useRef<GainNode | undefined>(undefined);
   const drumFilter = useRef<BiquadFilterNode | undefined>(undefined);
@@ -66,7 +66,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
     await audioContext.current.resume();
 
     if (audioContext.current != null) {
-      drums.current = await setupDrum(audioContext.current);
+      drums.current = await Drums.create(audioContext.current);
       bass.current = await setupDevice(
         audioContext.current,
         "/export/bass/bass.export.json",
@@ -137,8 +137,8 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
       safelyConnect(drumsUserGain.current, userFilter.current);
       safelyConnect(drumsGPTGain.current, drumFilter.current);
-      safelyConnect(drums.current?.node, drumsUserGain.current);
-      safelyConnect(drums.current?.node, drumsGPTGain.current);
+      drums.current?.connect(drumsUserGain.current);
+      drums.current?.connect(drumsGPTGain.current);
 
       safelyConnect(bassUserGain.current, userFilter.current);
       safelyConnect(bassGPTGain.current, bassFilter.current);
