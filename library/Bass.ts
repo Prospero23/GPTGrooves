@@ -14,7 +14,7 @@ export default class Bass {
     this.audioContext = audioContext;
 
     // ADSR settings
-    this.attackTime = 0.1; // in seconds
+    this.attackTime = 0.01; // in seconds TODO: potentially change. longer values fuck with time feel
     this.decayTime = 0.1; // in seconds
     this.sustainLevel = 0.8; // volume level, 0 to 1
     this.releaseTime = 0.5; // in seconds

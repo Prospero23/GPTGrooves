@@ -88,6 +88,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
       drumsGPTGain.current = setupGain(audioContext.current, 0);
       bassGPTGain.current = setupGain(audioContext.current, 0);
+      bassGPTGain.current.gain.value = 0.5;
       padGPTGain.current = setupGain(audioContext.current, 0);
 
       // make delay w feedback

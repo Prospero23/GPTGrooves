@@ -142,7 +142,7 @@ export default class AudioScheduler {
   }
 
   private scheduleEvents(audioContextTime: number) {
-    // this.scheduleDrums(audioContextTime);
+    this.scheduleDrums(audioContextTime);
     this.scheduleBass(audioContextTime);
     // this.schedulePad(audioContextTime);
   }
