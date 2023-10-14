@@ -27,35 +27,35 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   }, [songs, currentSong]);
 
   // audio devices and context
-  const audioContext = useRef<AudioContext | undefined>(undefined);
-  const audioScheduling = useRef<AudioScheduler | undefined>(undefined);
+  const audioContext = useRef<AudioContext | null>(null);
+  const audioScheduling = useRef<AudioScheduler | null>(null);
   const tempo = 130;
 
-  const drums = useRef<Drums | undefined>(undefined);
-  const drumsUserGain = useRef<GainNode | undefined>(undefined);
-  const drumsGPTGain = useRef<GainNode | undefined>(undefined);
-  const drumFilter = useRef<BiquadFilterNode | undefined>(undefined);
+  const drums = useRef<Drums | null>(null);
+  const drumsUserGain = useRef<GainNode | null>(null);
+  const drumsGPTGain = useRef<GainNode | null>(null);
+  const drumFilter = useRef<BiquadFilterNode | null>(null);
 
-  const bass = useRef<Bass | undefined>(undefined);
-  const bassUserGain = useRef<GainNode | undefined>(undefined);
-  const bassGPTGain = useRef<GainNode | undefined>(undefined);
-  const bassFilter = useRef<BiquadFilterNode | undefined>(undefined);
+  const bass = useRef<Bass | null>(null);
+  const bassUserGain = useRef<GainNode | null>(null);
+  const bassGPTGain = useRef<GainNode | null>(null);
+  const bassFilter = useRef<BiquadFilterNode | null>(null);
 
-  const pad = useRef<Device | undefined>(undefined);
-  const padUserGain = useRef<GainNode | undefined>(undefined);
-  const padGPTGain = useRef<GainNode | undefined>(undefined);
-  const padFilter = useRef<BiquadFilterNode | undefined>(undefined);
+  const pad = useRef<Device | null>(null);
+  const padUserGain = useRef<GainNode | null>(null);
+  const padGPTGain = useRef<GainNode | null>(null);
+  const padFilter = useRef<BiquadFilterNode | null>(null);
 
-  const delay = useRef<DelayNode | undefined>(undefined);
-  const delayGain = useRef<GainNode | undefined>(undefined);
-  const delayFeedback = useRef<GainNode | undefined>(undefined);
-  const delayFilter = useRef<BiquadFilterNode | undefined>(undefined);
+  const delay = useRef<DelayNode | null>(null);
+  const delayGain = useRef<GainNode | null>(null);
+  const delayFeedback = useRef<GainNode | null>(null);
+  const delayFilter = useRef<BiquadFilterNode | null>(null);
 
-  const reverb = useRef<ConvolverNode | undefined>(undefined);
-  const reverbGain = useRef<GainNode | undefined>(undefined);
-  const dryGain = useRef<GainNode | undefined>(undefined);
+  const reverb = useRef<ConvolverNode | null>(null);
+  const reverbGain = useRef<GainNode | null>(null);
+  const dryGain = useRef<GainNode | null>(null);
 
-  const userFilter = useRef<BiquadFilterNode | undefined>(undefined);
+  const userFilter = useRef<BiquadFilterNode | null>(null);
 
   async function init() {
     // @ts-expect-error this is for compat
@@ -128,17 +128,11 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   function connectAudioNodes() {
     // connection hub
     if (audioContext.current != null) {
-      if (
-        drumsUserGain.current !== undefined &&
-        drumsGPTGain.current !== undefined
-      ) {
+      if (drumsUserGain.current !== null && drumsGPTGain.current !== null) {
         drums.current?.connect(drumsUserGain.current);
         drums.current?.connect(drumsGPTGain.current);
       }
-      if (
-        bassUserGain.current !== undefined &&
-        bassGPTGain.current !== undefined
-      ) {
+      if (bassUserGain.current !== null && bassGPTGain.current !== null) {
         bass.current?.connect(bassUserGain.current);
         bass.current?.connect(bassGPTGain.current);
       }
@@ -161,7 +155,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
       safelyConnect(pad.current?.node, padUserGain.current);
       safelyConnect(pad.current?.node, padGPTGain.current);
     } else {
-      console.error("error in connections");
+      throw new Error("Audio Context is not initialized");
     }
   }
 
@@ -220,12 +214,12 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   }
   function switchEffectsGen(isUserEffects: boolean) {
     if (
-      bassGPTGain.current !== undefined &&
-      padGPTGain.current !== undefined &&
-      drumsGPTGain.current !== undefined &&
-      bassUserGain.current !== undefined &&
-      padUserGain.current !== undefined &&
-      drumsUserGain.current !== undefined
+      bassGPTGain.current !== null &&
+      padGPTGain.current !== null &&
+      drumsGPTGain.current !== null &&
+      bassUserGain.current !== null &&
+      padUserGain.current !== null &&
+      drumsUserGain.current !== null
     ) {
       if (isUserEffects) {
         bassGPTGain.current.gain.value = 0;

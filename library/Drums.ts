@@ -38,7 +38,7 @@ export default class Drums {
     }
   }
 
-  private playSample(sample: AudioBuffer | null, time: number) {
+  private playSample(sample: AudioBuffer | undefined, time: number) {
     if (sample == null) {
       throw new Error("Sample is not loaded");
     }

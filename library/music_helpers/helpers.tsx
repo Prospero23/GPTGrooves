@@ -105,12 +105,25 @@ export function setupFilter(context: AudioContext): BiquadFilterNode {
 }
 
 export function safelyConnect(
-  sourceNode?: AudioNode,
-  destinationNode?: AudioNode,
+  sourceNode?: AudioNode | null,
+  destinationNode?: AudioNode | null,
 ) {
   if (sourceNode != null && destinationNode != null) {
     sourceNode.connect(destinationNode);
   } else {
-    console.error("Failed to connect nodes:", { sourceNode, destinationNode });
+    throw new Error(
+      `Could not connect ${String(sourceNode)} to ${String(destinationNode)}`,
+    );
+  }
+}
+
+export function assertDefined(value: any, errorMessage: string) {
+  if (value === undefined) {
+    throw new Error(errorMessage);
+  }
+}
+export function assertNotNull(value: any) {
+  if (value === null) {
+    throw new Error(`${value} is null`);
   }
 }
