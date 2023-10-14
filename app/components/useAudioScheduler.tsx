@@ -73,6 +73,8 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
         audioContext.current,
         "/export/pad/pad.export.json",
       );
+      const attack = pad.current?.parametersById.get("poly/p_obj-18/attack");
+      attack.value = 0.1;
 
       audioScheduling.current = new AudioScheduler(
         tempo,
@@ -126,6 +128,20 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   function connectAudioNodes() {
     // connection hub
     if (audioContext.current != null) {
+      if (
+        drumsUserGain.current !== undefined &&
+        drumsGPTGain.current !== undefined
+      ) {
+        drums.current?.connect(drumsUserGain.current);
+        drums.current?.connect(drumsGPTGain.current);
+      }
+      if (
+        bassUserGain.current !== undefined &&
+        bassGPTGain.current !== undefined
+      ) {
+        bass.current?.connect(bassUserGain.current);
+        bass.current?.connect(bassGPTGain.current);
+      }
       safelyConnect(userFilter.current, delayGain.current);
       safelyConnect(userFilter.current, dryGain.current);
       safelyConnect(userFilter.current, reverbGain.current);
@@ -136,13 +152,9 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
       safelyConnect(drumsUserGain.current, userFilter.current);
       safelyConnect(drumsGPTGain.current, drumFilter.current);
-      drums.current?.connect(drumsUserGain.current);
-      drums.current?.connect(drumsGPTGain.current);
 
       safelyConnect(bassUserGain.current, userFilter.current);
       safelyConnect(bassGPTGain.current, bassFilter.current);
-      bass.current?.connect(bassUserGain.current);
-      bass.current?.connect(bassGPTGain.current);
 
       safelyConnect(padUserGain.current, userFilter.current);
       safelyConnect(padGPTGain.current, padFilter.current);

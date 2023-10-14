@@ -121,7 +121,7 @@ export default class AudioScheduler {
         ];
 
         const midiPort = 0;
-        const noteDurationMs = 100; // TODO: BETTER
+        const noteDurationMs = 250; // TODO: BETTER
 
         // When scheduling an event to occur in the future, use the current audio context time
         // multiplied by 1000 (converting seconds to milliseconds) for now.
@@ -144,7 +144,7 @@ export default class AudioScheduler {
   private scheduleEvents(audioContextTime: number) {
     this.scheduleDrums(audioContextTime);
     this.scheduleBass(audioContextTime);
-    // this.schedulePad(audioContextTime);
+    this.schedulePad(audioContextTime);
   }
 
   private scheduler() {
