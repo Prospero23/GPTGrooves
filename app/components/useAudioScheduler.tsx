@@ -238,6 +238,9 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
       }
     }
   }
+  function setScheduleAhead(amount: number) {
+    audioScheduling.current?.setScheduleAheadTime(amount);
+  }
   return {
     isPlaying,
     currentSong,
@@ -249,6 +252,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
     setCurrentSong, // exposed variables and functions
     switchEffectsGen,
     init,
+    setScheduleAhead,
   };
 }
 

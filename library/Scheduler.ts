@@ -17,7 +17,7 @@ export default class AudioScheduler {
   private nextNoteTime: number;
   private isPlaying: boolean;
   private readonly lookahead: number;
-  private readonly scheduleAheadTime: number;
+  private scheduleAheadTime: number;
   private readonly timerID: number | null = null;
   private readonly timerWorker: Worker | null = null;
 
@@ -216,5 +216,11 @@ export default class AudioScheduler {
 
     // If needed, restart any processes stopped earlier
     // this.play();
+  }
+
+  // Method to set a new scheduleAheadTime value
+  setScheduleAheadTime(newScheduleAheadTime: number) {
+    this.scheduleAheadTime = newScheduleAheadTime;
+    // You don't need to notify the worker here because it's not directly affected by this change.
   }
 }
