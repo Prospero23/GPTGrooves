@@ -15,6 +15,7 @@ import {
 import AudioScheduler from "@/library/Scheduler";
 import Drums from "@/library/Drums";
 import Bass from "@/library/Bass";
+import VariableFilter from "@/library/VariableFilter";
 
 // debounce the scene resize
 
@@ -34,17 +35,17 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   const drums = useRef<Drums | null>(null);
   const drumsUserGain = useRef<GainNode | null>(null);
   const drumsGPTGain = useRef<GainNode | null>(null);
-  const drumFilter = useRef<BiquadFilterNode | null>(null);
+  const drumFilter = useRef<VariableFilter | null>(null);
 
   const bass = useRef<Bass | null>(null);
   const bassUserGain = useRef<GainNode | null>(null);
   const bassGPTGain = useRef<GainNode | null>(null);
-  const bassFilter = useRef<BiquadFilterNode | null>(null);
+  const bassFilter = useRef<VariableFilter | null>(null);
 
   const pad = useRef<Device | null>(null);
   const padUserGain = useRef<GainNode | null>(null);
   const padGPTGain = useRef<GainNode | null>(null);
-  const padFilter = useRef<BiquadFilterNode | null>(null);
+  const padFilter = useRef<VariableFilter | null>(null);
 
   const delay = useRef<DelayNode | null>(null);
   const delayGain = useRef<GainNode | null>(null);
@@ -76,6 +77,10 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
       const attack = pad.current?.parametersById.get("poly/p_obj-18/attack");
       attack.value = 0.1;
 
+      drumFilter.current = new VariableFilter(audioContext.current);
+      bassFilter.current = new VariableFilter(audioContext.current);
+      padFilter.current = new VariableFilter(audioContext.current);
+
       audioScheduling.current = new AudioScheduler(
         tempo,
         bars,
@@ -83,6 +88,9 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
         drums.current,
         bass.current,
         pad.current,
+        drumFilter.current,
+        bassFilter.current,
+        padFilter.current,
       );
       drumsUserGain.current = setupGain(audioContext.current, 0);
       bassUserGain.current = setupGain(audioContext.current, 0);
@@ -116,9 +124,6 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
       userFilter.current = setupFilter(audioContext.current);
 
       // gpt filters
-      drumFilter.current = setupFilter(audioContext.current);
-      bassFilter.current = setupFilter(audioContext.current);
-      padFilter.current = setupFilter(audioContext.current);
 
       connectAudioNodes();
       // drums.current?.connect(drumsGPTGain.current);]
@@ -140,18 +145,27 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
       safelyConnect(userFilter.current, dryGain.current);
       safelyConnect(userFilter.current, reverbGain.current);
 
-      safelyConnect(drumFilter.current, audioContext.current.destination);
-      safelyConnect(bassFilter.current, audioContext.current.destination);
-      safelyConnect(padFilter.current, audioContext.current.destination);
+      safelyConnect(
+        drumFilter.current?.getOutputNode(),
+        audioContext.current.destination,
+      );
+      safelyConnect(
+        bassFilter.current?.getOutputNode(),
+        audioContext.current.destination,
+      );
+      safelyConnect(
+        padFilter.current?.getOutputNode(),
+        audioContext.current.destination,
+      );
 
       safelyConnect(drumsUserGain.current, userFilter.current);
-      safelyConnect(drumsGPTGain.current, drumFilter.current);
+      safelyConnect(drumsGPTGain.current, drumFilter.current?.getInputNode());
 
       safelyConnect(bassUserGain.current, userFilter.current);
-      safelyConnect(bassGPTGain.current, bassFilter.current);
+      safelyConnect(bassGPTGain.current, bassFilter.current?.getInputNode());
 
       safelyConnect(padUserGain.current, userFilter.current);
-      safelyConnect(padGPTGain.current, padFilter.current);
+      safelyConnect(padGPTGain.current, padFilter.current?.getInputNode());
       safelyConnect(pad.current?.node, padUserGain.current);
       safelyConnect(pad.current?.node, padGPTGain.current);
     } else {

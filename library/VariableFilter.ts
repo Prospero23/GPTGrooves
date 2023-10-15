@@ -39,6 +39,7 @@ export default class VariableFilter {
 
     // Set one of the filter gains to 1 as default so sound will pass through
     this.gains.lowpass.gain.value = 1;
+    this.filters.lowpass.frequency.value = 20000;
   }
 
   // Method to "switch" filters by changing the gain
