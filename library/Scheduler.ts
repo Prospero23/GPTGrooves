@@ -3,14 +3,28 @@ import { type BarType } from "./musicData";
 import noteToMidi from "./music_helpers/noteToMidi";
 import type Drums from "./Drums";
 import type Bass from "./Bass";
+import type VariableFilter from "./VariableFilter";
+
+type InstrumentType = "bass" | "pad" | "drums";
 
 export default class AudioScheduler {
   // Declare the properties of the class
   private readonly audioContext: AudioContext;
   private bars: BarType[]; // TODO: fix
   private readonly drums: Drums;
+  private readonly drumFilter: VariableFilter;
   private readonly bass: Bass;
+  private readonly bassFilter: VariableFilter;
   private readonly pad: Device;
+  private readonly padFilter: VariableFilter;
+  private readonly currentFilters: Record<InstrumentType, string> = {
+    bass: "lowpass",
+    pad: "lowpass",
+    drums: "lowpass",
+  };
+
+  private readonly changeFrequency: number;
+
   private readonly tempo: number;
   private currentStep: number;
   private currentBar: number;
@@ -28,18 +42,25 @@ export default class AudioScheduler {
     drums: Drums,
     bass: Bass,
     pad: Device,
+    drumFilter: VariableFilter,
+    bassFilter: VariableFilter,
+    padFilter: VariableFilter,
   ) {
     this.audioContext = audioContext;
     this.bars = bars; // input song we are using
 
     this.drums = drums;
+    this.drumFilter = drumFilter;
     this.bass = bass;
+    this.bassFilter = bassFilter;
     this.pad = pad;
+    this.padFilter = padFilter;
 
     this.tempo = tempo; // Now we're correctly initializing the tempo property
     this.currentStep = 0;
     this.currentBar = 0;
     this.nextNoteTime = 0;
+    this.changeFrequency = 16;
 
     this.isPlaying = false;
     this.lookahead = 20.0; // how frequent to call schedule function in ms
@@ -141,10 +162,48 @@ export default class AudioScheduler {
     }
   }
 
+  private scheduleFilter(
+    scheduleTime: number,
+    filter: VariableFilter,
+    instrument: InstrumentType,
+  ) {
+    if (this.currentStep % this.changeFrequency === 0) {
+      const instrumentInfo =
+        this.bars[this.currentBar][instrument].effects.filter;
+
+      const filterValue = instrumentInfo.filter_value;
+      const filterType = instrumentInfo.filter_type;
+
+      // skip if the filter is not present at this moment
+      if (instrumentInfo.filter_type === "") {
+        return; // Skip the rest of this function if 'filter_type' is empty.
+      }
+      // change freq
+      filter.changeFrequency(filterValue[0], filterType, scheduleTime);
+      // only change filter if not the same as the current
+      if (this.currentFilters[instrument] !== instrumentInfo.filter_type) {
+        this.currentFilters[instrument] = instrumentInfo.filter_type; // Update the current filter type
+        filter.switchFilter(
+          instrumentInfo.filter_type as BiquadFilterType,
+          scheduleTime,
+        );
+      }
+    }
+  }
+
+  private scheduleFilters(audioContextTime: number) {
+    this.scheduleFilter(audioContextTime, this.drumFilter, "drums");
+    this.scheduleFilter(audioContextTime, this.bassFilter, "bass");
+    this.scheduleFilter(audioContextTime, this.padFilter, "pad");
+  }
+
   private scheduleEvents(audioContextTime: number) {
     this.scheduleDrums(audioContextTime);
     this.scheduleBass(audioContextTime);
     this.schedulePad(audioContextTime);
+    if (this.bars[this.currentBar].drums.effects != null) {
+      this.scheduleFilters(audioContextTime); // only do if this is defined
+    }
   }
 
   private scheduler() {
