@@ -1,10 +1,20 @@
-export default class VariableFilter {
-  private readonly context: AudioContext;
-  private readonly filters: Record<string, BiquadFilterNode>;
-  private readonly gains: Record<string, GainNode>;
-  private readonly inputGain: GainNode; // New GainNode to act as input
-  private readonly masterGain: GainNode;
+/**
+ * The Variable Filter class allows for quick switching between different types of Biquad filters
+ * with no clipping and allows for future scheduling of filter changes.
+ * @class
+ */
 
+export default class VariableFilter {
+  private readonly context: AudioContext; // The parent AudioContext
+  private readonly filters: Record<string, BiquadFilterNode>; // all the filters
+  private readonly gains: Record<string, GainNode>; // all the filter gains
+  private readonly inputGain: GainNode; // GainNode to take input
+  private readonly masterGain: GainNode; // GainNode to send output
+
+  /**
+   * Creates an instance of VariableFilter
+   * @param {AudioContext} context - the containing audio context for the filter.
+   */
   constructor(context: AudioContext) {
     this.context = context;
 
@@ -17,15 +27,19 @@ export default class VariableFilter {
     // Create master gain (acting as a mixer)
     this.masterGain = this.context.createGain();
 
-    // Define the types of filters you plan to use
+    /**
+     * Types of filters available.
+     * @type {BiquadFilterType[]}
+     */
     const types: BiquadFilterType[] = ["lowpass", "highpass", "bandpass"];
 
+    // create all of the filters + gains by iterating through types
     types.forEach((type) => {
       const filter = this.context.createBiquadFilter();
       filter.type = type;
 
       const gain = this.context.createGain();
-      gain.gain.value = 0; // Initially silent
+      gain.gain.value = 0; // all gains are initially silent
 
       // Connect the input to each filter
       this.inputGain.connect(filter);
@@ -39,10 +53,14 @@ export default class VariableFilter {
 
     // Set one of the filter gains to 1 as default so sound will pass through
     this.gains.lowpass.gain.value = 1;
-    this.filters.lowpass.frequency.value = 20000;
+    this.filters.lowpass.frequency.value = 20000; // set the init value near Nyquist
   }
 
-  // Method to "switch" filters by changing the gain
+  /**
+   * Method to schedule the switch of the filter type being used
+   * @param {BiquadFilterType} type - the new filter type
+   * @param {number} audioContextTime - time to schedule change for
+   */
   switchFilter(type: BiquadFilterType, audioContextTime: number) {
     // Fade out all filters
     Object.values(this.gains).forEach((gain) => {
@@ -53,6 +71,12 @@ export default class VariableFilter {
     this.gains[type].gain.setValueAtTime(1, audioContextTime);
   }
 
+  /**
+   * Method to schedule frequency change.
+   * @param {number} normalizedValue - normalized value for the degree of filter activation (0.0- 1.0).
+   * @param {string} filterType - type of filter (lowpass, highpass, bandpass)
+   * @param {number} audioContextTime - time to schedule frequency change
+   */
   changeFrequency(
     normalizedValue: number,
     filterType: string,
@@ -85,11 +109,18 @@ export default class VariableFilter {
     currentFilter.frequency.setValueAtTime(frequency, audioContextTime);
   }
 
-  // Method to get the master output node
+  /**
+   * Method to retrieve output node for connections
+   * @returns {GainNode} The GainNode used as the output.
+   */
   getOutputNode() {
     return this.masterGain;
   }
 
+  /**
+   * Method to retrieve the input node for connections.
+   * @returns {GainNode} - The GainNode used for the input.
+   */
   getInputNode() {
     return this.inputGain;
   }

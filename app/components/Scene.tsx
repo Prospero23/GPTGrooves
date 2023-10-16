@@ -53,56 +53,21 @@ export default function Scene({
     // setScheduleAhead,
   } = useAudioScheduler({ songs }); // TODO: just move all of these functions to the child components
 
-  const numberDates = dates.length; // number of dates
+  const numberDates = dates.length;
+
+  // switches user/generated effects
   useEffect(() => {
     switchEffectsGen(isUserEffects);
   }, [isUserEffects, switchEffectsGen]);
 
-  // start of resize logic. Need to fix worker not closing after
-  // const resizeTimeout = useRef<number | undefined>(undefined);
-
-  // const debounceResize = (callback: CallbackFunction, wait: number) => {
-  //   return function executedFunction(...args: any[]) {
-  //     const later = () => {
-  //       // Clear the timeout reference
-  //       if (resizeTimeout != null) {
-  //         window.clearTimeout(resizeTimeout.current);
-  //       }
-  //       resizeTimeout.current = undefined;
-
-  //       // Assuming no error, so we pass null as the first argument
-  //       callback(null, ...args);
-  //     };
-
-  //     // Clear the previous timeout if it exists
-  //     if (resizeTimeout != null) {
-  //       clearTimeout(resizeTimeout.current);
-  //     }
-
-  //     // Set up the new timeout
-  //     resizeTimeout.current = window.setTimeout(later, wait);
-  //   };
-  // };
-
-  // useEffect(() => {
-  //   const handleResize = debounceResize(() => {
-  //     if (resizeTimeout.current == null) {
-  //       setScheduleAhead(500);
-  //     } else {
-  //       setScheduleAhead(100);
-  //     }
-  //   }, 500);
-
-  //   window.addEventListener("resize", handleResize);
-
-  //   // Cleanup event listeners on component unmount
-  //   return () => {
-  //     window.removeEventListener("resize", handleResize);
-  //   };
-  // }, [setScheduleAhead]);
-
   return (
-    <Canvas camera={{ position: [0, 11, 13.6], fov: 75 }} linear flat shadows>
+    <Canvas
+      camera={{ position: [0, 11, 13.6], fov: 75 }}
+      linear
+      flat
+      shadows
+      resize={{ debounce: { scroll: 50, resize: 500 } }} // Debounce resize events
+    >
       <InitAudio
         isInitialized={audioInitialized}
         set={setAudioInitialized}

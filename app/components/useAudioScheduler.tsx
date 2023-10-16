@@ -17,17 +17,32 @@ import Drums from "@/library/Drums";
 import Bass from "@/library/Bass";
 import VariableFilter from "@/library/VariableFilter";
 
-// debounce the scene resize
+/**
+ * Custom hook to handle the audio generation of the generated output.
+ * @param {SongType[]} songs - All of the songs generated as a list.
+ * @returns {Object} An object containing:
+ *  - isPlaying (boolean): Represents if the audio is currently playing.
+ *  - currentSong (number): The index of the current song being processed.
+ *  - setFilterFrequency (function): Function to set the frequency of the filter.
+ *  - setDelayFeedback (function): Function to set the feedback of the delay.
+ *  - setReverbLevel (function): Function to set the level of the reverb.
+ *  - setDelayTime (function): Function to set the time of the delay.
+ *  - setIsPlaying (function): Function to set the playing status.
+ *  - setCurrentSong (function): Function to set the current song.
+ *  - switchEffectsGen (function): Function to switch between user and generated effects.
+ *  - init (function): Function to initialize audio nodes and contexts.
+ *  - setScheduleAhead (function): Function to set the scheduling ahead time.
+ */
 
 export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentSong, setCurrentSong] = useState<number>(0);
 
+  // Creates an array of bars for the current song.
   const bars = useMemo(() => {
     return songs[currentSong].sections.flatMap((section) => section.bars);
   }, [songs, currentSong]);
 
-  // audio devices and context
   const audioContext = useRef<AudioContext | null>(null);
   const audioScheduling = useRef<AudioScheduler | null>(null);
   const tempo = 130;
@@ -58,6 +73,9 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
   const userFilter = useRef<BiquadFilterNode | null>(null);
 
+  /**
+   * Initializes the audio. Must be called from a user event.
+   */
   async function init() {
     // @ts-expect-error this is for compat
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
@@ -75,12 +93,13 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
         "/export/pad/pad.export.json",
       );
       const attack = pad.current?.parametersById.get("poly/p_obj-18/attack");
-      attack.value = 0.1;
+      attack.value = 0.1; // The attack is shorter to make the hits feel tighter
 
       drumFilter.current = new VariableFilter(audioContext.current);
       bassFilter.current = new VariableFilter(audioContext.current);
       padFilter.current = new VariableFilter(audioContext.current);
 
+      // initializes the audio scheduling class
       audioScheduling.current = new AudioScheduler(
         tempo,
         bars,
@@ -130,6 +149,9 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
     }
   }
 
+  /**
+   * Safely handles all of the audio connection logic.
+   */
   function connectAudioNodes() {
     // connection hub
     if (audioContext.current != null) {
@@ -173,11 +195,8 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
     }
   }
 
-  // AUDIO scheduling in action
+  // Start/Stop audio scheduling based off isPlaying
   useEffect(() => {
-    // if (audioContext.current?.state === "suspended") {
-    //   void audioContext.current?.resume();
-    // }
     if (isPlaying && audioContext.current != null) {
       // start playing
       audioScheduling.current?.play();
@@ -185,27 +204,39 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
     } else if (!isPlaying) {
       // stop
       audioScheduling.current?.stop();
-
-      // console.log("this is the timer ID:", timerID.current)
+      // TODO: better error handle
     }
   }, [isPlaying]);
 
+  // set the bars in the scheduler based off of bars changing
   useEffect(() => {
     audioScheduling.current?.setBars(bars);
   }, [bars]);
-  // update filter freq
+
+  /**
+   * Set the frequency of the user lowpass filter
+   * @param value - number (0-100) that will be scaled into new frequency of user filter
+   */
   function setFilterFrequency(value: number) {
     const scaledValue = scaleExponential(value, 0, 100, 60, 22050, 4);
     if (userFilter.current != null) {
       userFilter.current.frequency.value = scaledValue;
     }
   }
+  /**
+   * Set the amount of feedback on the delay
+   * @param value - number (0-100) that will be scaled to control gain of feedback
+   */
   function setDelayFeedback(value: number) {
     const scaledValue = scaleValue(value, 0, 100, 0.1, 0.99);
     if (delayFeedback.current != null) {
       delayFeedback.current.gain.value = scaledValue;
     }
   }
+  /**
+   * Sets the time of the delay can be zero, 16th note, 8th note, or quarter
+   * @param value number (0-100) to set delay. Higher number means longer delay.
+   */
   function setDelayTime(value: number) {
     // zero, 16th, 8th, quarter
     const scaledValue = Math.floor(scaleValue(value, 0, 100, 0, 3));
@@ -219,6 +250,10 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
       }
     }
   }
+  /**
+   * Controls dry/wet of the user reverb
+   * @param value - number (0-100). Higher number = more reverb less dry.
+   */
   function setReverbLevel(value: number) {
     const scaledValue = value / 100;
     if (reverbGain.current != null && dryGain.current != null) {
@@ -226,6 +261,10 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
       dryGain.current.gain.value = 1 - scaledValue;
     }
   }
+  /**
+   * Function to switch between user and generated control of the effects. Other type is muted when switched.
+   * @param isUserEffects - self describing. Is the user controlling effects?
+   */
   function switchEffectsGen(isUserEffects: boolean) {
     if (
       bassGPTGain.current !== null &&
@@ -252,6 +291,10 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
       }
     }
   }
+  /**
+   * function to change how long ahead the scheduler does its scheduling
+   * @param amount - time in seconds
+   */
   function setScheduleAhead(amount: number) {
     audioScheduling.current?.setScheduleAheadTime(amount);
   }

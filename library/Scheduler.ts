@@ -7,6 +7,11 @@ import type VariableFilter from "./VariableFilter";
 
 type InstrumentType = "bass" | "pad" | "drums";
 
+/**
+ * A class that handles all of the audio scheduling. Based off the scheduler in the article "A Tale of Two Clocks" (https://web.dev/articles/audio-scheduling)
+ * It uses a web worker in order to make Timeout calls off of the main thread that schedule events in the future based off some fixed interval.
+ */
+
 export default class AudioScheduler {
   // Declare the properties of the class
   private readonly audioContext: AudioContext;
@@ -74,50 +79,63 @@ export default class AudioScheduler {
     this.timerWorker.postMessage({ interval: this.lookahead });
   }
 
-  // advance to the next note in the sequence
+  /**
+   * Function that advances the nextNoteTime of the scheduler by one step (16th note) and also increments currentStep and currentBar.
+   */
   private nextNote() {
     const secondsPerBeat = 60.0 / this.tempo;
 
-    this.nextNoteTime += 0.25 * secondsPerBeat;
+    this.nextNoteTime += 0.25 * secondsPerBeat; // adds the time (seconds) of one step to give the new audioContext time.
 
     this.currentStep++;
-    // console.log("next note time", this.nextNoteTime, this.currentStep);
 
     if (this.currentStep === 16) {
-      // wrap 16 to 0
+      // wrap end of bar to next bar
       this.currentStep = 0;
       this.currentBar++;
-      // console.log(this.bars[this.currentBar]);
     }
   }
 
-  private scheduleDrums(audioContextTime: number) {
+  /**
+   * Simple: Handles drum scheduling. Checks to make sure that each instrument in drums (kick, snare, and hi-hat) have arrays before accessing them
+   * to play if the current step contains a 1 for that instrument.
+   * @param scheduleTime - AudioContext time that the play event should be scheduled at.
+   */
+  private scheduleDrums(scheduleTime: number) {
     const drums = this.bars[this.currentBar].drums;
 
     // Check if 'hi_hat' is an array and if the current step is a trigger for playing the sound
     if (Array.isArray(drums.hi_hat) && drums.hi_hat[this.currentStep] === 1) {
-      this.drums.playHat(audioContextTime);
+      this.drums.playHat(scheduleTime);
     }
 
     if (Array.isArray(drums.kick) && drums.kick[this.currentStep] === 1) {
-      this.drums.playKick(audioContextTime);
+      this.drums.playKick(scheduleTime);
     }
 
     if (Array.isArray(drums.snare) && drums.snare[this.currentStep] === 1) {
-      this.drums.playSnare(audioContextTime);
+      this.drums.playSnare(scheduleTime);
     }
   }
 
-  private scheduleBass(audioContextTime: number) {
+  /**
+   * schedule dat bass. Makes sure that the pattern is an array and that the generated value is VALID.
+   * @param scheduleTime - AudioContext time that the play event should be scheduled at.
+   */
+  private scheduleBass(scheduleTime: number) {
     const bassData = this.bars[this.currentBar].bass;
     if (Array.isArray(bassData.pattern)) {
       const bassNote = noteToMidi(bassData.pattern[this.currentStep]);
       if (!isNaN(bassNote)) {
-        this.bass.playNote(bassNote, audioContextTime);
-        this.bass.noteOff(bassNote, audioContextTime + 0.1); // FIX NOTE OFF
+        this.bass.playNote(bassNote, scheduleTime);
+        this.bass.noteOff(bassNote, scheduleTime + 0.1); // FIX NOTE OFF
       }
     }
   }
+  /**
+   * schedule thePAD. Makes RNBO Midi messages for note on and off scheduling. Makes sure that the chords are an array before playing.
+   * @param scheduleTime - AudioContext time that the play event should be scheduled at.
+   */
 
   private schedulePad(audioContextTime: number) {
     const padInstance = this.pad;
@@ -161,6 +179,12 @@ export default class AudioScheduler {
       });
     }
   }
+  /**
+   * Schedules a filter change. Does nothing if filter type is an empty string and only changes the type of filter if the current and new filter are different
+   * @param scheduleTime - time at which to schedule the filter changes
+   * @param filter - which instrument filter you are scheduling
+   * @param instrument - which instrument it is for
+   */
 
   private scheduleFilter(
     scheduleTime: number,
@@ -191,12 +215,19 @@ export default class AudioScheduler {
     }
   }
 
-  private scheduleFilters(audioContextTime: number) {
-    this.scheduleFilter(audioContextTime, this.drumFilter, "drums");
-    this.scheduleFilter(audioContextTime, this.bassFilter, "bass");
-    this.scheduleFilter(audioContextTime, this.padFilter, "pad");
+  /**
+   * Small method to schedule the filters for the three instruments
+   */
+  private scheduleFilters(scheduleTime: number) {
+    this.scheduleFilter(scheduleTime, this.drumFilter, "drums");
+    this.scheduleFilter(scheduleTime, this.bassFilter, "bass");
+    this.scheduleFilter(scheduleTime, this.padFilter, "pad");
   }
 
+  /**
+   * method that calls all of the schedule methods. Only calls filter scheduling if filters exist on the bars
+   * @param audioContextTime - the time at which to schedule all the events
+   */
   private scheduleEvents(audioContextTime: number) {
     this.scheduleDrums(audioContextTime);
     this.scheduleBass(audioContextTime);
@@ -234,6 +265,9 @@ export default class AudioScheduler {
     console.error(`Worker error: ${e.message}`);
   };
 
+  /**
+   * start scheduling
+   */
   play() {
     if (!this.isPlaying) {
       this.isPlaying = true;
@@ -246,6 +280,9 @@ export default class AudioScheduler {
     }
   }
 
+  /**
+   * stop scheduling
+   */
   stop() {
     if (this.isPlaying) {
       this.isPlaying = false;
@@ -256,6 +293,10 @@ export default class AudioScheduler {
     }
   }
 
+  /**
+   * Set the current song that is being played
+   * @param bars the new song to use.
+   */
   setBars(bars: BarType[]) {
     // if (
     //   !Array.isArray(bars) ||
