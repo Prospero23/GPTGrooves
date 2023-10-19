@@ -50,7 +50,6 @@ export default function Scene({
     setReverbLevel,
     switchEffectsGen,
     init,
-    // setScheduleAhead,
   } = useAudioScheduler({ songs }); // TODO: just move all of these functions to the child components
 
   const numberDates = dates.length;
