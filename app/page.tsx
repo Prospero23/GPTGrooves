@@ -8,7 +8,7 @@ export default async function Home() {
     const utcDate = new Date(item.created_at_utc);
     const day = utcDate.getUTCDate();
     const month = utcDate.toLocaleString("default", { month: "long" });
-    const year = utcDate.getFullYear() + 1; // +1 to make 0-11 -> 1-12
+    const year = utcDate.getFullYear(); // +1 to make 0-11 -> 1-12
 
     return { month, day, year };
   });
