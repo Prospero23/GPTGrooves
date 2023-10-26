@@ -443,7 +443,13 @@ class SongSection(BaseModel):
         :param effects: A SectionEffects object
         """
         for index, bar in enumerate(self.bars):
-            bar.apply_effects(effects=effects.bars[index])
+            try:
+                bar.apply_effects(effects=effects.bars[index])
+            except IndexError:
+                logger.warning(
+                    f"IndexError when attempting to apply effect[{index}] to bar[{index}]"
+                )
+                continue
 
 
 class Song(BaseModel):
