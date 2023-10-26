@@ -1,11 +1,21 @@
 import { type Device, type MIDIData, MIDIEvent } from "@rnbo/js";
-import { type BarType } from "./musicData";
+import { type FilterInformationType, type BarType } from "./musicData";
 import noteToMidi from "./music_helpers/noteToMidi";
 import type Drums from "./Drums";
 import type Bass from "./Bass";
 import type VariableFilter from "./VariableFilter";
 
 type InstrumentType = "bass" | "pad" | "drums";
+function isBiquadFilterType(type: any): type is BiquadFilterType {
+  return [
+    "lowpass",
+    "highpass",
+    "bandpass",
+    "notch",
+    "allpass",
+    "peaking",
+  ].includes(type);
+}
 
 /**
  * A class that handles all of the audio scheduling. Based off the scheduler in the article "A Tale of Two Clocks" (https://web.dev/articles/audio-scheduling)
@@ -93,6 +103,7 @@ export default class AudioScheduler {
       // wrap end of bar to next bar
       this.currentStep = 0;
       this.currentBar++;
+      console.log(this.bars[this.currentBar]);
     }
   }
 
@@ -191,26 +202,68 @@ export default class AudioScheduler {
     filter: VariableFilter,
     instrument: InstrumentType,
   ) {
+    // only schedule filter at specified freq
     if (this.currentStep % this.changeFrequency === 0) {
-      const instrumentInfo =
-        this.bars[this.currentBar][instrument].effects.filter;
+      const bar = this.bars[this.currentBar];
+
+      // hotfix for data being structured the wrong way (sometimes no filter:{filter_type ...} just {filter_type ...})
+      const restructuredData: FilterInformationType = {
+        filter_type: "",
+        filter_value: [],
+      };
+
+      const effectInfo = bar?.[instrument]?.effects;
+
+      // check if filter does not exist
+      if (effectInfo.filter === undefined) {
+        // if effects exist, populate what is in effects into filter (better patch to datatype can be made)
+        if (effectInfo !== undefined) {
+          const unknownEffectType = effectInfo as unknown;
+          const EffectHotfix = unknownEffectType as FilterInformationType;
+          restructuredData.filter_type = EffectHotfix.filter_type;
+          restructuredData.filter_value = EffectHotfix.filter_value;
+        } else {
+          return; // Exit if the required properties are not present
+        }
+      } else {
+        // runs if the data is in the proper format
+        restructuredData.filter_type = effectInfo.filter.filter_type;
+        restructuredData.filter_value = effectInfo.filter.filter_value;
+      }
+      console.log(instrument, restructuredData);
+      // have the fixed structure be used as the info
+      const instrumentInfo = restructuredData;
 
       const filterValue = instrumentInfo.filter_value;
       const filterType = instrumentInfo.filter_type;
 
-      // skip if the filter is not present at this moment
-      if (instrumentInfo.filter_type === "") {
-        return; // Skip the rest of this function if 'filter_type' is empty.
+      // // Skip if the filter type or value is not present at this moment DO NOT NEED THIS ATM
+      // if (filterType.length === 0 || filterValue === undefined) {
+      //   return;
+      // }
+      // sometimes the python outputs "hipass" instead of "highpass"
+      let checkedFilterType: string = "hipass";
+      // change hipass to highpass
+      if (filterType === "hipass") {
+        checkedFilterType = "highpass";
+      } else {
+        checkedFilterType = filterType;
       }
-      // change freq
-      filter.changeFrequency(filterValue[0], filterType, scheduleTime);
-      // only change filter if not the same as the current
-      if (this.currentFilters[instrument] !== instrumentInfo.filter_type) {
-        this.currentFilters[instrument] = instrumentInfo.filter_type; // Update the current filter type
-        filter.switchFilter(
-          instrumentInfo.filter_type as BiquadFilterType,
-          scheduleTime,
-        );
+      // makes sure that nothing will blow up. Skips when GPT sucks at following instructions
+      if (!isBiquadFilterType(checkedFilterType)) {
+        filter.switchFilter("lowpass", scheduleTime);
+        filter.changeFrequency(0, "lowpass", scheduleTime);
+        return;
+      }
+
+      // Change frequency
+      filter.changeFrequency(filterValue[0], checkedFilterType, scheduleTime);
+      console.log(checkedFilterType, filterValue);
+
+      // Only change filter if not the same as the current
+      if (this.currentFilters[instrument] !== checkedFilterType) {
+        this.currentFilters[instrument] = checkedFilterType; // Update the current filter type
+        filter.switchFilter(checkedFilterType, scheduleTime);
       }
     }
   }

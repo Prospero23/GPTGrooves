@@ -96,8 +96,7 @@ export default class VariableFilter {
     if (filterType === "lowpass") {
       // For lowpass, 1 is very low freq and 0 is very high freq
       frequency = minFreq * Math.exp(scaleFactor * (1 - normalizedValue));
-    }
-    if (filterType === "highpass" || filterType === "bandpass") {
+    } else if (filterType === "highpass" || filterType === "bandpass") {
       // For highpass, 0 is very low freq and 1 is very high freq
       frequency = minFreq * Math.exp(scaleFactor * normalizedValue);
     } else {
