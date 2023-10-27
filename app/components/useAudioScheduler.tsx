@@ -93,7 +93,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
         "/export/pad/pad.export.json",
       );
       const attack = pad.current?.parametersById.get("poly/p_obj-18/attack");
-      attack.value = 0.1; // The attack is shorter to make the hits feel tighter
+      attack.value = 0.18; // The attack is shorter to make the hits feel tighter
 
       drumFilter.current = new VariableFilter(audioContext.current);
       bassFilter.current = new VariableFilter(audioContext.current);
@@ -117,7 +117,6 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
 
       drumsGPTGain.current = setupGain(audioContext.current, 0);
       bassGPTGain.current = setupGain(audioContext.current, 0);
-      bassGPTGain.current.gain.value = 0.5;
       padGPTGain.current = setupGain(audioContext.current, 0);
 
       // make delay w feedback
@@ -262,7 +261,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
     }
   }
   /**
-   * Function to switch between user and generated control of the effects. Other type is muted when switched.
+   * Function to switch between user and generated control of the effects. Other type is muted when switched. USE THIS TO DO THE MIX
    * @param isUserEffects - self describing. Is the user controlling effects?
    */
   function switchEffectsGen(isUserEffects: boolean) {
@@ -278,13 +277,13 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
         bassGPTGain.current.gain.value = 0;
         drumsGPTGain.current.gain.value = 0;
         padGPTGain.current.gain.value = 0;
-        bassUserGain.current.gain.value = 1;
-        drumsUserGain.current.gain.value = 1;
-        padUserGain.current.gain.value = 1;
+        bassUserGain.current.gain.value = 0.07;
+        drumsUserGain.current.gain.value = 0.12;
+        padUserGain.current.gain.value = 0.1;
       } else {
-        drumsGPTGain.current.gain.value = 1;
-        bassGPTGain.current.gain.value = 1;
-        padGPTGain.current.gain.value = 1;
+        drumsGPTGain.current.gain.value = 0.12;
+        bassGPTGain.current.gain.value = 0.07;
+        padGPTGain.current.gain.value = 0.1;
         bassUserGain.current.gain.value = 0;
         drumsUserGain.current.gain.value = 0;
         padUserGain.current.gain.value = 0;

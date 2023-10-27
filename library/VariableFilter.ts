@@ -123,4 +123,20 @@ export default class VariableFilter {
   getInputNode() {
     return this.inputGain;
   }
+
+  /**
+   * Method to reset all filters to default state.
+   */
+  reset(audioContextTime: number) {
+    // Reset gains for all filters
+    Object.values(this.gains).forEach((gain) => {
+      gain.gain.setValueAtTime(0, audioContextTime);
+    });
+
+    // Set default filter (lowpass) gain to 1
+    this.gains.lowpass.gain.setValueAtTime(1, audioContextTime);
+
+    // Set default filter (lowpass) frequency to a high value (near Nyquist frequency)
+    this.filters.lowpass.frequency.setValueAtTime(20000, audioContextTime);
+  }
 }

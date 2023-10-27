@@ -202,7 +202,7 @@ export default class AudioScheduler {
     filter: VariableFilter,
     instrument: InstrumentType,
   ) {
-    // only schedule filter at specified freq
+    // only schedule filter at specified resolution (default is 1)
     if (this.currentStep % this.changeFrequency === 0) {
       const bar = this.bars[this.currentBar];
 
@@ -233,7 +233,6 @@ export default class AudioScheduler {
       console.log(instrument, restructuredData);
       // have the fixed structure be used as the info
       const instrumentInfo = restructuredData;
-
       const filterValue = instrumentInfo.filter_value;
       const filterType = instrumentInfo.filter_type;
 
@@ -255,6 +254,8 @@ export default class AudioScheduler {
         filter.changeFrequency(0, "lowpass", scheduleTime);
         return;
       }
+      const secondsPerBeat = 60 / this.tempo;
+      // const timeBetweenFilterChanges = secondsPerBeat
 
       // Change frequency
       filter.changeFrequency(filterValue[0], checkedFilterType, scheduleTime);
@@ -340,7 +341,10 @@ export default class AudioScheduler {
     if (this.isPlaying) {
       this.isPlaying = false;
       this.timerWorker?.postMessage("stop"); // Stop the worker
-      // ... [rest of your stopping logic]
+      this.bassFilter.reset(this.audioContext.currentTime); // reset all the filters
+      this.drumFilter.reset(this.audioContext.currentTime);
+      this.padFilter.reset(this.audioContext.currentTime);
+      // ... [rest of stopping logic]
     } else {
       console.log("Already stopped");
     }
