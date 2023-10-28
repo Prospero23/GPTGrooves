@@ -14,6 +14,7 @@ import Author from "@/app/components/assets/Author";
 import Album from "@/app/components/assets/Album";
 import PlayState from "@/app/components/assets/PlayState";
 import UserToggle from "./assets/UserToggle";
+import EffectToggle from "@/app/components/assets/EffectToggle";
 import EffectSliders from "./assets/EffectSliders";
 import useAudioScheduler from "./useAudioScheduler";
 
@@ -35,6 +36,7 @@ export default function Scene({
   songs: SongType[];
   dates: GenDate[];
 }) {
+  const [isEffects, setIsEffects] = useState<boolean>(true);
   const [isUserEffects, setIsUserEffects] = useState<boolean>(false);
   const [orbitEndabled, setOrbitEnabled] = useState<boolean>(true);
   const [audioInitialized, setAudioInitialized] = useState<boolean>(false);
@@ -108,19 +110,25 @@ export default function Scene({
           setIsPlaying={setIsPlaying}
         />
         <PlayState isPlaying={isPlaying} />
-        <UserToggle
-          userActions={isUserEffects}
-          setUserActions={setIsUserEffects}
-        />
-        <EffectSliders
-          count={4}
-          visible={isUserEffects}
-          setOrbitEndabled={setOrbitEnabled}
-          setFilterFreq={setFilterFrequency}
-          setDelayFeedback={setDelayFeedback}
-          setDelayTime={setDelayTime}
-          setReverbLevel={setReverbLevel}
-        />
+        <EffectToggle effectToggle={isEffects} setEffectToggle={setIsEffects} />
+        {isEffects && (
+          <>
+            <UserToggle
+              userActions={isUserEffects}
+              setUserActions={setIsUserEffects}
+            />
+
+            <EffectSliders
+              count={4}
+              visible={isUserEffects}
+              setOrbitEndabled={setOrbitEnabled}
+              setFilterFreq={setFilterFrequency}
+              setDelayFeedback={setDelayFeedback}
+              setDelayTime={setDelayTime}
+              setReverbLevel={setReverbLevel}
+            />
+          </>
+        )}
       </group>
     </Canvas>
   );
