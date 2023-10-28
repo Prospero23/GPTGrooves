@@ -236,10 +236,6 @@ export default class AudioScheduler {
       const filterValue = instrumentInfo.filter_value;
       const filterType = instrumentInfo.filter_type;
 
-      // // Skip if the filter type or value is not present at this moment DO NOT NEED THIS ATM
-      // if (filterType.length === 0 || filterValue === undefined) {
-      //   return;
-      // }
       // sometimes the python outputs "hipass" instead of "highpass"
       let checkedFilterType: string = "hipass";
       // change hipass to highpass
@@ -255,10 +251,16 @@ export default class AudioScheduler {
         return;
       }
       const secondsPerBeat = 60 / this.tempo;
+      const timeTillNextBar =
+        (secondsPerBeat * 4) / (16 / this.changeFrequency); // get a full bar
       // const timeBetweenFilterChanges = secondsPerBeat
 
       // Change frequency
-      filter.changeFrequency(filterValue[0], checkedFilterType, scheduleTime);
+      filter.changeFrequency(
+        filterValue[0],
+        checkedFilterType,
+        scheduleTime + timeTillNextBar,
+      );
       console.log(checkedFilterType, filterValue);
 
       // Only change filter if not the same as the current
