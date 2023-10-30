@@ -14,12 +14,12 @@ import Author from "@/app/components/assets/Author";
 import Album from "@/app/components/assets/Album";
 import PlayState from "@/app/components/assets/PlayState";
 import UserToggle from "./assets/UserToggle";
-import EffectToggle from "@/app/components/assets/EffectToggle";
 import EffectSliders from "./assets/EffectSliders";
 import useAudioScheduler from "./useAudioScheduler";
 
 import { type SongType } from "@/library/musicData";
 import InitAudio from "./assets/InitAudio";
+import Description from "./assets/Description";
 
 interface GenDate {
   day: number;
@@ -36,7 +36,6 @@ export default function Scene({
   songs: SongType[];
   dates: GenDate[];
 }) {
-  const [isEffects, setIsEffects] = useState<boolean>(true);
   const [isUserEffects, setIsUserEffects] = useState<boolean>(false);
   const [orbitEndabled, setOrbitEnabled] = useState<boolean>(true);
   const [audioInitialized, setAudioInitialized] = useState<boolean>(false);
@@ -74,17 +73,19 @@ export default function Scene({
         set={setAudioInitialized}
         initializeAudio={init}
       />
+      {!audioInitialized ? <Description /> : ""}
       <Plane
         rotation={[(Math.PI * 3) / 2, 0, 0]}
         scale={40}
         position={[0, -0.1, -10]}
         receiveShadow
+        castShadow
       >
         <meshLambertMaterial color={"white"} emissive={"white"} />
       </Plane>
       <directionalLight
-        position={[0, 20, 10]}
-        intensity={1.0}
+        position={[0, 5, 10]}
+        intensity={0.5}
         castShadow
         color={"white"}
       />
@@ -110,25 +111,20 @@ export default function Scene({
           setIsPlaying={setIsPlaying}
         />
         <PlayState isPlaying={isPlaying} />
-        <EffectToggle effectToggle={isEffects} setEffectToggle={setIsEffects} />
-        {isEffects && (
-          <>
-            <UserToggle
-              userActions={isUserEffects}
-              setUserActions={setIsUserEffects}
-            />
+        <UserToggle
+          userActions={isUserEffects}
+          setUserActions={setIsUserEffects}
+        />
 
-            <EffectSliders
-              count={4}
-              visible={isUserEffects}
-              setOrbitEndabled={setOrbitEnabled}
-              setFilterFreq={setFilterFrequency}
-              setDelayFeedback={setDelayFeedback}
-              setDelayTime={setDelayTime}
-              setReverbLevel={setReverbLevel}
-            />
-          </>
-        )}
+        <EffectSliders
+          count={4}
+          visible={isUserEffects}
+          setOrbitEndabled={setOrbitEnabled}
+          setFilterFreq={setFilterFrequency}
+          setDelayFeedback={setDelayFeedback}
+          setDelayTime={setDelayTime}
+          setReverbLevel={setReverbLevel}
+        />
       </group>
     </Canvas>
   );

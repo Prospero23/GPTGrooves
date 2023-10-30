@@ -7,7 +7,7 @@ export default function Album({ year }: { year: number }) {
     <Text3D
       font={"/fonts/ChicagoFLF_Regular.json"}
       scale={1}
-      position={[-3.5, 0.0, -3]}
+      position={[-4.5, 0.0, -3]}
       castShadow
     >
       <meshLambertMaterial color="white" emissive="grey" />

@@ -103,7 +103,7 @@ export default class AudioScheduler {
       // wrap end of bar to next bar
       this.currentStep = 0;
       this.currentBar++;
-      console.log(this.bars[this.currentBar]);
+      // console.log(this.bars[this.currentBar]);
     }
   }
 
@@ -230,7 +230,7 @@ export default class AudioScheduler {
         restructuredData.filter_type = effectInfo.filter.filter_type;
         restructuredData.filter_value = effectInfo.filter.filter_value;
       }
-      console.log(instrument, restructuredData);
+      // console.log(instrument, restructuredData);
       // have the fixed structure be used as the info
       const instrumentInfo = restructuredData;
       const filterValue = instrumentInfo.filter_value;
@@ -261,7 +261,7 @@ export default class AudioScheduler {
         checkedFilterType,
         scheduleTime + timeTillNextBar,
       );
-      console.log(checkedFilterType, filterValue);
+      // console.log(checkedFilterType, filterValue);
 
       // Only change filter if not the same as the current
       if (this.currentFilters[instrument] !== checkedFilterType) {
