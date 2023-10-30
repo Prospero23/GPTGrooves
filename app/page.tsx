@@ -6,7 +6,7 @@ export default async function Home() {
   try {
     result = await getSongs();
   } catch (e) {
-    throw Error(e);
+    throw Error("Error fetching songs");
   }
   const bars = result;
   const songsArray = bars.map((item) => item.song);
