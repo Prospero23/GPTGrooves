@@ -2,7 +2,13 @@ import { getSongs } from "@/library/db";
 import Scene from "./components/Scene";
 // import PlayButton from "./components/PlayButton";
 export default async function Home() {
-  const bars = await getSongs();
+  let result;
+  try {
+    result = await getSongs();
+  } catch (e) {
+    throw Error(e);
+  }
+  const bars = result;
   const songsArray = bars.map((item) => item.song);
   const datesArray = bars.map((item) => {
     const utcDate = new Date(item.created_at_utc);

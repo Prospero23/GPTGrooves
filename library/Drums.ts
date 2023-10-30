@@ -20,9 +20,9 @@ export default class Drums {
   }
 
   private async loadSamples() {
-    this.kickSample = await this.loadSample("export/drums/media/kick.wav");
-    this.snareSample = await this.loadSample("export/drums/media/snare.wav");
-    this.hatSample = await this.loadSample("export/drums/media/hi-hat.wav");
+    this.kickSample = await this.loadSample("/export/drums/media/kick.wav");
+    this.snareSample = await this.loadSample("/export/drums/media/snare.wav");
+    this.hatSample = await this.loadSample("/export/drums/media/hi-hat.wav");
   }
 
   private async loadSample(url: string) {
