@@ -20,6 +20,7 @@ import useAudioScheduler from "./useAudioScheduler";
 import { type SongType } from "@/library/musicData";
 import InitAudio from "./assets/InitAudio";
 import Description from "./assets/Description";
+import { A11yAnnouncer } from "@react-three/a11y";
 
 interface GenDate {
   day: number;
@@ -61,71 +62,74 @@ export default function Scene({
   }, [isUserEffects, switchEffectsGen]);
 
   return (
-    <Canvas
-      camera={{ position: [0, 11, 13.6], fov: 75 }}
-      linear
-      flat
-      shadows
-      resize={{ debounce: { scroll: 50, resize: 500 } }} // Debounce resize events
-    >
-      <InitAudio
-        isInitialized={audioInitialized}
-        set={setAudioInitialized}
-        initializeAudio={init}
-      />
-      {!audioInitialized ? <Description /> : ""}
-      <Plane
-        rotation={[(Math.PI * 3) / 2, 0, 0]}
-        scale={40}
-        position={[0, -0.1, -10]}
-        receiveShadow
-        castShadow
+    <>
+      <Canvas
+        camera={{ position: [0, 11, 13.6], fov: 75 }}
+        linear
+        flat
+        shadows
+        resize={{ debounce: { scroll: 50, resize: 500 } }} // Debounce resize events
       >
-        <meshLambertMaterial color={"white"} emissive={"white"} />
-      </Plane>
-      <directionalLight
-        position={[0, 5, 10]}
-        intensity={0.5}
-        castShadow
-        color={"white"}
-      />
-      <group visible={audioInitialized}>
-        <OrbitControls makeDefault enabled={orbitEndabled} />
-        <Button
-          position={new Vector3(0, 0, 0)}
-          isPlaying={isPlaying}
-          setIsPlaying={setIsPlaying}
+        <InitAudio
+          isInitialized={audioInitialized}
+          set={setAudioInitialized}
+          initializeAudio={init}
         />
-        <Date month={dates[currentSong].month} day={dates[currentSong].day} />
-        <Author />
-        <Album year={dates[currentSong].year} />
-        <Next
-          setCurrentSong={setCurrentSong}
-          currentSong={currentSong}
-          setIsPlaying={setIsPlaying}
+        {!audioInitialized ? <Description /> : ""}
+        <Plane
+          rotation={[(Math.PI * 3) / 2, 0, 0]}
+          scale={40}
+          position={[0, -0.1, -10]}
+          receiveShadow
+          castShadow
+        >
+          <meshLambertMaterial color={"white"} emissive={"white"} />
+        </Plane>
+        <directionalLight
+          position={[0, 5, 10]}
+          intensity={0.5}
+          castShadow
+          color={"white"}
         />
-        <Prev
-          setCurrentSong={setCurrentSong}
-          currentSong={currentSong}
-          numberDates={numberDates}
-          setIsPlaying={setIsPlaying}
-        />
-        <PlayState isPlaying={isPlaying} />
-        <UserToggle
-          userActions={isUserEffects}
-          setUserActions={setIsUserEffects}
-        />
+        <group visible={audioInitialized}>
+          <OrbitControls makeDefault enabled={orbitEndabled} />
+          <Button
+            position={new Vector3(0, 0, 0)}
+            isPlaying={isPlaying}
+            setIsPlaying={setIsPlaying}
+          />
+          <Date month={dates[currentSong].month} day={dates[currentSong].day} />
+          <Author />
+          <Album year={dates[currentSong].year} />
+          <Next
+            setCurrentSong={setCurrentSong}
+            currentSong={currentSong}
+            setIsPlaying={setIsPlaying}
+          />
+          <Prev
+            setCurrentSong={setCurrentSong}
+            currentSong={currentSong}
+            numberDates={numberDates}
+            setIsPlaying={setIsPlaying}
+          />
+          <PlayState isPlaying={isPlaying} />
+          <UserToggle
+            userActions={isUserEffects}
+            setUserActions={setIsUserEffects}
+          />
 
-        <EffectSliders
-          count={4}
-          visible={isUserEffects}
-          setOrbitEndabled={setOrbitEnabled}
-          setFilterFreq={setFilterFrequency}
-          setDelayFeedback={setDelayFeedback}
-          setDelayTime={setDelayTime}
-          setReverbLevel={setReverbLevel}
-        />
-      </group>
-    </Canvas>
+          <EffectSliders
+            count={4}
+            visible={isUserEffects}
+            setOrbitEndabled={setOrbitEnabled}
+            setFilterFreq={setFilterFrequency}
+            setDelayFeedback={setDelayFeedback}
+            setDelayTime={setDelayTime}
+            setReverbLevel={setReverbLevel}
+          />
+        </group>
+      </Canvas>
+      <A11yAnnouncer />
+    </>
   );
 }

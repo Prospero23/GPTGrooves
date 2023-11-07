@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { type Vector3 } from "three";
 import { type ThreeEvent } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
+import { A11y } from "@react-three/a11y";
 
 interface ButtonProps {
   position: Vector3;
@@ -37,7 +38,7 @@ export default function Button({
   }
 
   return (
-    <>
+    <A11y role="button" description="Triggers audio">
       <group
         ref={group}
         dispose={null}
@@ -67,7 +68,7 @@ export default function Button({
           </mesh>
         </group>
       </group>
-    </>
+    </A11y>
   );
 }
 
