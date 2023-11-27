@@ -38,39 +38,35 @@ export default function Button({
   }
 
   return (
-    <A11y role="button" description="Triggers audio">
-      <group
-        ref={group}
-        dispose={null}
-        position={position}
-        onClick={handleClick}
-      >
-        <group name="Scene">
-          <mesh
-            name="Cylinder"
-            castShadow
-            receiveShadow
-            geometry={nodes.Cylinder.geometry}
-            material={materials["Material.001"]}
-            position={[0.197, 0.055, 0.005]}
-            scale={[1, 0.056, 1]}
-          />
-          <mesh
-            name="Cylinder001"
-            castShadow
-            receiveShadow
-            geometry={nodes.Cylinder001.geometry}
-            position={[0.197, 0.147, 0.019]}
-            rotation={[-Math.PI, 0, -Math.PI]}
-            scale={[-0.887, -0.122, -0.887]}
-          >
-            <meshBasicMaterial color={"red"} />
-          </mesh>
-        </group>
+    // <A11y role="button" description="Triggers audio">
+    <group ref={group} dispose={null} position={position} onClick={handleClick}>
+      <group name="Scene">
+        <mesh
+          name="Cylinder"
+          castShadow
+          receiveShadow
+          geometry={nodes.Cylinder.geometry}
+          material={materials["Material.001"]}
+          position={[0.197, 0.055, 0.005]}
+          scale={[1, 0.056, 1]}
+        />
+        <mesh
+          name="Cylinder001"
+          castShadow
+          receiveShadow
+          geometry={nodes.Cylinder001.geometry}
+          position={[0.197, 0.147, 0.019]}
+          rotation={[-Math.PI, 0, -Math.PI]}
+          scale={[-0.887, -0.122, -0.887]}
+        >
+          <meshBasicMaterial color={"red"} />
+        </mesh>
       </group>
-    </A11y>
+    </group>
+    // </A11y>
   );
 }
 
 // randomly set button color for each day?
 // switch material to look more glass like
+// need accessisisiblity yo be better

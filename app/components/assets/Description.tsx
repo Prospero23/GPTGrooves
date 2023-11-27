@@ -9,7 +9,7 @@ export default function Description() {
     setIsToggled(!isToggled);
   };
 
-  const position = isToggled ? [0, 0, 7] : [0, 0, 3];
+  const position = isToggled ? [0, 0, 8] : [0, 0, 3];
   return (
     <Html
       transform

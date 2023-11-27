@@ -27,6 +27,7 @@ const InitAudio: React.FC<InitAudioProps> = ({
 
   async function handleClick() {
     await initializeAudio();
+    console.log("smh");
     set(!isInitialized);
   }
 
@@ -51,7 +52,7 @@ const InitAudio: React.FC<InitAudioProps> = ({
           <Text3D
             font={"/fonts/ChicagoFLF_Regular.json"}
             scale={2.5}
-            position={[-10, 0, 0]}
+            position={isShowing ? [-10, 0, 0] : [-10, -50, 0]}
             castShadow
             onPointerEnter={handleEnter}
             onPointerLeave={handleLeave}
