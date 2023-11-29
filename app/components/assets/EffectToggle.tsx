@@ -10,8 +10,8 @@ export default function UserToggle({
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const text = effectToggle ? "Effects" : " No Effects";
-  const textColor = isHovered ? "red" : "white";
-  const textEmmisive = isHovered ? "red" : "grey";
+  const textColor = isHovered ? "red" : "black";
+  const textEmmisive = isHovered ? "red" : "black";
 
   function handleClick() {
     setEffectToggle(!effectToggle);

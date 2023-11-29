@@ -11,8 +11,7 @@ export default function Author() {
         position={[-7, 0.5, -7]}
         castShadow
       >
-        <meshLambertMaterial color={"white"} emissive={"grey"} />
-        By: GPT-4
+        <meshLambertMaterial color={"gray"} emissive={"black"} /> By: GPT-4
       </Text3D>
     </Center>
   );

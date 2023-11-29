@@ -13,8 +13,8 @@ export default function Prev({
   setIsPlaying: Dispatch<SetStateAction<boolean>>;
 }) {
   const [isHovered, setIsHovered] = useState<boolean>(false);
-  const textColor = isHovered ? "red" : "white";
-  const textEmmisive = isHovered ? "red" : "grey";
+  const textColor = isHovered ? "red" : "gray";
+  const textEmmisive = isHovered ? "red" : "black";
 
   function handleEnter() {
     setIsHovered(true);

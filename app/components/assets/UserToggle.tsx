@@ -10,7 +10,7 @@ export default function UserToggle({
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const text = userActions ? "User Effects" : "GPT Effects";
-  const textColor = isHovered ? "red" : "white";
+  const textColor = isHovered ? "red" : "black";
   const textEmmisive = isHovered ? "red" : "grey";
 
   function handleClick() {

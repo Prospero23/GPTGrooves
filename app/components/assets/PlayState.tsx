@@ -12,7 +12,7 @@ export default function PlayState({ isPlaying }: { isPlaying: boolean }) {
       position={new Vector3(...position)}
       castShadow
     >
-      <meshLambertMaterial color="white" emissive="grey" />
+      <meshLambertMaterial color="gray" emissive="black" />
       {state}
     </Text3D>
   );

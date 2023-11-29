@@ -11,7 +11,7 @@ export default function Date({ month, day }: { month: string; day: number }) {
         position={[-19, 1, -14]}
         castShadow
       >
-        <meshLambertMaterial color={"white"} emissive={"grey"} />
+        <meshLambertMaterial color={"gray"} emissive={"black"} />
         {month} {day}
       </Text3D>
     </Center>

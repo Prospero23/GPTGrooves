@@ -1,11 +1,12 @@
 /* eslint-disable react/no-unknown-property */
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { Vector3 } from "three";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Plane } from "@react-three/drei";
 
+import { CameraLight } from "./assets/CameraLight";
 import Button from "./assets/Button";
 import Next from "@/app/components/assets/Next";
 import Prev from "@/app/components/assets/Prev";
@@ -56,6 +57,9 @@ export default function Scene({
 
   const numberDates = dates.length;
 
+  // not the cleanest
+  const controlsRef = useRef<any | null>(null);
+
   // switches user/generated effects
   useEffect(() => {
     switchEffectsGen(isUserEffects);
@@ -81,18 +85,18 @@ export default function Scene({
           scale={40}
           position={[0, -0.1, -10]}
           receiveShadow
-          castShadow
         >
-          <meshLambertMaterial color={"white"} emissive={"white"} />
+          <meshLambertMaterial color="white" emissive="#dddddd" />
         </Plane>
-        <directionalLight
-          position={[0, 5, 10]}
-          intensity={0.5}
-          castShadow
-          color={"white"}
-        />
+        {/* <ambientLight intensity={2} /> */}
+
         <group visible={audioInitialized}>
-          <OrbitControls makeDefault enabled={orbitEndabled} />
+          <OrbitControls
+            makeDefault
+            enabled={orbitEndabled}
+            ref={controlsRef}
+          />
+          <CameraLight controlsRef={controlsRef} />
           <Button
             position={new Vector3(0, 0, 0)}
             isPlaying={isPlaying}

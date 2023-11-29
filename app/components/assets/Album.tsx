@@ -10,7 +10,7 @@ export default function Album({ year }: { year: number }) {
       position={[-4.5, 0.0, -3]}
       castShadow
     >
-      <meshLambertMaterial color="white" emissive="grey" />
+      <meshLambertMaterial color="gray" emissive="black" />
       Album: {year}
     </Text3D>
   );
