@@ -13,8 +13,8 @@ const InitAudio: React.FC<InitAudioProps> = ({
   set,
 }: InitAudioProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const textColor = isHovered ? "red" : "white";
-  const textEmmisive = isHovered ? "red" : "grey";
+  const textColor = isHovered ? "red" : "black";
+  const textEmmisive = isHovered ? "red" : "gray";
   const isShowing = !isInitialized;
 
   function handleEnter() {
