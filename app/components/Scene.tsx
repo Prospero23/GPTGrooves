@@ -8,8 +8,8 @@ import { OrbitControls, Plane } from "@react-three/drei";
 
 import { CameraLight } from "./assets/CameraLight";
 import Button from "./assets/Button";
-import Next from "@/app/components/assets/Next";
-import Prev from "@/app/components/assets/Prev";
+import Next from "@/app/components/assets/navigation/Next";
+import Prev from "@/app/components/assets/navigation/Prev";
 import Date from "@/app/components/assets/Date";
 import Author from "@/app/components/assets/Author";
 import Album from "@/app/components/assets/Album";
