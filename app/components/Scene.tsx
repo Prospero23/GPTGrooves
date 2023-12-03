@@ -22,7 +22,6 @@ import { type SongType } from "@/library/musicData";
 import InitAudio from "./assets/InitAudio";
 import Description from "./assets/Description";
 import { A11yAnnouncer } from "@react-three/a11y";
-import AudioChecker from "./assets/AudioChecker";
 
 interface GenDate {
   day: number;
@@ -77,7 +76,6 @@ export default function Scene({
         shadows
         resize={{ debounce: { scroll: 50, resize: 500 } }} // Debounce resize events
       >
-        {/* <AudioChecker check={checkLevels} /> */}
         <InitAudio
           isInitialized={audioInitialized}
           set={setAudioInitialized}
