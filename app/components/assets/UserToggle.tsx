@@ -46,6 +46,29 @@ export default function UserToggle({
   );
 }
 
+export default function UserToggle({
+  setUserActions,
+  userActions,
+}: {
+  setUserActions: Dispatch<SetStateAction<boolean>>;
+  userActions: boolean;
+}) {
+  function handleClick() {
+    setUserActions(!userActions);
+  }
+
+  return (
+    <A11y
+      role="button"
+      description="switch between user and GPT generated effects"
+      actionCall={handleClick}
+      a11yElStyle={{ marginLeft: "400px", marginBottom: "-100px" }}
+    >
+      <UserToggleText userActions={userActions} />
+    </A11y>
+  );
+}
+
 // import { type Dispatch, type SetStateAction, useState, useEffect } from "react";
 // import { Text3D } from "@react-three/drei";
 
