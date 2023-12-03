@@ -297,6 +297,24 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
   function setScheduleAhead(amount: number) {
     audioScheduling.current?.setScheduleAheadTime(amount);
   }
+
+  function checkLevels() {
+    if (
+      bassGPTGain.current !== null &&
+      padGPTGain.current !== null &&
+      drumsGPTGain.current !== null &&
+      bassUserGain.current !== null &&
+      padUserGain.current !== null &&
+      drumsUserGain.current !== null
+    ) {
+      console.log("drumsgpt", drumsGPTGain.current.gain.value);
+      console.log("bassgpt", bassGPTGain.current.gain.value);
+      console.log("padgpt", padGPTGain.current.gain.value);
+      console.log("bassuser", bassUserGain.current.gain.value);
+      console.log("drumsuser", drumsUserGain.current.gain.value);
+      console.log("paduser", padUserGain.current.gain.value);
+    }
+  }
   return {
     isPlaying,
     currentSong,
@@ -309,6 +327,7 @@ export default function useAudioScheduler({ songs }: { songs: SongType[] }) {
     switchEffectsGen,
     init,
     setScheduleAhead,
+    checkLevels,
   };
 }
 
