@@ -1,46 +1,53 @@
+"use client";
+
 import { type Dispatch, type SetStateAction } from "react";
 import { Text3D } from "@react-three/drei";
 import { A11y, useA11y } from "@react-three/a11y";
 
-function UserToggleText({ effectToggle }: { effectToggle: boolean }) {
-  const text = effectToggle ? "Effects" : " No Effects";
+function NextButtonObject({ handleClick }: { handleClick: () => void }) {
   const a11y = useA11y();
 
   return (
     <Text3D
       font={"/fonts/ChicagoFLF_Regular.json"}
-      scale={0.3}
-      position={[9, 0, -6]}
+      scale={1}
+      position={[3, 0, 0.5]}
       rotation={[(Math.PI * 3) / 2, 0, 0]}
       castShadow
+      onClick={handleClick}
     >
       <meshLambertMaterial
         color={a11y.hover || a11y.focus ? "red" : "gray"}
         emissive={a11y.hover || a11y.focus ? "red" : "black"}
       />
-      {text}
+      {">"}
     </Text3D>
   );
 }
 
-export default function EffectToggle({
-  effectToggle,
-  setEffectToggle,
+export default function Next({
+  setCurrentSong,
+  currentSong,
+  setIsPlaying,
 }: {
-  setEffectToggle: Dispatch<SetStateAction<boolean>>;
-  effectToggle: boolean;
+  setCurrentSong: Dispatch<SetStateAction<number>>;
+  currentSong: number;
+  setIsPlaying: Dispatch<SetStateAction<boolean>>;
 }) {
   function handleClick() {
-    setEffectToggle(!effectToggle);
+    if (currentSong > 0) {
+      setCurrentSong(currentSong - 1);
+      setIsPlaying(false);
+    }
   }
-
   return (
     <A11y
       role="button"
-      description="switch between user and GPT generated effects"
       actionCall={handleClick}
+      description="button to go to next song"
+      a11yElStyle={{ marginLeft: "100px" }}
     >
-      <UserToggleText effectToggle={effectToggle} />
+      <NextButtonObject handleClick={handleClick} />
     </A11y>
   );
 }

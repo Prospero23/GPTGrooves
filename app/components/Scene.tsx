@@ -8,8 +8,8 @@ import { OrbitControls, Plane } from "@react-three/drei";
 
 import { CameraLight } from "./assets/CameraLight";
 import Button from "./assets/Button";
-import Next from "@/app/components/assets/Next";
-import Prev from "@/app/components/assets/Prev";
+import Next from "@/app/components/assets/navigation/Next";
+import Prev from "@/app/components/assets/navigation/Prev";
 import Date from "@/app/components/assets/Date";
 import Author from "@/app/components/assets/Author";
 import Album from "@/app/components/assets/Album";
@@ -22,6 +22,7 @@ import { type SongType } from "@/library/musicData";
 import InitAudio from "./assets/InitAudio";
 import Description from "./assets/Description";
 import { A11yAnnouncer } from "@react-three/a11y";
+// import AudioChecker from "./assets/AudioChecker";
 
 interface GenDate {
   day: number;
@@ -53,6 +54,7 @@ export default function Scene({
     setReverbLevel,
     switchEffectsGen,
     init,
+    checkLevels,
   } = useAudioScheduler({ songs }); // TODO: just move all of these functions to the child components
 
   const numberDates = dates.length;
@@ -62,8 +64,9 @@ export default function Scene({
 
   // switches user/generated effects
   useEffect(() => {
+    checkLevels();
     switchEffectsGen(isUserEffects);
-  }, [isUserEffects, switchEffectsGen]);
+  }, [isUserEffects, switchEffectsGen, checkLevels]);
 
   return (
     <>
@@ -74,6 +77,7 @@ export default function Scene({
         shadows
         resize={{ debounce: { scroll: 50, resize: 500 } }} // Debounce resize events
       >
+        {/* <AudioChecker check={checkLevels} /> */}
         <InitAudio
           isInitialized={audioInitialized}
           set={setAudioInitialized}
@@ -89,7 +93,6 @@ export default function Scene({
           <meshLambertMaterial color="white" emissive="#dddddd" />
         </Plane>
         {/* <ambientLight intensity={2} /> */}
-
         <group visible={audioInitialized}>
           <OrbitControls
             makeDefault
