@@ -32,7 +32,7 @@ export default function Description() {
     <>
       <ambientLight />
       <Html transform position={position} rotation={[(Math.PI * 3) / 2, 0, 0]}>
-        <h1 className="text-center text-2xl pb-1">Explanation</h1>
+        <h1 className="text-center text-2xl pb-1 mx-10">Explanation</h1>
         <p>
           These sounds are generated using LangChain and GPT 4. GPT is prompted
           to create a text description of a song formatted in a specified type

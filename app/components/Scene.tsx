@@ -54,7 +54,6 @@ export default function Scene({
     setReverbLevel,
     switchEffectsGen,
     init,
-    checkLevels,
   } = useAudioScheduler({ songs }); // TODO: just move all of these functions to the child components
 
   const numberDates = dates.length;
@@ -64,9 +63,8 @@ export default function Scene({
 
   // switches user/generated effects
   useEffect(() => {
-    checkLevels();
     switchEffectsGen(isUserEffects);
-  }, [isUserEffects, switchEffectsGen, checkLevels]);
+  }, [isUserEffects, switchEffectsGen]);
 
   return (
     <>
@@ -77,7 +75,6 @@ export default function Scene({
         shadows
         resize={{ debounce: { scroll: 50, resize: 500 } }} // Debounce resize events
       >
-        {/* <AudioChecker check={checkLevels} /> */}
         <InitAudio
           isInitialized={audioInitialized}
           set={setAudioInitialized}
@@ -93,48 +90,53 @@ export default function Scene({
           <meshLambertMaterial color="white" emissive="#dddddd" />
         </Plane>
         {/* <ambientLight intensity={2} /> */}
-        <group visible={audioInitialized}>
-          <OrbitControls
-            makeDefault
-            enabled={orbitEndabled}
-            ref={controlsRef}
-          />
-          <CameraLight controlsRef={controlsRef} />
-          <Button
-            position={new Vector3(0, 0, 0)}
-            isPlaying={isPlaying}
-            setIsPlaying={setIsPlaying}
-          />
-          <Date month={dates[currentSong].month} day={dates[currentSong].day} />
-          <Author />
-          <Album year={dates[currentSong].year} />
-          <Next
-            setCurrentSong={setCurrentSong}
-            currentSong={currentSong}
-            setIsPlaying={setIsPlaying}
-          />
-          <Prev
-            setCurrentSong={setCurrentSong}
-            currentSong={currentSong}
-            numberDates={numberDates}
-            setIsPlaying={setIsPlaying}
-          />
-          <PlayState isPlaying={isPlaying} />
-          <UserToggle
-            userActions={isUserEffects}
-            setUserActions={setIsUserEffects}
-          />
+        {audioInitialized && (
+          <group visible={audioInitialized}>
+            <OrbitControls
+              makeDefault
+              enabled={orbitEndabled}
+              ref={controlsRef}
+            />
+            <CameraLight controlsRef={controlsRef} />
+            <Button
+              position={new Vector3(0, 0, 0)}
+              isPlaying={isPlaying}
+              setIsPlaying={setIsPlaying}
+            />
+            <Date
+              month={dates[currentSong].month}
+              day={dates[currentSong].day}
+            />
+            <Author />
+            <Album year={dates[currentSong].year} />
+            <Next
+              setCurrentSong={setCurrentSong}
+              currentSong={currentSong}
+              setIsPlaying={setIsPlaying}
+            />
+            <Prev
+              setCurrentSong={setCurrentSong}
+              currentSong={currentSong}
+              numberDates={numberDates}
+              setIsPlaying={setIsPlaying}
+            />
+            <PlayState isPlaying={isPlaying} />
+            <UserToggle
+              userActions={isUserEffects}
+              setUserActions={setIsUserEffects}
+            />
 
-          <EffectSliders
-            count={4}
-            visible={isUserEffects}
-            setOrbitEndabled={setOrbitEnabled}
-            setFilterFreq={setFilterFrequency}
-            setDelayFeedback={setDelayFeedback}
-            setDelayTime={setDelayTime}
-            setReverbLevel={setReverbLevel}
-          />
-        </group>
+            <EffectSliders
+              count={4}
+              visible={isUserEffects}
+              setOrbitEndabled={setOrbitEnabled}
+              setFilterFreq={setFilterFrequency}
+              setDelayFeedback={setDelayFeedback}
+              setDelayTime={setDelayTime}
+              setReverbLevel={setReverbLevel}
+            />
+          </group>
+        )}
       </Canvas>
       <A11yAnnouncer />
     </>
