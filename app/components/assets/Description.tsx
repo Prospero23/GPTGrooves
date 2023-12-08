@@ -30,17 +30,25 @@ export default function Description() {
   }, []);
   return (
     <>
-      <ambientLight />
-      <Html transform position={position} rotation={[(Math.PI * 3) / 2, 0, 0]}>
-        <h1 className="text-center text-2xl pb-1 mx-10">Explanation</h1>
-        <p>
-          These sounds are generated using LangChain and GPT 4. GPT is prompted
-          to create a text description of a song formatted in a specified type
-          of musical markup. This is parsed to be fed back into the model, first
-          creating the data for bass, pad, and drums and then for filtering. All
-          of this data is then combined together to output a song and stored in
-          a database. A new song is generated each day.
-        </p>
+      <Html
+        transform
+        position={position}
+        rotation={[(Math.PI * 3) / 2, 0, 0]}
+        className="flex justify-center z-0"
+      >
+        <div className="lg:w-1/4 flex flex-col justify-center items-center">
+          <h1 className="text-center text-2xl mx-10">Explanation</h1>
+          <p>
+            These sounds are generated using LangChain and GPT 4. GPT is
+            prompted to create a text description of a song formatted in a
+            specified type of musical markup. This is parsed to be fed back into
+            the model, first creating the data for bass, pad, and drums and then
+            for filtering. All of this data is then combined together to output
+            a song and stored in a database. A new song is generated each day.
+            To hear, make sure your sound is on and use the mouse to move
+            around.
+          </p>
+        </div>
       </Html>
     </>
   );

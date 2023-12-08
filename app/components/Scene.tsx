@@ -89,15 +89,11 @@ export default function Scene({
         >
           <meshLambertMaterial color="white" emissive="#dddddd" />
         </Plane>
+        <OrbitControls makeDefault enabled={orbitEndabled} ref={controlsRef} />
+        <CameraLight controlsRef={controlsRef} />
         {/* <ambientLight intensity={2} /> */}
         {audioInitialized && (
           <group visible={audioInitialized}>
-            <OrbitControls
-              makeDefault
-              enabled={orbitEndabled}
-              ref={controlsRef}
-            />
-            <CameraLight controlsRef={controlsRef} />
             <Button
               position={new Vector3(0, 0, 0)}
               isPlaying={isPlaying}
