@@ -3,20 +3,20 @@ import { Vector3 } from "three";
 import { useEffect, useState } from "react";
 
 export default function Description() {
-  const [position, setPosition] = useState(new Vector3(0, 0, 3));
+  const [position, setPosition] = useState(new Vector3(0, 0, 5));
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 440 && window.innerWidth > 320) {
+      if (window.innerWidth < 500 && window.innerWidth > 350) {
         // Change the position for smaller screens
-        setPosition(new Vector3(0, 0, 4));
-      } else if (window.innerWidth < 320 && window.innerWidth > 230) {
         setPosition(new Vector3(0, 0, 5));
-      } else if (window.innerWidth <= 230 && window.innerHeight > 170) {
-        setPosition(new Vector3(0, 0, 7));
+      } else if (window.innerWidth < 350 && window.innerWidth > 250) {
+        setPosition(new Vector3(0, 0, 6));
+      } else if (window.innerWidth <= 250 && window.innerHeight > 170) {
+        setPosition(new Vector3(0, 0, 8));
       } else {
         // Reset to default position for larger screens
-        setPosition(new Vector3(0, 0, 3));
+        setPosition(new Vector3(0, 0, 4));
       }
     };
 
@@ -36,7 +36,7 @@ export default function Description() {
         rotation={[(Math.PI * 3) / 2, 0, 0]}
         className="flex justify-center z-0"
       >
-        <div className="lg:w-1/4 flex flex-col justify-center items-center">
+        <div className=" w-4/5 md:w-3/4 lg:w-1/2 flex flex-col justify-center items-center">
           <h1 className="text-center text-2xl mx-10">Explanation</h1>
           <p>
             These sounds are generated using LangChain and GPT 4. GPT is
