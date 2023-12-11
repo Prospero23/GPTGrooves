@@ -1,5 +1,27 @@
 import { z } from "zod";
 
+export const MarkupInstrumentSchema = z.object({
+  description: z.string(),
+  dependencies: z.array(z.string()),
+});
+
+export const MarkupEffectSchema = z.object({
+  description: z.string(),
+});
+
+export const MarkupSectionSchema = z.object({
+  number_bars: z.number().describe("Number of bars in a section"),
+  instruments: z
+    .record(MarkupInstrumentSchema)
+    .describe("Instruments in a section"),
+  name: z.string(),
+});
+
+export const MusicalMarkupSchema = z.object({
+  original_text: z.string(),
+  sections: z.record(MarkupSectionSchema).describe("SONG"),
+});
+
 // This file is generated based on the ./music_generator_lambda/music_generator/music_generator_types.py.
 // If it changes, this needs to, too.
 export const Note = z.custom<string>(
@@ -91,7 +113,9 @@ export const SongSection = z.object({
 
 export const Song = z.object({
   sections: z.array(SongSection),
+  markup: MusicalMarkupSchema,
 });
+
 export const SongRecord = z.object({
   song: Song,
   created_at_utc: z.string(),

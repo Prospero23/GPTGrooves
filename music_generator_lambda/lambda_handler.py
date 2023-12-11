@@ -4,6 +4,7 @@ import os
 from boto3.session import Session
 from botocore.exceptions import ClientError
 from mypy_boto3_secretsmanager.client import SecretsManagerClient
+from music_generator.music_generator_types.base_song_types import Config
 from music_generator.utilities.set_langchain_environment import (
     set_langchain_environment,
 )
@@ -11,7 +12,7 @@ from music_generator.workflows.daily_generate_song import (
     daily_generate_song_and_persist,
 )
 
-from music_generator.music_generator_types import Config
+
 from music_generator.utilities.logs import get_logger
 
 logger = get_logger(__name__)

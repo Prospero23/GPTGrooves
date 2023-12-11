@@ -12,7 +12,7 @@ from music_generator.music_generator_types.base_song_types import Song
 
 
 def generate_song(
-    musical_markup: MusicalMarkup, llm: Union[BaseChatModel, BaseLLM]
+    musical_markup: MusicalMarkup, llm: Union[BaseChatModel, BaseLLM], key: int = 0
 ) -> Song:
     song = Song()
     sections = musical_markup.sections

@@ -15,7 +15,6 @@ export default async function Home() {
     const day = utcDate.getUTCDate();
     const month = utcDate.toLocaleString("default", { month: "long" });
     const year = utcDate.getFullYear(); // +1 to make 0-11 -> 1-12
-
     return { month, day, year };
   });
   return (

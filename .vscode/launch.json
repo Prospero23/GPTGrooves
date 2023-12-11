@@ -5,6 +5,20 @@
     "version": "0.2.0",
     "configurations": [
 
+
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/music_generator_lambda",
+            "justMyCode": false,
+            "env": {
+                "PYTHON_LOG_LEVEL": "DEBUG",
+                "PYTHONPATH": "${PYTHONPATH}:${workspaceFolder}/music_generator_lambda"
+            }
+        },
         {
             "name": "Python: Generate Bar",
             "type": "python",
@@ -81,6 +95,20 @@
             "request": "launch",
             "cwd": "${workspaceFolder}/music_generator_lambda",
             "module": "music_generator.workflows.daily_generate_song",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "NOCACHE": "0",
+                "PYTHON_LOG_LEVEL": "DEBUG",
+                // "PYTHONPATH": "${workspaceFolder}/music_generator_lambda"
+            }
+        },
+        {
+            "name": "Python: Delete Future Songs",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/music_generator_lambda",
+            "module": "music_generator.workflows.delete_future_songs",
             "console": "integratedTerminal",
             "justMyCode": false,
             "env": {

@@ -19,6 +19,7 @@ class MarkupSection(BaseModel):
 
 
 class MusicalMarkup(BaseModel):
+    original_text: str
     sections: Dict[str, MarkupSection] = Field("SONG")
 
     @staticmethod
@@ -82,4 +83,4 @@ class MusicalMarkup(BaseModel):
                 number_bars=bars, instruments=instruments, name=section_name
             )
 
-        return MusicalMarkup(sections=sections_dict)
+        return MusicalMarkup(original_text=outline, sections=sections_dict)

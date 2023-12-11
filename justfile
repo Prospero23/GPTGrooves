@@ -18,7 +18,7 @@ initall *args:
 ecr_login:
     aws ecr get-login-password --region us-west-1 | docker login --username AWS --password-stdin "${ECR_HOST}"
 
-build_music_generator:
+build_music_generator: (ecr_login)
     #!/usr/bin/env bash
     set -e
     set -o pipefail
@@ -80,7 +80,7 @@ generate:
     # poetry run python music_generator/generator.py
 
     # Instead, we invoke as modules (the right way)
-    poetry run python -m music_generator.generator
+    poetry run python -m music_generator.generate_song
 
 
 invoke_generator environment:
