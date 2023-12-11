@@ -45,8 +45,8 @@ export default function Description() {
             the model, first creating the data for bass, pad, and drums and then
             for filtering. All of this data is then combined together to output
             a song and stored in a database. A new song is generated each day.
-            To hear, make sure your sound is on and use the mouse to move
-            around.
+            To hear, make sure your sound, including ring switch, is on and use
+            the mouse to move around.
           </p>
         </div>
       </Html>

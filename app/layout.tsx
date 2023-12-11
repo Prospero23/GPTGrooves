@@ -7,6 +7,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "GPTGrooves",
   description: "lil GPT composition action",
+  openGraph: {
+    images: ["/images/GPTGrooves.png"],
+  },
 };
 
 export default function RootLayout({
