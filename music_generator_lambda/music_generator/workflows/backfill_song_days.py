@@ -74,5 +74,5 @@ if __name__ == "__main__":
     #     if config.llm_cache_filename
     #     else None
     # )
-    count = fill_missing_songs(config=config, num_days=3)
+    count = fill_missing_songs(config=config, num_days=28)
     print(f"Created {count} backdated songs.")
