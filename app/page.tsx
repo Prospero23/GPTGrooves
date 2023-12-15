@@ -1,5 +1,8 @@
 import { getSongs } from "@/library/db";
 import Scene from "./components/Scene";
+
+export const dynamic = "force dynamic";
+
 // import PlayButton from "./components/PlayButton";
 export default async function Home() {
   let result;
@@ -25,7 +28,3 @@ export default async function Home() {
     </main>
   );
 }
-
-export const dynamic = "force dynamic";
-
-// bars={barsArray}
