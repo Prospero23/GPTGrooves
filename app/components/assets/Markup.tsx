@@ -1,16 +1,15 @@
 import { type Dispatch, type SetStateAction } from "react";
 import { Text3D } from "@react-three/drei";
-import { A11y, useA11y } from "@react-three/a11y";
+import { useA11y, A11y } from "@react-three/a11y";
 
-function UserToggleText({ effectToggle }: { effectToggle: boolean }) {
-  const text = effectToggle ? "Effects" : " No Effects";
+function MarkupText() {
   const a11y = useA11y();
 
   return (
     <Text3D
       font={"/fonts/ChicagoFLF_Regular.json"}
       scale={0.7}
-      position={[9, 0, -6]}
+      position={[-13, 0, -4]}
       rotation={[(Math.PI * 3) / 2, 0, 0]}
       castShadow
     >
@@ -18,29 +17,28 @@ function UserToggleText({ effectToggle }: { effectToggle: boolean }) {
         color={a11y.hover || a11y.focus ? "red" : "gray"}
         emissive={a11y.hover || a11y.focus ? "red" : "black"}
       />
-      {text}
+      See Markup
     </Text3D>
   );
 }
 
-export default function EffectToggle({
-  effectToggle,
-  setEffectToggle,
+export default function Markup({
+  setShowModal,
 }: {
-  setEffectToggle: Dispatch<SetStateAction<boolean>>;
-  effectToggle: boolean;
+  setShowModal: Dispatch<SetStateAction<boolean>>;
 }) {
   function handleClick() {
-    setEffectToggle(!effectToggle);
+    setShowModal(true);
   }
 
   return (
     <A11y
       role="button"
-      description="switch between user and GPT generated effects"
+      description="See the markup that generated data"
       actionCall={handleClick}
+      a11yElStyle={{ marginLeft: "-400px", marginBottom: "-100px" }}
     >
-      <UserToggleText effectToggle={effectToggle} />
+      <MarkupText />
     </A11y>
   );
 }

@@ -9,8 +9,8 @@ function UserToggleText({ userActions }: { userActions: boolean }) {
   return (
     <Text3D
       font={"/fonts/ChicagoFLF_Regular.json"}
-      scale={0.3}
-      position={[9, 0, -4]}
+      scale={0.7}
+      position={[8, 0, -4]}
       rotation={[(Math.PI * 3) / 2, 0, 0]}
       castShadow
     >

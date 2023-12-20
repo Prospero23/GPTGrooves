@@ -30,14 +30,21 @@ interface GenDate {
   year: number;
 }
 
+interface MarkupType {
+  original_text: string;
+  sections: any;
+}
+
 // type CallbackFunction = (err: Error | null, ...args: any[]) => void;
 
 export default function Scene({
   songs,
   dates,
+  markups,
 }: {
   songs: SongType[];
   dates: GenDate[];
+  markups: MarkupType[];
 }) {
   const [isUserEffects, setIsUserEffects] = useState<boolean>(false);
   const [orbitEndabled, setOrbitEnabled] = useState<boolean>(true);
@@ -121,7 +128,6 @@ export default function Scene({
               userActions={isUserEffects}
               setUserActions={setIsUserEffects}
             />
-
             <EffectSliders
               count={4}
               visible={isUserEffects}

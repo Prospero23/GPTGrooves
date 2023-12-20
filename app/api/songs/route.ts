@@ -14,7 +14,4 @@ export async function GET(request: Request) {
   }
 }
 
-// export async function GET(request: Request) {
-//   const songs = await getSongs();
-//   return NextResponse.json({ songs });
-// }
+export const dynamic = "force-dynamic";

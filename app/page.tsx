@@ -1,4 +1,3 @@
-import { type SongType } from "@/library/musicData";
 import Scene from "./components/Scene";
 
 // import PlayButton from "./components/PlayButton";
@@ -10,11 +9,11 @@ export default async function Home() {
     throw Error("Error fetching songs");
   }
   const body = await result.json();
-  const bars: SongType[] = body.songs;
-  console.log(bars);
+  const bars = body.songs;
 
-  const songsArray = bars.map((item) => item.song);
-  const datesArray = bars.map((item) => {
+  const songsArray = bars.map((item: any) => item.song);
+  const markupArray = bars.map((item: any) => item.markup);
+  const datesArray = bars.map((item: any) => {
     const utcDate = new Date(item.created_at_utc);
     const day = utcDate.getUTCDate();
     const month = utcDate.toLocaleString("default", { month: "long" });
@@ -24,8 +23,7 @@ export default async function Home() {
   return (
     <main className="flex w-screen h-screen bg-white">
       <div className="w-screen h-screen">
-        <p>{"hi"}</p>
-        <Scene songs={songsArray} dates={datesArray} />
+        <Scene songs={songsArray} dates={datesArray} markups={markupArray} />
       </div>
     </main>
   );
