@@ -5,8 +5,11 @@ export default async function Home() {
   let result;
 
   // Use VERCEL_URL if available, otherwise default to a development URL
-  const baseUrl =
-    `https://${process.env.VERCEL_URL}` ?? "http://localhost:3000";
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
+  const baseUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+  console.log(baseUrl);
   const apiUrl = `${baseUrl}/api/songs`;
 
   try {
