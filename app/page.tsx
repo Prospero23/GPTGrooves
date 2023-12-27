@@ -5,7 +5,8 @@ export default async function Home() {
   let result;
 
   // Use VERCEL_URL if available, otherwise default to a development URL
-  const baseUrl = process.env.VERCEL_URL ?? "http://localhost:3000";
+  const baseUrl =
+    `https://${process.env.VERCEL_URL}` ?? "http://localhost:3000";
   const apiUrl = `${baseUrl}/api/songs`;
 
   try {
