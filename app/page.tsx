@@ -3,11 +3,24 @@ import Scene from "./components/Scene";
 // import PlayButton from "./components/PlayButton";
 export default async function Home() {
   let result;
+
+  // Use VERCEL_URL if available, otherwise default to a development URL
+  const baseUrl = process.env.VERCEL_URL ?? "http://localhost:3000";
+  const apiUrl = `${baseUrl}/api/songs`;
+
   try {
-    result = await fetch(`${process.env.BASE_URL}/api/songs`);
-  } catch (e) {
-    throw Error("Error fetching songs");
+    // Fetch data from the API endpoint
+    result = await fetch(apiUrl);
+    if (!result.ok) {
+      // Handle non-2xx responses
+      throw new Error(`Error fetching songs: ${result.statusText}`);
+    }
+  } catch (e: any) {
+    // Handle any errors that occurred during the fetch
+    console.error("Error fetching songs:", e.message);
+    throw new Error("Error fetching songs");
   }
+
   const body = await result.json();
   const bars = body.songs;
 
